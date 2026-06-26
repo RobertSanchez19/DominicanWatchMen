@@ -1,4 +1,7 @@
 @page "/"
+@rendermode InteractiveServer
+@inject IRelojService RelojSvc
+@inject ILogger<Home> Logger
 
 <PageTitle>Dominican Watch Men — Inicio</PageTitle>
 
@@ -6,7 +9,8 @@
     Titulo="No vendemos relojes. Ensamblamos tiempo."
     Subtitulo="Movimientos Seiko originales. Componentes de grado quirúrgico. Diseños únicos con alma clásica."
     BotonTexto="Ver Catálogo"
-    BotonUrl="/catalogo" />
+    BotonUrl="/catalogo"
+    Destacados="destacados" />
 
 <!-- ===== FEATURES ===== -->
 <section class="features-section">
@@ -77,3 +81,21 @@
         <a href="/marcas" class="btn-secondary">Ver Marcas</a>
     </div>
 </section>
+
+@code {
+    private List<Reloj> destacados = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var todos = await RelojSvc.GetAllAsync();
+            destacados = todos.Where(r => r.Destacado).ToList();
+            Logger.LogInformation("Home: {Count} relojes en portada", destacados.Count);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Home: no se pudieron cargar los relojes destacados");
+        }
+    }
+}

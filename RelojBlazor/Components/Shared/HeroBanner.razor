@@ -1,3 +1,5 @@
+@implements IDisposable
+
 <section class="hero-banner">
     <div class="hero-content">
         <div class="hero-eyebrow">Alta Relojería · Seiko Mods</div>
@@ -25,10 +27,47 @@
     <div class="hero-visual">
         <div class="hero-circle hero-circle-lg"></div>
         <div class="hero-circle hero-circle-md"></div>
-        <div class="hero-watch-placeholder">
-            <span class="hero-watch-emoji">⌚</span>
-        </div>
-        <div class="hero-badge">DOMINICAN WATCH MEN · NH35A</div>
+
+        @if (Actual is not null)
+        {
+            <div class="hero-featured" @key="Actual.Id">
+                @if (!string.IsNullOrEmpty(Actual.ImagenUrl))
+                {
+                    <img src="@Actual.ImagenUrl" alt="@Actual.Nombre" class="hero-featured-img" />
+                }
+                else
+                {
+                    <div class="hero-watch-placeholder">
+                        <span class="hero-watch-emoji">⌚</span>
+                    </div>
+                }
+                <div class="hero-featured-info">
+                    <span class="hero-featured-marca">@(Actual.Marca?.Nombre ?? "Dominican Watch Men")</span>
+                    <span class="hero-featured-nombre">@Actual.Nombre</span>
+                    <span class="hero-featured-precio">RD$ @Actual.Precio.ToString("N2")</span>
+                </div>
+            </div>
+
+            @if (Destacados.Count > 1)
+            {
+                <div class="hero-dots">
+                    @for (int i = 0; i < Destacados.Count; i++)
+                    {
+                        var idx = i;
+                        <button class="hero-dot @(idx == indice ? "hero-dot-activo" : "")"
+                                @onclick="() => IrA(idx)"
+                                aria-label="@($"Mostrar reloj {idx + 1}")"></button>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="hero-watch-placeholder">
+                <span class="hero-watch-emoji">⌚</span>
+            </div>
+            <div class="hero-badge">DOMINICAN WATCH MEN · NH35A</div>
+        }
     </div>
 </section>
 
@@ -37,4 +76,48 @@
     [Parameter] public string Subtitulo { get; set; } = "";
     [Parameter] public string BotonTexto { get; set; } = "Ver más";
     [Parameter] public string BotonUrl { get; set; } = "/";
+
+    // Relojes marcados como principales en el admin. Si hay 2+, se alternan solos.
+    [Parameter] public List<Reloj> Destacados { get; set; } = new();
+    [Parameter] public int IntervaloSegundos { get; set; } = 4;
+
+    private int indice = 0;
+    private System.Threading.Timer? timer;
+
+    private Reloj? Actual =>
+        Destacados.Count == 0 ? null : Destacados[indice % Destacados.Count];
+
+    protected override void OnParametersSet()
+    {
+        if (indice >= Destacados.Count) indice = 0;
+        ConfigurarRotacion();
+    }
+
+    private void ConfigurarRotacion()
+    {
+        timer?.Dispose();
+        timer = null;
+
+        // Solo alterna cuando hay más de un reloj destacado.
+        if (Destacados.Count > 1)
+        {
+            var intervalo = TimeSpan.FromSeconds(IntervaloSegundos);
+            timer = new System.Threading.Timer(_ =>
+            {
+                _ = InvokeAsync(() =>
+                {
+                    indice = (indice + 1) % Destacados.Count;
+                    StateHasChanged();
+                });
+            }, null, intervalo, intervalo);
+        }
+    }
+
+    private void IrA(int i)
+    {
+        indice = i;
+        ConfigurarRotacion(); // reinicia el contador al cambiar manualmente
+    }
+
+    public void Dispose() => timer?.Dispose();
 }

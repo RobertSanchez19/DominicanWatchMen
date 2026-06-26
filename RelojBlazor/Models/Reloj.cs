@@ -8,6 +8,7 @@ namespace RelojBlazor.Models
         public decimal Precio { get; set; }
         public int Stock { get; set; }
         public string? ImagenUrl { get; set; }
+        public bool Destacado { get; set; }
         public int MarcaId { get; set; }
         public Marca? Marca { get; set; }
     }

@@ -44,6 +44,7 @@ namespace RelojAPI.Services
             existing.Stock = reloj.Stock;
             existing.MarcaId = reloj.MarcaId;
             existing.ImagenUrl = reloj.ImagenUrl;
+            existing.Destacado = reloj.Destacado;
 
             await _context.SaveChangesAsync();
             return existing;

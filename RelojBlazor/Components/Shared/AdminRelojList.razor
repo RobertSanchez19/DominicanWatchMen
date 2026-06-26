@@ -37,7 +37,13 @@
                                     <div class="admin-thumb-empty">⌚</div>
                                 }
                             </td>
-                            <td class="admin-td-nombre">@r.Nombre</td>
+                            <td class="admin-td-nombre">
+                                @r.Nombre
+                                @if (r.Destacado)
+                                {
+                                    <span class="admin-badge-portada" title="En portada">⭐ Portada</span>
+                                }
+                            </td>
                             <td>@r.Modelo</td>
                             <td>@(r.Marca?.Nombre ?? "-")</td>
                             <td>$@r.Precio.ToString("N0")</td>

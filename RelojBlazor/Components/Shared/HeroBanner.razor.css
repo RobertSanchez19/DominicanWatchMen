@@ -1,0 +1,89 @@
+.hero-featured {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    animation: hero-fade 0.6s ease;
+}
+
+.hero-featured-img {
+    width: min(440px, 80vw);
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-height: 60vh;
+    object-fit: contain;
+    border-radius: 20px;
+    filter: drop-shadow(0 22px 50px rgba(0, 0, 0, 0.45));
+}
+
+.hero-featured-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.hero-featured-marca {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.hero-featured-nombre {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.hero-featured-precio {
+    font-size: 1rem;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.hero-dots {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.hero-dot {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.hero-dot:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.hero-dot-activo {
+    background: #fff;
+    transform: scale(1.25);
+}
+
+@keyframes hero-fade {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+    .hero-featured-img {
+        width: min(300px, 85vw);
+    }
+
+    .hero-featured-nombre {
+        font-size: 1.1rem;
+    }
+}
