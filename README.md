@@ -37,7 +37,9 @@ Aplicación de catálogo y administración de relojes construida con ASP.NET Cor
 
 > La cadena de conexión y la URL de la API se configuran en los respectivos `appsettings.json`.
 
-## Autor
+## Integrantes
 
-Ing. Roberto R. Sánchez Gutiérrez · 24-0177
+- Ing. Roberto R. Sánchez Gutiérrez · 24-0177
+- Axel Santana · 23-1568
+
 Facilitadora: Johanna Elisa Rodríguez Ricardo
