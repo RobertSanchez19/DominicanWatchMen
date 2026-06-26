@@ -1,0 +1,164 @@
+@inject IRelojService RelojSvc
+
+<div class="admin-form-panel">
+    <h3 class="admin-form-title">@(modelo.Id > 0 ? "Editar Reloj" : "Nuevo Reloj")</h3>
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="form-error">@mensajeError</div>
+    }
+    @if (!string.IsNullOrEmpty(mensajeOk))
+    {
+        <div class="form-ok">@mensajeOk</div>
+    }
+
+    <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input class="form-input" @bind="modelo.Nombre" placeholder="Ej: Submariner Steel" />
+    </div>
+    <div class="form-group">
+        <label class="form-label">Modelo / Referencia *</label>
+        <input class="form-input" @bind="modelo.Modelo" placeholder="Ej: DWM-SUB-STL-BK" />
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">Precio (USD) *</label>
+            <input class="form-input" type="number" min="0" step="0.01" @bind="modelo.Precio" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Stock *</label>
+            <input class="form-input" type="number" min="0" @bind="modelo.Stock" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="form-label">Marca *</label>
+        @if (!marcas.Any())
+        {
+            <div class="form-hint" style="color:#CF1322">⚠ No hay marcas. Crea una en la pestaña Marcas primero.</div>
+        }
+        else
+        {
+            <select class="form-input" @bind="modelo.MarcaId">
+                <option value="0">— Selecciona una marca —</option>
+                @foreach (var m in marcas)
+                {
+                    <option value="@m.Id">@m.Nombre (@(m.PaisOrigen ?? "—"))</option>
+                }
+            </select>
+        }
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Imagen del producto</label>
+        @if (!string.IsNullOrEmpty(modelo.ImagenUrl))
+        {
+            <div class="admin-img-preview-wrap">
+                <img src="@modelo.ImagenUrl" class="admin-img-preview" alt="Vista previa" />
+                <button class="admin-btn-img-clear" @onclick="QuitarImagen">✕ Quitar</button>
+            </div>
+        }
+        <InputFile OnChange="SubirImagen" accept=".jpg,.jpeg,.png,.webp" class="form-file" />
+        @if (subiendoImagen)
+        {
+            <span class="form-hint">Subiendo imagen…</span>
+        }
+    </div>
+
+    <div class="admin-form-actions">
+        <button class="btn-primary" @onclick="Guardar" disabled="@guardando">
+            @(guardando ? "Guardando..." : "Guardar")
+        </button>
+        <button class="btn-secondary" @onclick="() => OnCancelar.InvokeAsync()">Cancelar</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Reloj? Reloj { get; set; }
+    [Parameter] public EventCallback OnGuardado { get; set; }
+    [Parameter] public EventCallback OnCancelar { get; set; }
+
+    private Reloj modelo = new();
+    private IEnumerable<Marca> marcas = [];
+    private string mensajeError = "";
+    private string mensajeOk = "";
+    private bool guardando = false;
+    private bool subiendoImagen = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        mensajeError = "";
+        mensajeOk = "";
+        modelo = Reloj != null
+            ? new Reloj
+            {
+                Id        = Reloj.Id,
+                Nombre    = Reloj.Nombre,
+                Modelo    = Reloj.Modelo,
+                Precio    = Reloj.Precio,
+                Stock     = Reloj.Stock,
+                MarcaId   = Reloj.MarcaId,
+                ImagenUrl = Reloj.ImagenUrl
+            }
+            : new Reloj();
+
+        marcas = await RelojSvc.GetMarcasAsync();
+    }
+
+    private async Task SubirImagen(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+        subiendoImagen = true;
+        mensajeError = "";
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            var url = await RelojSvc.UploadImageAsync(stream, file.Name, file.ContentType);
+            if (url != null)
+                modelo.ImagenUrl = url;
+            else
+                mensajeError = "No se pudo subir la imagen (formato no válido).";
+        }
+        catch
+        {
+            mensajeError = "Error al subir. Máx. 5 MB, formatos: jpg/png/webp.";
+        }
+        finally { subiendoImagen = false; }
+    }
+
+    private void QuitarImagen() => modelo.ImagenUrl = null;
+
+    private async Task Guardar()
+    {
+        mensajeError = "";
+        mensajeOk = "";
+
+        if (string.IsNullOrWhiteSpace(modelo.Nombre) || string.IsNullOrWhiteSpace(modelo.Modelo))
+        {
+            mensajeError = "Nombre y Modelo son obligatorios.";
+            return;
+        }
+        if (modelo.MarcaId <= 0)
+        {
+            mensajeError = "Debes seleccionar una marca.";
+            return;
+        }
+
+        guardando = true;
+        try
+        {
+            if (modelo.Id == 0)
+                await RelojSvc.CreateRelojAsync(modelo);
+            else
+                await RelojSvc.UpdateRelojAsync(modelo.Id, modelo);
+
+            mensajeOk = "Guardado correctamente.";
+            await OnGuardado.InvokeAsync();
+        }
+        catch
+        {
+            mensajeError = "Error al guardar. Verifica que la API esté activa.";
+        }
+        finally { guardando = false; }
+    }
+}

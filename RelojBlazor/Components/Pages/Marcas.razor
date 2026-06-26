@@ -1,0 +1,78 @@
+@page "/marcas"
+@rendermode InteractiveServer
+@inject IRelojService RelojService
+@inject ILogger<Marcas> Logger
+
+<PageTitle>Marcas — Dominican Watch Men</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Marcas</h1>
+    <p class="page-sub">Conoce las marcas disponibles en nuestra colección.</p>
+</div>
+
+@if (cargando)
+{
+    <div class="loading-msg">
+        <span class="loading-icon">⌛</span> Cargando marcas desde la API...
+    </div>
+}
+else if (errorMensaje != null)
+{
+    <div class="error-msg">
+        <strong>Error:</strong> @errorMensaje
+    </div>
+}
+else
+{
+    <div class="marcas-grid">
+        @foreach (var marca in marcas)
+        {
+            <MarcaCard Marca="marca" OnSeleccionada="OnMarcaSeleccionada" EsActiva="marcaSeleccionada?.Id == marca.Id" />
+        }
+    </div>
+
+    @if (!marcas.Any())
+    {
+        <div class="empty-msg">No hay marcas registradas todavía.</div>
+    }
+
+    @if (marcaSeleccionada != null)
+    {
+        <MarcaDetalle Marca="marcaSeleccionada" OnCerrar="CerrarDetalle" />
+    }
+}
+
+@code {
+    private List<Marca> marcas = new();
+    private Marca? marcaSeleccionada;
+    private bool cargando = true;
+    private string? errorMensaje;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Logger.LogInformation("Inicializando página Marcas");
+            marcas = (await RelojService.GetMarcasAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error al cargar marcas");
+            errorMensaje = "No se pudo conectar con la API de marcas.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void OnMarcaSeleccionada(Marca marca)
+    {
+        marcaSeleccionada = marcaSeleccionada?.Id == marca.Id ? null : marca;
+    }
+
+    private void CerrarDetalle()
+    {
+        marcaSeleccionada = null;
+    }
+}

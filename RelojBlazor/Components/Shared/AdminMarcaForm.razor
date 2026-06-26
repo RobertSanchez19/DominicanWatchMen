@@ -1,0 +1,135 @@
+@inject IRelojService RelojSvc
+
+<div class="admin-form-panel">
+    <h3 class="admin-form-title">@(modelo.Id > 0 ? "Editar Marca" : "Nueva Marca")</h3>
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="form-error">@mensajeError</div>
+    }
+    @if (!string.IsNullOrEmpty(mensajeOk))
+    {
+        <div class="form-ok">@mensajeOk</div>
+    }
+
+    <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input class="form-input" @bind="modelo.Nombre" placeholder="Ej: Seiko" />
+    </div>
+    <div class="form-group">
+        <label class="form-label">País de Origen</label>
+        <input class="form-input" @bind="modelo.PaisOrigen" placeholder="Ej: Japón" />
+    </div>
+    <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-input form-textarea"
+                  @bind="modelo.Descripcion"
+                  placeholder="Breve descripción de la marca..."></textarea>
+    </div>
+
+    <!-- Logo de marca -->
+    <div class="form-group">
+        <label class="form-label">Logo de la marca</label>
+        @if (!string.IsNullOrEmpty(modelo.LogoUrl))
+        {
+            <div class="admin-img-preview-wrap">
+                <img src="@modelo.LogoUrl" class="admin-img-preview admin-logo-preview" alt="Logo" />
+                <button class="admin-btn-img-clear" @onclick="QuitarLogo">✕ Quitar</button>
+            </div>
+        }
+        <InputFile OnChange="SubirLogo" accept=".jpg,.jpeg,.png,.webp,.svg" class="form-file" />
+        @if (subiendoLogo)
+        {
+            <span class="form-hint">Subiendo logo…</span>
+        }
+    </div>
+
+    <div class="admin-form-actions">
+        <button class="btn-primary" @onclick="Guardar" disabled="@guardando">
+            @(guardando ? "Guardando..." : "Guardar")
+        </button>
+        <button class="btn-secondary" @onclick="() => OnCancelar.InvokeAsync()">Cancelar</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Marca? Marca { get; set; }
+    [Parameter] public EventCallback OnGuardado { get; set; }
+    [Parameter] public EventCallback OnCancelar { get; set; }
+
+    private Marca modelo = new();
+    private string mensajeError = "";
+    private string mensajeOk = "";
+    private bool guardando = false;
+    private bool subiendoLogo = false;
+
+    protected override void OnParametersSet()
+    {
+        mensajeError = "";
+        mensajeOk = "";
+        modelo = Marca != null
+            ? new Marca
+            {
+                Id          = Marca.Id,
+                Nombre      = Marca.Nombre,
+                PaisOrigen  = Marca.PaisOrigen,
+                Descripcion = Marca.Descripcion,
+                LogoUrl     = Marca.LogoUrl
+            }
+            : new Marca();
+    }
+
+    private async Task SubirLogo(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+        subiendoLogo = true;
+        mensajeError = "";
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 3 * 1024 * 1024);
+            var contentType = file.ContentType == "image/svg+xml" ? "image/png" : file.ContentType;
+            var url = await RelojSvc.UploadImageAsync(stream, file.Name, contentType);
+            if (url != null)
+                modelo.LogoUrl = url;
+            else
+                mensajeError = "No se pudo subir el logo (formatos: jpg/png/webp).";
+        }
+        catch
+        {
+            mensajeError = "Error al subir. Máx. 3 MB.";
+        }
+        finally { subiendoLogo = false; }
+    }
+
+    private void QuitarLogo() => modelo.LogoUrl = null;
+
+    private async Task Guardar()
+    {
+        mensajeError = "";
+        mensajeOk = "";
+
+        if (string.IsNullOrWhiteSpace(modelo.Nombre))
+        {
+            mensajeError = "El nombre es obligatorio.";
+            return;
+        }
+
+        guardando = true;
+        try
+        {
+            if (modelo.Id == 0)
+                await RelojSvc.CreateMarcaAsync(modelo);
+            else
+                await RelojSvc.UpdateMarcaAsync(modelo.Id, modelo);
+
+            mensajeOk = "Guardado correctamente.";
+            await OnGuardado.InvokeAsync();
+        }
+        catch
+        {
+            mensajeError = "Error al guardar. Verifica que la API esté activa.";
+        }
+        finally { guardando = false; }
+    }
+}

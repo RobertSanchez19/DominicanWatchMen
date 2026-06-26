@@ -1,0 +1,6 @@
+@RelojAPI_HostAddress = http://localhost:5157
+
+GET {{RelojAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

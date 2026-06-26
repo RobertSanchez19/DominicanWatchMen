@@ -1,0 +1,90 @@
+<div class="admin-list">
+    <div class="admin-list-header">
+        <h3 class="admin-list-title">Productos (@Relojes.Count())</h3>
+        <button class="btn-primary admin-btn-nuevo" @onclick="NuevoReloj">+ Nuevo Reloj</button>
+    </div>
+
+    @if (!Relojes.Any())
+    {
+        <div class="admin-empty">No hay relojes registrados. ¡Agrega el primero!</div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Modelo</th>
+                        <th>Marca</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Relojes)
+                    {
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(r.ImagenUrl))
+                                {
+                                    <img src="@r.ImagenUrl" alt="@r.Nombre" class="admin-thumb" />
+                                }
+                                else
+                                {
+                                    <div class="admin-thumb-empty">⌚</div>
+                                }
+                            </td>
+                            <td class="admin-td-nombre">@r.Nombre</td>
+                            <td>@r.Modelo</td>
+                            <td>@(r.Marca?.Nombre ?? "-")</td>
+                            <td>$@r.Precio.ToString("N0")</td>
+                            <td>@r.Stock</td>
+                            <td class="admin-td-actions">
+                                <button class="admin-btn-edit" @onclick="() => OnEditar.InvokeAsync(r)">✏️</button>
+                                <button class="admin-btn-del" @onclick="() => ConfirmarEliminar(r)">🗑️</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (relojAEliminar != null)
+    {
+        <div class="admin-confirm-overlay">
+            <div class="admin-confirm-box">
+                <p>¿Eliminar <strong>@relojAEliminar.Nombre</strong>? Esta acción no se puede deshacer.</p>
+                <div class="admin-confirm-btns">
+                    <button class="btn-danger" @onclick="EjecutarEliminar">Eliminar</button>
+                    <button class="btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<Reloj> Relojes { get; set; } = [];
+    [Parameter] public EventCallback<Reloj> OnEditar { get; set; }
+    [Parameter] public EventCallback<int> OnEliminar { get; set; }
+
+    private Reloj? relojAEliminar;
+
+    private void NuevoReloj() => OnEditar.InvokeAsync(new Reloj());
+
+    private void ConfirmarEliminar(Reloj r) => relojAEliminar = r;
+    private void CancelarEliminar() => relojAEliminar = null;
+
+    private async Task EjecutarEliminar()
+    {
+        if (relojAEliminar != null)
+        {
+            await OnEliminar.InvokeAsync(relojAEliminar.Id);
+            relojAEliminar = null;
+        }
+    }
+}

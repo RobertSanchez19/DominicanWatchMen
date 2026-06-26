@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #222; margin: 2cm 2.5cm; line-height: 1.5; }
+  h1 { font-size: 20pt; color: #1a2744; border-bottom: 3px solid #4fc3f7; padding-bottom: 6px; margin-top: 32px; }
+  h2 { font-size: 15pt; color: #1a2744; margin-top: 28px; margin-bottom: 4px; }
+  h3 { font-size: 12pt; color: #4fc3f7; margin-top: 20px; margin-bottom: 4px; }
+  .portada { text-align: center; margin-top: 80px; margin-bottom: 80px; }
+  .portada h1 { font-size: 28pt; border: none; color: #1a2744; }
+  .portada p { font-size: 13pt; color: #555; }
+  .seccion-titulo { background: #1a2744; color: white; padding: 10px 16px; font-size: 14pt; font-weight: bold; margin-top: 36px; border-radius: 4px; }
+  .diapositiva { border-left: 4px solid #4fc3f7; padding: 10px 16px; margin: 16px 0; background: #f7fbff; border-radius: 0 4px 4px 0; }
+  .diapositiva-num { font-size: 9pt; font-weight: bold; color: #4fc3f7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .diapositiva blockquote { margin: 8px 0 0 0; padding: 10px 14px; background: white; border: 1px solid #dce8f5; border-radius: 4px; font-style: normal; }
+  pre, code { font-family: "Courier New", Courier, monospace; background: #1e1e1e; color: #d4d4d4; padding: 12px 16px; border-radius: 4px; display: block; font-size: 10pt; white-space: pre; margin: 8px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 10.5pt; }
+  th { background: #1a2744; color: white; padding: 8px 12px; text-align: left; }
+  td { padding: 7px 12px; border: 1px solid #ccc; }
+  tr:nth-child(even) td { background: #f0f7ff; }
+  .nota { background: #fffde7; border-left: 4px solid #f9a825; padding: 8px 14px; margin: 10px 0; font-size: 10.5pt; border-radius: 0 4px 4px 0; }
+  .paso { background: #e8f5e9; border-left: 4px solid #43a047; padding: 10px 16px; margin: 14px 0; border-radius: 0 4px 4px 0; }
+  .paso-num { font-weight: bold; color: #2e7d32; font-size: 11pt; }
+  .separador { border: none; border-top: 2px dashed #ccc; margin: 36px 0; }
+  .quien { display: inline-block; background: #1a2744; color: white; padding: 4px 14px; border-radius: 12px; font-size: 10pt; font-weight: bold; margin-bottom: 10px; }
+  .quien.axel { background: #0277bd; }
+  ul li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="portada">
+  <h1>RelojAPI · Dominican Watch Men</h1>
+  <p style="font-size:15pt; color:#4fc3f7; font-weight:bold;">Guion de Sustentación + Guía Técnica de Demo</p>
+  <br>
+  <p><strong>Materia:</strong> Electiva II — Programación Web II</p>
+  <p><strong>Profesora:</strong> Ing. Johanna Elisa Rodríguez Ricardo</p>
+  <p><strong>Institución:</strong> UNPHU — Junio 2026</p>
+  <br>
+  <p><strong>Roberto Rafael Sánchez Gutiérrez</strong> — Matrícula 24-0177</p>
+  <p><strong>Axel Santana</strong> — Matrícula 23-1568</p>
+</div>
+
+<hr class="separador">
+
+<!-- ===================================================
+     PARTE 1: GUION
+     =================================================== -->
+<h1>PARTE 1 — GUION DE SUSTENTACIÓN</h1>
+<p><em>El guion está dividido entre Roberto (diapositivas 1–13) y Axel (diapositivas 14–25). Las palabras entre comillas son lo que se dice en voz alta.</em></p>
+
+<!-- ROBERTO -->
+<div class="seccion-titulo">ROBERTO — Diapositivas 1 al 13</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 1 — Portada</div>
+  <blockquote>
+    "Buenas tardes, profesora. Mi nombre es Roberto Sánchez y junto a mi compañero Axel Santana presentamos nuestro proyecto de primera evaluación parcial: <strong>RelojAPI</strong>, una aplicación fullstack para una tienda de relojes de lujo llamada Dominican Watch Men. El backend está construido con ASP.NET Core 9 y SQL Server, y el frontend es una SPA en React 18."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 2 — Integrantes</div>
+  <blockquote>
+    "El equipo somos yo, Roberto Rafael Sánchez Gutiérrez, matrícula 24-0177, y Axel Santana, matrícula 23-1568. Usamos Visual Studio 2022 para el backend y VS Code para el frontend. El repositorio está disponible en GitHub."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 3 — Idea del Proyecto</div>
+  <blockquote>
+    "La idea fue construir un sistema completo con dos partes conectadas. El backend expone una API REST con tres entidades principales: Marcas, Relojes y Usuarios. Implementamos CRUD completo, autenticación con hash de contraseñas, un sistema de rol administrador, subida de imágenes, y un frontend React que consume la API en tiempo real sin ningún proceso de build — todo desde un solo archivo HTML."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 4 — Arquitectura Backend</div>
+  <blockquote>
+    "La estructura del backend sigue una arquitectura por capas. Los <strong>Controllers</strong> reciben las peticiones HTTP y devuelven JSON. Los <strong>Services</strong> contienen la lógica de negocio y están desacoplados mediante interfaces. Los <strong>Models</strong> son las clases C# que EF Core convierte en tablas. El <strong>AppDbContext</strong> en la carpeta Data es el puente entre el código y SQL Server. Y en <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>wwwroot/images</code> se almacenan las imágenes subidas."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 5 — Arquitectura Frontend</div>
+  <blockquote>
+    "El frontend vive en un solo archivo <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>index.html</code>. Usamos React 18 y Babel standalone cargados desde CDN — el navegador transforma el JSX directamente, sin necesidad de Node.js ni ningún proceso de compilación. Lo servimos con <strong>dotnet-serve</strong> en el puerto 5500, que hace peticiones a la API en el puerto 5157."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 6 — Modelo de Datos</div>
+  <blockquote>
+    "Tenemos tres tablas. <strong>Marcas</strong> almacena el fabricante. <strong>Relojes</strong> tiene relación N a 1 con Marcas a través de una llave foránea <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>MarcaId</code>, e incluye el campo <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>ImagenUrl</code> para guardar la ruta de la foto. <strong>Usuarios</strong> tiene un índice único en Email, almacena el hash de la contraseña, y tiene los campos <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>Activo</code> y <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>EsAdmin</code> como bits para controlar el acceso."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 7 — EF Core Migrations</div>
+  <blockquote>
+    "Usamos el enfoque Code-First de Entity Framework Core. Esto significa que primero escribimos las clases en C# y luego EF Core genera el SQL para crear las tablas. Con <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>dotnet ef migrations add</code> generamos el código de la migración, y con <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>dotnet ef database update</code> lo aplicamos a SQL Server. EF Core mantiene una tabla llamada <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>__EFMigrationsHistory</code> para saber qué migraciones ya se aplicaron."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 8 — Librerías NuGet</div>
+  <blockquote>
+    "Instalamos cuatro paquetes. <strong>EntityFrameworkCore.SqlServer</strong> es el ORM que mapea nuestras clases a tablas. <strong>EntityFrameworkCore.Tools</strong> habilita los comandos dotnet ef en la terminal. <strong>Swashbuckle.AspNetCore</strong> genera la interfaz Swagger UI automáticamente a partir de nuestros controllers. Y <strong>Microsoft.AspNetCore.OpenApi</strong> proporciona soporte nativo de OpenAPI en .NET 9."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 9 — Program.cs Parte 1: Servicios</div>
+  <blockquote>
+    "En <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>Program.cs</code> registramos todos los servicios del sistema. <strong>AddCors</strong> define la política que permite al frontend en el puerto 5500 comunicarse con la API. <strong>AddJsonOptions</strong> con IgnoreCycles evita un error de serialización circular que ocurre porque Reloj tiene una referencia a Marca y Marca tiene una lista de Relojes. <strong>AddDbContext</strong> conecta EF Core con la cadena de conexión de SQL Server. Y <strong>AddScoped</strong> registra nuestro servicio personalizado en el contenedor de inyección de dependencias."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 10 — Program.cs Parte 2: Pipeline</div>
+  <blockquote>
+    "El pipeline define el orden en que el sistema procesa cada petición HTTP. Primero exponemos Swagger en la raíz. Luego aplicamos CORS. <strong>UseStaticFiles</strong> es el middleware que sirve las imágenes subidas desde wwwroot/images directamente como archivos estáticos. <strong>MapControllers</strong> enruta cada petición HTTP al controlador correspondiente según la URL."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 11 — Program.cs Parte 3: Diagrama de flujo</div>
+  <blockquote>
+    "Visualmente, cada request pasa por una cadena: entra, pasa por CORS, luego por los archivos estáticos, luego por autorización, llega al Controller, baja al Service, el Service usa el DbContext para hablar con SQL Server, y el resultado sube de regreso como JSON al navegador. El orden del pipeline es crítico — si CORS no está antes de los controllers, el navegador rechaza las respuestas."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 12 — Inyección de Dependencias: Concepto</div>
+  <blockquote>
+    "La Inyección de Dependencias es uno de los pilares de ASP.NET Core. En lugar de que cada clase cree sus propias dependencias con <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>new</code>, registramos todo en Program.cs y el framework se encarga de inyectarlas automáticamente donde se necesiten. En nuestro caso, <strong>IRelojService</strong>, <strong>AppDbContext</strong>, <strong>ILogger</strong> e <strong>IConfiguration</strong> están disponibles en cualquier controlador sin instanciarlos manualmente."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 13 — Inyección de Dependencias: Código</div>
+  <blockquote>
+    "Así se ve en código. El constructor de <strong>RelojController</strong> declara tres parámetros: <strong>IRelojService</strong> para la lógica de negocio, <strong>ILogger</strong> para registrar eventos en consola, e <strong>IConfiguration</strong> para leer valores del appsettings.json. ASP.NET Core detecta esos parámetros, los resuelve desde el contenedor, y los pasa al constructor automáticamente en cada petición. Con esto cedo la palabra a Axel."
+  </blockquote>
+</div>
+
+<!-- AXEL -->
+<div class="seccion-titulo" style="background:#0277bd;">AXEL — Diapositivas 14 al 25</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 14 — Endpoints CRUD</div>
+  <blockquote>
+    "Gracias Roberto. Buenas tardes profesora. Soy Axel Santana. Nuestro <strong>RelojController</strong> expone cinco endpoints estándar REST: GET para listar todos los relojes incluyendo su marca, GET por ID, POST para crear, PUT para actualizar y DELETE para eliminar. El mismo conjunto de operaciones está disponible para Marcas en <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>/api/marca</code>. Cada endpoint devuelve códigos HTTP correctos: 200 para éxito, 201 para creado, 404 para no encontrado."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 15 — UsuarioController: Autenticación</div>
+  <blockquote>
+    "Para los usuarios implementamos registro y login. La seguridad se basa en SHA256: nunca guardamos la contraseña en texto plano — guardamos su hash. Cuando el usuario hace login, hasheamos lo que escribe y lo comparamos con el hash almacenado. Si coinciden, devolvemos un <strong>UsuarioDto</strong> con EsAdmin true o false. Ese campo es el que determina si el usuario ve el panel de administración. No usamos JWT porque para este proyecto el estado de sesión se mantiene en React."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 16 — UploadController: Imágenes</div>
+  <blockquote>
+    "El <strong>UploadController</strong> recibe un archivo desde el frontend con <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>IFormFile</code>. Le asigna un nombre único usando <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>Guid.NewGuid()</code> para evitar colisiones, lo guarda en <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>wwwroot/images/</code>, y devuelve la URL completa. Esa URL se almacena en la columna ImagenUrl de la tabla Relojes. Cuando el frontend carga los relojes, usa esa URL para mostrar la imagen directamente desde la API gracias a UseStaticFiles."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 17 — Conexión a SQL Server</div>
+  <blockquote>
+    "La cadena de conexión en appsettings.json apunta a <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>localhost\SQLEXPRESS</code>, base de datos <strong>RelojDB</strong>, con autenticación de Windows. El AppDbContext hereda de DbContext y tiene tres DbSet que mapean a las tablas. En <strong>OnModelCreating</strong> configuramos manualmente las relaciones entre Marcas y Relojes, el índice único en Email de Usuarios, y el tipo <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>decimal(18,2)</code> para el precio de los relojes."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 18 — Frontend React: Árbol de Componentes</div>
+  <blockquote>
+    "El frontend está organizado en componentes React. El componente raíz <strong>App</strong> controla el estado global: el usuario logueado y la vista actual. <strong>Nav</strong> muestra el botón Admin solo si esAdmin es true. <strong>CollectionGrid</strong> hace fetch a /api/reloj y renderiza los relojes con sus imágenes. <strong>PanelCuenta</strong> es el panel lateral con login y registro. Y <strong>AdminPage</strong> es la página completa de administración que solo aparece si el usuario es administrador."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 19 — Sistema de Roles</div>
+  <blockquote>
+    "El flujo de autenticación funciona así: el usuario abre el panel, llena el formulario, la API devuelve el objeto con <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>esAdmin</code>, y React lo guarda en estado. A partir de ese momento, si esAdmin es true, aparece el botón Admin en la barra de navegación. Sin JWT, esto es intencional para simplificar — la sesión se pierde al recargar la página, lo cual sería uno de los puntos de mejora."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 20 — Demo: Panel Admin</div>
+  <blockquote>
+    "El panel de administración muestra todos los relojes en una tabla con su imagen, nombre, marca, precio y un badge de stock que cambia de color: verde para disponible, amarillo para stock bajo, rojo para agotado. Cada fila tiene botones de Editar y Eliminar. El botón Editar abre un modal que precarga los datos actuales del reloj para modificarlos. Todos los cambios se guardan directamente en SQL Server a través de la API."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 21 — Demo: Swagger UI</div>
+  <blockquote>
+    "Durante el desarrollo, probamos todos los endpoints directamente en Swagger UI que está disponible en localhost:5157. Podemos ver los cuatro grupos de endpoints: Reloj, Marca, Usuario y Upload. Swagger se generó automáticamente a partir de los atributos <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>[HttpGet]</code>, <code style='background:#eee;color:#333;padding:1px 5px;border-radius:3px;'>[HttpPost]</code>, etc. en los controllers — sin escribir ninguna documentación adicional."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 22 — CORS</div>
+  <blockquote>
+    "CORS fue necesario porque el navegador, por seguridad, bloquea peticiones entre diferentes orígenes. Nuestro frontend corre en el puerto 5500 y la API en 5157 — son orígenes distintos. Sin la política CORS configurada en Program.cs, el navegador rechazaría todas las respuestas de la API aunque la petición llegara al servidor. En desarrollo usamos AllowAnyOrigin, pero en producción se limitaría al dominio real."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 23 — Ciclo Completo</div>
+  <blockquote>
+    "Para resumir el ciclo completo: React hace un fetch a /api/reloj, el middleware CORS verifica que el origen esté permitido, la petición llega al RelojController que delega al RelojService, el service usa el AppDbContext para hacer la consulta con EF Core que la traduce a SQL, SQL Server devuelve los datos, suben como objetos C#, se serializan a JSON, y React los renderiza en la pantalla como tarjetas de productos."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 24 — Oportunidades de Mejora</div>
+  <blockquote>
+    "Como próximos pasos identificamos seis mejoras. <strong>JWT</strong> para autenticación segura con tokens. <strong>Paginación</strong> para manejar catálogos grandes. <strong>Repository Pattern</strong> para mayor separación de responsabilidades. <strong>FluentValidation</strong> para validar los modelos de entrada de forma robusta. <strong>Cache con Redis</strong> para mejorar el rendimiento. Y finalmente, el <strong>deploy en Azure</strong> App Service con Azure SQL Database para llevarlo a producción."
+  </blockquote>
+</div>
+
+<div class="diapositiva">
+  <div class="diapositiva-num">Diapositiva 25 — Cierre</div>
+  <blockquote>
+    "Con esto concluye nuestra presentación. El proyecto RelojAPI demuestra cómo conectar un backend ASP.NET Core con SQL Server usando EF Core, exponer una API REST completa, y consumirla desde un frontend React — todo como un sistema funcional de extremo a extremo. Quedamos a disposición para cualquier pregunta. ¡Muchas gracias, profesora!"
+  </blockquote>
+</div>
+
+<hr class="separador">
+
+<!-- ===================================================
+     PARTE 2: GUIA TECNICA DE DEMO
+     =================================================== -->
+<h1>PARTE 2 — GUÍA TÉCNICA DE DEMO EN VIVO</h1>
+<p><em>Sigue estos pasos en orden durante la presentación para demostrar que el sistema funciona en tiempo real.</em></p>
+
+<div class="nota">
+  <strong>Antes de entrar al aula:</strong> Ten las dos terminales y SSMS ya abiertos y listos. Evita perder tiempo buscando carpetas durante la demo.
+</div>
+
+<!-- PASO 1 -->
+<div class="paso">
+  <div class="paso-num">PASO 1 — Iniciar el Backend (API)</div>
+  <p>Abre una terminal (PowerShell o CMD) en la carpeta de la API:</p>
+</div>
+<pre>cd "C:\Users\rrsg_\OneDrive\Escritorio\UNPHU\Electiva 2 - Programacion Web\RelojAPI\RelojAPI"
+dotnet run</pre>
+<p>Debes ver esto en la consola — señal de que la API está corriendo:</p>
+<pre>info: Now listening on: http://localhost:5157
+info: Application started. Press Ctrl+C to shut down.</pre>
+
+<!-- PASO 2 -->
+<div class="paso">
+  <div class="paso-num">PASO 2 — Iniciar el Frontend</div>
+  <p>Abre una <strong>segunda terminal</strong> (no cierres la primera) en la carpeta del frontend:</p>
+</div>
+<pre>cd "C:\Users\rrsg_\OneDrive\Escritorio\UNPHU\Electiva 2 - Programacion Web\Proyecto relojes"
+dotnet-serve --port 5500</pre>
+<p>Abre el navegador en: <strong>http://localhost:5500</strong></p>
+<div class="nota">Si <code>dotnet-serve</code> no está instalado: <code>dotnet tool install --global dotnet-serve</code></div>
+
+<!-- PASO 3 -->
+<div class="paso">
+  <div class="paso-num">PASO 3 — Demostrar Swagger UI</div>
+  <p>En el navegador ve a: <strong>http://localhost:5157</strong></p>
+</div>
+<p>Swagger carga automáticamente. Para hacer un GET en vivo ante la profesora:</p>
+<ol>
+  <li>Clic en <strong>Reloj</strong> → <strong>GET /api/reloj</strong></li>
+  <li>Clic en <strong>Try it out</strong> → <strong>Execute</strong></li>
+  <li>Mostrar el JSON de respuesta con todos los relojes y sus marcas</li>
+</ol>
+
+<!-- PASO 4 -->
+<div class="paso">
+  <div class="paso-num">PASO 4 — Demostrar la Base de Datos en SSMS</div>
+  <p>Abre <strong>SQL Server Management Studio</strong>, conecta a <code>localhost\SQLEXPRESS</code> y ejecuta:</p>
+</div>
+
+<p><strong>Ver todos los relojes con su marca:</strong></p>
+<pre>SELECT r.Id, r.Nombre, r.Modelo, r.Precio, r.Stock, r.ImagenUrl, m.Nombre AS Marca
+FROM Relojes r
+INNER JOIN Marcas m ON r.MarcaId = m.Id
+ORDER BY m.Nombre, r.Nombre;</pre>
+
+<p><strong>Ver los usuarios registrados (sin exponer contraseña):</strong></p>
+<pre>SELECT Id, Nombre, Apellido, Email, EsAdmin, FechaRegistro
+FROM Usuarios;</pre>
+
+<p><strong>Ver las marcas:</strong></p>
+<pre>SELECT * FROM Marcas;</pre>
+
+<!-- PASO 5 -->
+<div class="paso">
+  <div class="paso-num">PASO 5 — Demostrar que la API actualiza la BD en tiempo real</div>
+</div>
+<p><strong>En el frontend (http://localhost:5500):</strong></p>
+<ol>
+  <li>Clic en el botón <strong>"Mi Cuenta"</strong> en la barra de navegación</li>
+  <li>Iniciar sesión con <strong>admin@dwm.com</strong> / <strong>Admin123</strong></li>
+  <li>Clic en el botón <strong>"Admin"</strong> (negro) que aparece en la barra de navegación</li>
+  <li>Clic en <strong>"+ Agregar Reloj"</strong></li>
+  <li>Llenar el formulario (ej: Nombre "Demo Reloj", cualquier marca, Precio 5000, Stock 2)</li>
+  <li>Clic en <strong>"Agregar Reloj"</strong></li>
+</ol>
+<p><strong>Inmediatamente en SSMS</strong>, ejecutar para mostrar que se guardó en la BD:</p>
+<pre>SELECT TOP 1 * FROM Relojes ORDER BY Id DESC;</pre>
+<div class="nota"><strong>Efecto impresionante:</strong> El reloj aparece en SSMS en el mismo momento que en la pantalla del frontend.</div>
+
+<!-- PASO 6 -->
+<div class="paso">
+  <div class="paso-num">PASO 6 — Demostrar Edición en vivo</div>
+</div>
+<ol>
+  <li>En el panel Admin, clic en <strong>Editar</strong> en cualquier reloj</li>
+  <li>Cambiar el precio o el stock</li>
+  <li>Clic en <strong>"Guardar Cambios"</strong></li>
+</ol>
+<p>En SSMS confirmar el cambio (reemplaza el ID con el que editaste):</p>
+<pre>SELECT Id, Nombre, Precio, Stock FROM Relojes WHERE Id = 1;</pre>
+
+<!-- PASO 7 -->
+<div class="paso">
+  <div class="paso-num">PASO 7 — Demostrar el Historial de Migraciones</div>
+</div>
+<pre>SELECT * FROM __EFMigrationsHistory;</pre>
+<p>Esto muestra las dos migraciones aplicadas: <strong>InitialCreate</strong> (tablas Marcas y Relojes) y <strong>AddUsuarios</strong> (tabla Usuarios).</p>
+
+<!-- PASO 8 -->
+<div class="paso">
+  <div class="paso-num">PASO 8 — Demostrar la carpeta de imágenes</div>
+</div>
+<p>Abrir el Explorador de Windows en:</p>
+<pre>RelojAPI\RelojAPI\wwwroot\images\</pre>
+<p>Aquí están las fotos subidas con sus nombres GUID únicos. Mostrar también que la URL en la BD coincide:</p>
+<pre>SELECT Nombre, ImagenUrl FROM Relojes WHERE ImagenUrl IS NOT NULL;</pre>
+
+<hr class="separador">
+
+<h2>RESUMEN DEL ORDEN DE DEMO</h2>
+<table>
+  <tr>
+    <th>Orden</th>
+    <th>Qué mostrar</th>
+    <th>Cómo</th>
+  </tr>
+  <tr><td>1</td><td>API corriendo</td><td>Terminal con <code>dotnet run</code></td></tr>
+  <tr><td>2</td><td>Frontend cargado</td><td>Navegador en localhost:5500</td></tr>
+  <tr><td>3</td><td>Swagger con endpoints</td><td>localhost:5157 → GET /api/reloj → Execute</td></tr>
+  <tr><td>4</td><td>Base de datos con datos</td><td>SSMS → SELECT con JOIN Relojes+Marcas</td></tr>
+  <tr><td>5</td><td>Crear reloj en tiempo real</td><td>Panel Admin → formulario → SSMS confirma SELECT TOP 1</td></tr>
+  <tr><td>6</td><td>Editar reloj</td><td>Panel Admin → Editar → SSMS confirma cambio</td></tr>
+  <tr><td>7</td><td>Historial de migraciones EF Core</td><td>SSMS → SELECT __EFMigrationsHistory</td></tr>
+  <tr><td>8</td><td>Imágenes guardadas físicamente</td><td>Carpeta wwwroot/images/ + SELECT ImagenUrl</td></tr>
+</table>
+
+<hr class="separador">
+
+<h2>CÓMO CREAMOS EL PROYECTO — Resumen técnico</h2>
+
+<h3>1 · Crear el proyecto API en Visual Studio 2022</h3>
+<p>Nuevo proyecto → <strong>ASP.NET Core Web API</strong> → .NET 9 → Sin autenticación. Esto genera la estructura base con Program.cs y la carpeta Controllers.</p>
+
+<h3>2 · Instalar paquetes NuGet</h3>
+<pre>dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+dotnet add package Microsoft.EntityFrameworkCore.Tools
+dotnet add package Swashbuckle.AspNetCore
+dotnet add package Microsoft.AspNetCore.OpenApi</pre>
+
+<h3>3 · Crear los Modelos (C# → SQL Server)</h3>
+<p>Escribimos clases C# en la carpeta <code>Models/</code>. EF Core las convierte en tablas automáticamente.</p>
+<pre>// Models/Reloj.cs → tabla "Relojes"
+public class Reloj {
+    public int Id { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public decimal Precio { get; set; }
+    public int Stock { get; set; }
+    public string? ImagenUrl { get; set; }
+    public int MarcaId { get; set; }        // llave foránea
+    public Marca? Marca { get; set; }       // navegación 1:N
+}</pre>
+
+<h3>4 · Crear el AppDbContext (el puente C# ↔ SQL Server)</h3>
+<pre>public class AppDbContext : DbContext {
+    public DbSet&lt;Marca&gt; Marcas { get; set; }
+    public DbSet&lt;Reloj&gt; Relojes { get; set; }
+    public DbSet&lt;Usuario&gt; Usuarios { get; set; }
+}</pre>
+
+<h3>5 · Configurar la cadena de conexión en appsettings.json</h3>
+<pre>"ConnectionStrings": {
+  "DefaultConnection": "Server=localhost\\SQLEXPRESS;
+    Database=RelojDB;Trusted_Connection=True;
+    TrustServerCertificate=True;"
+}</pre>
+
+<h3>6 · Registrar todo en Program.cs</h3>
+<pre>builder.Services.AddDbContext&lt;AppDbContext&gt;(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    ));</pre>
+
+<h3>7 · Correr las Migraciones (crear la BD física)</h3>
+<pre>dotnet ef migrations add InitialCreate   // genera el código SQL
+dotnet ef migrations add AddUsuarios     // agrega tabla Usuarios
+dotnet ef database update                // aplica todo a SQL Server</pre>
+<p>Estos comandos crearon las tablas <strong>Marcas</strong>, <strong>Relojes</strong> y <strong>Usuarios</strong> en SQL Server sin escribir SQL manualmente.</p>
+
+<h3>8 · Los Controllers usan el Context vía Inyección de Dependencias</h3>
+<pre>public class RelojController : ControllerBase {
+    private readonly IRelojService _service;
+
+    public RelojController(IRelojService service) {
+        _service = service; // ASP.NET lo inyecta automáticamente
+    }
+
+    [HttpGet]
+    public async Task&lt;IActionResult&gt; GetAll() {
+        var relojes = await _service.GetAllAsync();
+        return Ok(relojes); // devuelve JSON
+    }
+}</pre>
+
+<h3>9 · Flujo completo resumido</h3>
+<pre>React (fetch)
+  → Controller (recibe la petición HTTP)
+    → Service (lógica de negocio)
+      → AppDbContext (traduce a SQL con EF Core)
+        → SQL Server (guarda / lee datos)
+      ← devuelve objetos C#
+    ← devuelve objetos C#
+  ← devuelve JSON al navegador → React renderiza</pre>
+
+<p style="margin-top:48px; text-align:center; color:#999; font-size:9pt;">RelojAPI · Dominican Watch Men · UNPHU Junio 2026 · Roberto Sánchez 24-0177 · Axel Santana 23-1568</p>
+
+</body>
+</html>

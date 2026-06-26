@@ -1,0 +1,236 @@
+@inject IAuthService Auth
+
+<div class="admin-list">
+    <div class="admin-list-header">
+        <h3 class="admin-list-title">Usuarios (@usuarios.Count())</h3>
+        <button class="btn-primary admin-btn-nuevo" @onclick="ToggleFormNuevo">
+            @(mostrarFormNuevo ? "✕ Cancelar" : "+ Nuevo Usuario")
+        </button>
+    </div>
+
+    <!-- Formulario de nuevo usuario -->
+    @if (mostrarFormNuevo)
+    {
+        <div class="admin-form-panel" style="margin-bottom:24px">
+            <h4 class="admin-form-title">Crear nuevo usuario</h4>
+
+            @if (!string.IsNullOrEmpty(formError))  { <div class="form-error">@formError</div> }
+            @if (!string.IsNullOrEmpty(formOk))     { <div class="form-ok">@formOk</div> }
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nombre *</label>
+                    <input class="form-input" @bind="nuevoNombre" placeholder="Roberto" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apellido *</label>
+                    <input class="form-input" @bind="nuevoApellido" placeholder="Sánchez" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Correo electrónico *</label>
+                <input class="form-input" type="email" @bind="nuevoEmail" placeholder="usuario@dwm.com" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contraseña *</label>
+                <input class="form-input" type="password" @bind="nuevoPassword" placeholder="Mínimo 6 caracteres" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Rol</label>
+                <div class="form-check-group">
+                    <label class="form-check">
+                        <input type="checkbox" @bind="nuevoEsAdmin" />
+                        <span>Administrador (acceso al panel)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-actions">
+                <button class="btn-primary" @onclick="CrearUsuario" disabled="@creando">
+                    @(creando ? "Creando..." : "Crear usuario")
+                </button>
+                <button class="btn-secondary" @onclick="ToggleFormNuevo">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    <!-- Tabla de usuarios -->
+    @if (cargando)
+    {
+        <div class="admin-empty">Cargando usuarios...</div>
+    }
+    else if (!usuarios.Any())
+    {
+        <div class="admin-empty">No hay usuarios registrados.</div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in usuarios)
+                    {
+                        <tr class="@(!u.Activo ? "admin-row-inactivo" : "")">
+                            <td class="admin-td-nombre">@u.Nombre @u.Apellido</td>
+                            <td>@u.Email</td>
+                            <td>
+                                <span class="@(u.EsAdmin ? "badge-admin" : "badge-user")">
+                                    @(u.EsAdmin ? "Admin" : "Usuario")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="@(u.Activo ? "badge-activo" : "badge-inactivo")">
+                                    @(u.Activo ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td>@u.FechaRegistro.ToString("dd/MM/yyyy")</td>
+                            <td class="admin-td-actions">
+                                @if (u.Id != Auth.UsuarioActual?.Id)
+                                {
+                                    <button class="admin-btn-rol"
+                                            title="@(u.EsAdmin ? "Quitar admin" : "Hacer admin")"
+                                            @onclick="() => CambiarRol(u)">
+                                        @(u.EsAdmin ? "👤" : "⭐")
+                                    </button>
+                                    @if (u.Activo)
+                                    {
+                                        <button class="admin-btn-del"
+                                                title="Desactivar usuario"
+                                                @onclick="() => ConfirmarDesactivar(u)">🗑️</button>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="admin-yo-badge">Tú</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensajeOk))
+    {
+        <div class="form-ok" style="margin-top:12px">@mensajeOk</div>
+    }
+
+    @if (usuarioADesactivar != null)
+    {
+        <div class="admin-confirm-overlay">
+            <div class="admin-confirm-box">
+                <p>¿Desactivar a <strong>@usuarioADesactivar.Nombre @usuarioADesactivar.Apellido</strong>? No podrá iniciar sesión.</p>
+                <div class="admin-confirm-btns">
+                    <button class="btn-danger" @onclick="EjecutarDesactivar">Desactivar</button>
+                    <button class="btn-secondary" @onclick="() => usuarioADesactivar = null">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private IEnumerable<Usuario> usuarios = [];
+    private bool cargando = true;
+    private string mensajeOk = "";
+    private Usuario? usuarioADesactivar;
+
+    // Form nuevo usuario
+    private bool mostrarFormNuevo = false;
+    private string nuevoNombre = "";
+    private string nuevoApellido = "";
+    private string nuevoEmail = "";
+    private string nuevoPassword = "";
+    private bool nuevoEsAdmin = false;
+    private bool creando = false;
+    private string formError = "";
+    private string formOk = "";
+
+    protected override async Task OnInitializedAsync() => await Recargar();
+
+    private async Task Recargar()
+    {
+        cargando = true;
+        mensajeOk = "";
+        usuarios = await Auth.GetUsuariosAsync();
+        cargando = false;
+    }
+
+    private void ToggleFormNuevo()
+    {
+        mostrarFormNuevo = !mostrarFormNuevo;
+        formError = "";
+        formOk = "";
+        nuevoNombre = nuevoApellido = nuevoEmail = nuevoPassword = "";
+        nuevoEsAdmin = false;
+    }
+
+    private async Task CrearUsuario()
+    {
+        formError = "";
+        formOk = "";
+
+        if (string.IsNullOrWhiteSpace(nuevoNombre) || string.IsNullOrWhiteSpace(nuevoApellido)
+            || string.IsNullOrWhiteSpace(nuevoEmail) || string.IsNullOrWhiteSpace(nuevoPassword))
+        {
+            formError = "Todos los campos marcados con * son obligatorios.";
+            return;
+        }
+        if (nuevoPassword.Length < 6)
+        {
+            formError = "La contraseña debe tener al menos 6 caracteres.";
+            return;
+        }
+
+        creando = true;
+        var (exito, error) = await Auth.CrearUsuarioAsync(nuevoNombre, nuevoApellido, nuevoEmail, nuevoPassword, nuevoEsAdmin);
+        creando = false;
+
+        if (exito)
+        {
+            formOk = $"Usuario {nuevoNombre} creado correctamente.";
+            mostrarFormNuevo = false;
+            await Recargar();
+        }
+        else
+        {
+            formError = error ?? "Error al crear el usuario.";
+        }
+    }
+
+    private async Task CambiarRol(Usuario u)
+    {
+        var ok = await Auth.ToggleAdminAsync(u.Id, !u.EsAdmin);
+        if (ok)
+        {
+            mensajeOk = $"Rol de {u.Nombre} actualizado.";
+            await Recargar();
+        }
+    }
+
+    private void ConfirmarDesactivar(Usuario u) => usuarioADesactivar = u;
+
+    private async Task EjecutarDesactivar()
+    {
+        if (usuarioADesactivar != null)
+        {
+            var ok = await Auth.DesactivarUsuarioAsync(usuarioADesactivar.Id);
+            if (ok)
+            {
+                mensajeOk = $"{usuarioADesactivar.Nombre} desactivado.";
+                usuarioADesactivar = null;
+                await Recargar();
+            }
+        }
+    }
+}

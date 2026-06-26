@@ -1,0 +1,84 @@
+@inherits LayoutComponentBase
+@inject IAuthService Auth
+@implements IDisposable
+
+<header class="dwm-header">
+    <div class="dwm-header-inner">
+        <a href="/" class="dwm-logo">
+            <span class="dwm-logo-icon">⌚</span>
+            <div>
+                <div class="dwm-logo-name">Dominican Watch Men</div>
+                <div class="dwm-logo-sub">RD · Alta Relojería</div>
+            </div>
+        </a>
+        <nav class="dwm-nav">
+            <NavLink href="/" Match="NavLinkMatch.All" class="dwm-nav-link">Inicio</NavLink>
+            <NavLink href="/catalogo" class="dwm-nav-link">Catálogo</NavLink>
+            <NavLink href="/marcas" class="dwm-nav-link">Marcas</NavLink>
+            @if (Auth.EsAdmin)
+            {
+                <NavLink href="/admin" class="dwm-nav-link dwm-nav-admin">Admin</NavLink>
+            }
+        </nav>
+        <div class="dwm-nav-auth">
+            @if (Auth.EstaLogueado)
+            {
+                <span class="dwm-user-name">@Auth.UsuarioActual?.Nombre</span>
+                <button class="dwm-btn-logout" @onclick="Logout">Cerrar sesión</button>
+            }
+            else
+            {
+                <NavLink href="/login" class="dwm-btn-login">Iniciar sesión</NavLink>
+            }
+        </div>
+    </div>
+</header>
+
+<main class="dwm-main">
+    @Body
+</main>
+
+<footer class="dwm-footer">
+    <div class="dwm-footer-inner">
+        <div class="dwm-footer-brand">
+            <span class="dwm-footer-name">Dominican Watch Men</span>
+            <span class="dwm-footer-tagline">Alta Relojería · Santo Domingo, RD</span>
+        </div>
+        <div class="dwm-footer-links">
+            <a href="/" class="dwm-footer-link">Inicio</a>
+            <a href="/catalogo" class="dwm-footer-link">Catálogo</a>
+            <a href="/marcas" class="dwm-footer-link">Marcas</a>
+        </div>
+        <div class="dwm-footer-copy">
+            © @DateTime.Now.Year Dominican Watch Men · Todos los derechos reservados
+        </div>
+    </div>
+</footer>
+
+<div id="blazor-error-ui" data-nosnippet>
+    Ocurrió un error no controlado.
+    <a href="." class="reload">Recargar</a>
+    <span class="dismiss">✕</span>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Auth.OnCambio += Actualizar;
+    }
+
+    private void Actualizar()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void Logout()
+    {
+        Auth.Logout();
+    }
+
+    public void Dispose()
+    {
+        Auth.OnCambio -= Actualizar;
+    }
+}

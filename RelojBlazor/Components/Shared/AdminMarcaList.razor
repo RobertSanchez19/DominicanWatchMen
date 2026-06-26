@@ -1,0 +1,76 @@
+<div class="admin-list">
+    <div class="admin-list-header">
+        <h3 class="admin-list-title">Marcas (@Marcas.Count())</h3>
+        <button class="btn-primary admin-btn-nuevo" @onclick="NuevaMarca">+ Nueva Marca</button>
+    </div>
+
+    @if (!Marcas.Any())
+    {
+        <div class="admin-empty">No hay marcas registradas. ¡Agrega la primera!</div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>País de Origen</th>
+                        <th>Descripción</th>
+                        <th>Relojes</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Marcas)
+                    {
+                        <tr>
+                            <td class="admin-td-nombre">@m.Nombre</td>
+                            <td>@(m.PaisOrigen ?? "—")</td>
+                            <td class="admin-td-desc">@(m.Descripcion ?? "—")</td>
+                            <td>@(m.Relojes?.Count ?? 0)</td>
+                            <td class="admin-td-actions">
+                                <button class="admin-btn-edit" @onclick="() => OnEditar.InvokeAsync(m)">✏️</button>
+                                <button class="admin-btn-del" @onclick="() => ConfirmarEliminar(m)">🗑️</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (marcaAEliminar != null)
+    {
+        <div class="admin-confirm-overlay">
+            <div class="admin-confirm-box">
+                <p>¿Eliminar la marca <strong>@marcaAEliminar.Nombre</strong>? Esto puede afectar relojes asociados.</p>
+                <div class="admin-confirm-btns">
+                    <button class="btn-danger" @onclick="EjecutarEliminar">Eliminar</button>
+                    <button class="btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<Marca> Marcas { get; set; } = [];
+    [Parameter] public EventCallback<Marca> OnEditar { get; set; }
+    [Parameter] public EventCallback<int> OnEliminar { get; set; }
+
+    private Marca? marcaAEliminar;
+
+    private void NuevaMarca() => OnEditar.InvokeAsync(new Marca());
+    private void ConfirmarEliminar(Marca m) => marcaAEliminar = m;
+    private void CancelarEliminar() => marcaAEliminar = null;
+
+    private async Task EjecutarEliminar()
+    {
+        if (marcaAEliminar != null)
+        {
+            await OnEliminar.InvokeAsync(marcaAEliminar.Id);
+            marcaAEliminar = null;
+        }
+    }
+}

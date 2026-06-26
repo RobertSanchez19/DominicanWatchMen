@@ -1,0 +1,45 @@
+## .NET / C# ##
+bin/
+obj/
+*.user
+.vs/
+*.suo
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.db
+
+## NuGet packages ##
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## ASP.NET ##
+App_Data/
+PublishProfiles/
+launchSettings.json
+
+## Build results ##
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Windows ##
+Thumbs.db
+Desktop.ini
+
+## VS Code ##
+.vscode/

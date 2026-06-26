@@ -1,0 +1,87 @@
+@page "/login"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject IAuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Iniciar sesión — DWM Admin</PageTitle>
+
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="login-logo">
+            <span class="login-logo-icon">⌚</span>
+            <div class="login-logo-name">Dominican Watch Men</div>
+            <div class="login-logo-sub">Panel de Administración</div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMsg))
+        {
+            <div class="login-error">@errorMsg</div>
+        }
+
+        <div class="login-form">
+            <div class="form-group">
+                <label class="form-label">Correo electrónico</label>
+                <input type="email"
+                       class="form-input"
+                       placeholder="admin@dwm.com"
+                       @bind="email"
+                       @bind:event="oninput" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <input type="password"
+                       class="form-input"
+                       placeholder="••••••••"
+                       @bind="password"
+                       @bind:event="oninput"
+                       @onkeydown="OnKeyDown" />
+            </div>
+            <button class="btn-primary login-btn"
+                    @onclick="Ingresar"
+                    disabled="@cargando">
+                @(cargando ? "Verificando..." : "Ingresar")
+            </button>
+        </div>
+
+        <div class="login-back">
+            <a href="/" class="login-back-link">← Volver al sitio</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private string errorMsg = "";
+    private bool cargando = false;
+
+    protected override void OnInitialized()
+    {
+        if (Auth.EstaLogueado)
+            Nav.NavigateTo("/admin");
+    }
+
+    private async Task Ingresar()
+    {
+        errorMsg = "";
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            errorMsg = "Completa todos los campos.";
+            return;
+        }
+
+        cargando = true;
+        var (exito, error) = await Auth.LoginAsync(email, password);
+        cargando = false;
+
+        if (exito)
+            Nav.NavigateTo("/admin");
+        else
+            errorMsg = error ?? "Error al iniciar sesión.";
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Ingresar();
+    }
+}

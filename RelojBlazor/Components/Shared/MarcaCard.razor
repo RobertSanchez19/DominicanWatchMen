@@ -1,0 +1,20 @@
+<div class="marca-card @(EsActiva ? "marca-card-activa" : "")" @onclick="OnClick">
+    <div class="marca-inicial">@(Marca.Nombre.Length > 0 ? Marca.Nombre[0].ToString() : "?")</div>
+    <div class="marca-info">
+        <h3 class="marca-nombre">@Marca.Nombre</h3>
+        <p class="marca-pais">📍 @Marca.PaisOrigen</p>
+        <span class="marca-count">@Marca.Relojes.Count relojes</span>
+    </div>
+    <span class="marca-arrow">@(EsActiva ? "▲" : "▼")</span>
+</div>
+
+@code {
+    [Parameter] public required Marca Marca { get; set; }
+    [Parameter] public EventCallback<Marca> OnSeleccionada { get; set; }
+    [Parameter] public bool EsActiva { get; set; }
+
+    private async Task OnClick()
+    {
+        await OnSeleccionada.InvokeAsync(Marca);
+    }
+}

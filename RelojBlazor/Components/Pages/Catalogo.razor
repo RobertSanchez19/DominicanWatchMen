@@ -1,0 +1,113 @@
+@page "/catalogo"
+@rendermode InteractiveServer
+@inject IRelojService RelojService
+@inject ILogger<Catalogo> Logger
+
+<PageTitle>Catálogo — Dominican Watch Men</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">Catálogo de Relojes</h1>
+    <p class="page-sub">Explora nuestra colección completa conectada en tiempo real.</p>
+</div>
+
+<FiltroPanel FiltroCambiado="OnFiltroCambiado" />
+
+@if (cargando)
+{
+    <div class="loading-msg">
+        <span class="loading-icon">⌛</span> Cargando relojes desde la API...
+    </div>
+}
+else if (errorMensaje != null)
+{
+    <div class="error-msg">
+        <strong>Error:</strong> @errorMensaje
+        <br /><small>Asegúrate de que RelojAPI esté corriendo en http://localhost:5157</small>
+    </div>
+}
+else
+{
+    <div class="resultados-info">
+        Mostrando <strong>@relojesFiltrados.Count</strong> de @relojes.Count relojes
+    </div>
+
+    <div class="relojes-grid">
+        @foreach (var reloj in relojesFiltrados)
+        {
+            <RelojCard Reloj="reloj" OnSeleccionado="OnRelojSeleccionado" />
+        }
+    </div>
+
+    @if (!relojesFiltrados.Any())
+    {
+        <div class="empty-msg">No se encontraron relojes con ese filtro.</div>
+    }
+
+    @if (relojSeleccionado != null)
+    {
+        <div class="detalle-overlay" @onclick="CerrarDetalle">
+            <div class="detalle-card" @onclick:stopPropagation="true">
+                <button class="detalle-cerrar" @onclick="CerrarDetalle">✕</button>
+                <h3 class="detalle-nombre">@relojSeleccionado.Nombre</h3>
+                <span class="detalle-marca">@(relojSeleccionado.Marca?.Nombre ?? "Sin Marca")</span>
+                <table class="detalle-table">
+                    <tr><th>Modelo</th><td>@relojSeleccionado.Modelo</td></tr>
+                    <tr><th>Precio</th><td>RD$ @relojSeleccionado.Precio.ToString("N2")</td></tr>
+                    <tr><th>Stock</th><td>@relojSeleccionado.Stock unidades</td></tr>
+                    <tr><th>Marca</th><td>@(relojSeleccionado.Marca?.Nombre ?? "—")</td></tr>
+                    <tr><th>País</th><td>@(relojSeleccionado.Marca?.PaisOrigen ?? "—")</td></tr>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<Reloj> relojes = new();
+    private List<Reloj> relojesFiltrados = new();
+    private Reloj? relojSeleccionado;
+    private bool cargando = true;
+    private string? errorMensaje;
+    private string filtro = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Logger.LogInformation("Inicializando página Catálogo");
+            relojes = (await RelojService.GetAllAsync()).ToList();
+            relojesFiltrados = relojes;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error al cargar relojes en el catálogo");
+            errorMensaje = "No se pudo conectar con la API de relojes.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void OnFiltroCambiado(string texto)
+    {
+        filtro = texto;
+        relojesFiltrados = string.IsNullOrWhiteSpace(filtro)
+            ? relojes
+            : relojes.Where(r =>
+                r.Nombre.Contains(filtro, StringComparison.OrdinalIgnoreCase) ||
+                r.Modelo.Contains(filtro, StringComparison.OrdinalIgnoreCase) ||
+                (r.Marca?.Nombre ?? "").Contains(filtro, StringComparison.OrdinalIgnoreCase)
+              ).ToList();
+    }
+
+    private void OnRelojSeleccionado(Reloj reloj)
+    {
+        relojSeleccionado = reloj;
+    }
+
+    private void CerrarDetalle()
+    {
+        relojSeleccionado = null;
+    }
+}

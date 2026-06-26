@@ -1,0 +1,45 @@
+<div class="reloj-card @(estaHover ? "reloj-card-hover" : "")"
+     @onclick="OnClick"
+     @onmouseenter="() => estaHover = true"
+     @onmouseleave="() => estaHover = false">
+
+    <div class="reloj-img-wrapper">
+        @if (!string.IsNullOrEmpty(Reloj.ImagenUrl))
+        {
+            <img src="@Reloj.ImagenUrl" alt="@Reloj.Nombre" class="reloj-img" />
+        }
+        else
+        {
+            <div class="reloj-placeholder">⌚</div>
+        }
+
+        @if (Reloj.Stock == 0)
+        {
+            <span class="reloj-badge reloj-badge-agotado">Agotado</span>
+        }
+        else if (Reloj.Stock <= 3)
+        {
+            <span class="reloj-badge reloj-badge-pocas">Últimas @Reloj.Stock</span>
+        }
+    </div>
+
+    <div class="reloj-info">
+        <span class="reloj-marca-tag">@(Reloj.Marca?.Nombre ?? "Sin Marca")</span>
+        <h3 class="reloj-nombre">@Reloj.Nombre</h3>
+        <p class="reloj-modelo">@Reloj.Modelo</p>
+        <p class="reloj-precio">RD$ @Reloj.Precio.ToString("N2")</p>
+        <button class="reloj-btn">Ver detalle</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public required Reloj Reloj { get; set; }
+    [Parameter] public EventCallback<Reloj> OnSeleccionado { get; set; }
+
+    private bool estaHover = false;
+
+    private async Task OnClick()
+    {
+        await OnSeleccionado.InvokeAsync(Reloj);
+    }
+}

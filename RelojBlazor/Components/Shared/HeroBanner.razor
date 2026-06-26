@@ -1,0 +1,40 @@
+<section class="hero-banner">
+    <div class="hero-content">
+        <div class="hero-eyebrow">Alta Relojería · Seiko Mods</div>
+        <h1 class="hero-title">@Titulo</h1>
+        <p class="hero-sub">@Subtitulo</p>
+        <div class="hero-btns">
+            <a href="@BotonUrl" class="btn-primary">@BotonTexto</a>
+            <a href="/marcas" class="btn-outline">Ver Marcas</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="hero-stat-num">20+</span>
+                <span class="hero-stat-lbl">Modelos únicos</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">100%</span>
+                <span class="hero-stat-lbl">Seiko original</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">316L</span>
+                <span class="hero-stat-lbl">Acero quirúrgico</span>
+            </div>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="hero-circle hero-circle-lg"></div>
+        <div class="hero-circle hero-circle-md"></div>
+        <div class="hero-watch-placeholder">
+            <span class="hero-watch-emoji">⌚</span>
+        </div>
+        <div class="hero-badge">DOMINICAN WATCH MEN · NH35A</div>
+    </div>
+</section>
+
+@code {
+    [Parameter] public string Titulo { get; set; } = "";
+    [Parameter] public string Subtitulo { get; set; } = "";
+    [Parameter] public string BotonTexto { get; set; } = "Ver más";
+    [Parameter] public string BotonUrl { get; set; } = "/";
+}

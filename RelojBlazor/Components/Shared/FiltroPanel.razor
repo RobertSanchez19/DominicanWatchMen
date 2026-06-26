@@ -1,0 +1,32 @@
+<div class="filtro-panel">
+    <div class="filtro-inner">
+        <span class="filtro-icon">🔍</span>
+        <input type="text"
+               class="filtro-input"
+               placeholder="Buscar por nombre, modelo o marca..."
+               value="@texto"
+               @oninput="OnInput" />
+        @if (!string.IsNullOrEmpty(texto))
+        {
+            <button class="filtro-clear" @onclick="Limpiar">✕</button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> FiltroCambiado { get; set; }
+
+    private string texto = "";
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        texto = e.Value?.ToString() ?? "";
+        await FiltroCambiado.InvokeAsync(texto);
+    }
+
+    private async Task Limpiar()
+    {
+        texto = "";
+        await FiltroCambiado.InvokeAsync("");
+    }
+}

@@ -1,0 +1,161 @@
+@page "/admin"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject IAuthService Auth
+@inject IRelojService RelojSvc
+@inject NavigationManager Nav
+@inject ILogger<Admin> Logger
+
+<PageTitle>Administración — DWM</PageTitle>
+
+@if (!Auth.EsAdmin)
+{
+    <div class="admin-acceso-denegado">
+        <div class="admin-denegado-icon">🔒</div>
+        <h2>Acceso restringido</h2>
+        <p>Debes iniciar sesión como administrador para acceder a este panel.</p>
+        <a href="/login" class="btn-primary">Ir al login</a>
+    </div>
+}
+else
+{
+    <div class="admin-page">
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">Panel de Administración</h1>
+                <p class="admin-page-sub">Bienvenido, @Auth.UsuarioActual?.Nombre · <strong>Dominican Watch Men</strong></p>
+            </div>
+        </div>
+
+        <!-- Tabs de navegación -->
+        <div class="admin-tabs">
+            <button class="admin-tab @(tabActiva == "relojes" ? "admin-tab-activa" : "")"
+                    @onclick='() => CambiarTab("relojes")'>⌚ Relojes</button>
+            <button class="admin-tab @(tabActiva == "marcas" ? "admin-tab-activa" : "")"
+                    @onclick='() => CambiarTab("marcas")'>🏷️ Marcas</button>
+            <button class="admin-tab @(tabActiva == "usuarios" ? "admin-tab-activa" : "")"
+                    @onclick='() => CambiarTab("usuarios")'>👥 Usuarios</button>
+        </div>
+
+        <!-- ── TAB: RELOJES ── -->
+        @if (tabActiva == "relojes")
+        {
+            <div class="admin-layout">
+                <div class="admin-col-list">
+                    <AdminRelojList
+                        Relojes="@relojes"
+                        OnEditar="AbrirFormularioReloj"
+                        OnEliminar="EliminarReloj" />
+                </div>
+                @if (relojEnEdicion != null)
+                {
+                    <div class="admin-col-form">
+                        <AdminRelojForm
+                            Reloj="@relojEnEdicion"
+                            OnGuardado="OnRelojGuardado"
+                            OnCancelar="CerrarFormularioReloj" />
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- ── TAB: MARCAS ── -->
+        @if (tabActiva == "marcas")
+        {
+            <div class="admin-layout">
+                <div class="admin-col-list">
+                    <AdminMarcaList
+                        Marcas="@marcas"
+                        OnEditar="AbrirFormularioMarca"
+                        OnEliminar="EliminarMarca" />
+                </div>
+                @if (marcaEnEdicion != null)
+                {
+                    <div class="admin-col-form">
+                        <AdminMarcaForm
+                            Marca="@marcaEnEdicion"
+                            OnGuardado="OnMarcaGuardada"
+                            OnCancelar="CerrarFormularioMarca" />
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- ── TAB: USUARIOS ── -->
+        @if (tabActiva == "usuarios")
+        {
+            <div class="admin-col-list">
+                <AdminUsuarioList />
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private string tabActiva = "relojes";
+
+    // Relojes
+    private IEnumerable<Reloj> relojes = [];
+    private Reloj? relojEnEdicion;
+
+    // Marcas
+    private IEnumerable<Marca> marcas = [];
+    private Marca? marcaEnEdicion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.EsAdmin)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+        await CargarTodo();
+    }
+
+    private async Task CargarTodo()
+    {
+        Logger.LogInformation("Admin: cargando datos");
+        relojes = await RelojSvc.GetAllAsync();
+        marcas  = await RelojSvc.GetMarcasAsync();
+    }
+
+    private void CambiarTab(string tab)
+    {
+        tabActiva = tab;
+        relojEnEdicion = null;
+        marcaEnEdicion = null;
+    }
+
+    // ── Relojes ────────────────────────────────────────────
+    private void AbrirFormularioReloj(Reloj r) => relojEnEdicion = r;
+    private void CerrarFormularioReloj() => relojEnEdicion = null;
+
+    private async Task OnRelojGuardado()
+    {
+        relojEnEdicion = null;
+        relojes = await RelojSvc.GetAllAsync();
+    }
+
+    private async Task EliminarReloj(int id)
+    {
+        Logger.LogInformation("Admin: eliminando reloj Id {Id}", id);
+        if (await RelojSvc.DeleteRelojAsync(id))
+            relojes = await RelojSvc.GetAllAsync();
+    }
+
+    // ── Marcas ─────────────────────────────────────────────
+    private void AbrirFormularioMarca(Marca m) => marcaEnEdicion = m;
+    private void CerrarFormularioMarca() => marcaEnEdicion = null;
+
+    private async Task OnMarcaGuardada()
+    {
+        marcaEnEdicion = null;
+        marcas = await RelojSvc.GetMarcasAsync();
+    }
+
+    private async Task EliminarMarca(int id)
+    {
+        Logger.LogInformation("Admin: eliminando marca Id {Id}", id);
+        if (await RelojSvc.DeleteMarcaAsync(id))
+            marcas = await RelojSvc.GetMarcasAsync();
+    }
+}

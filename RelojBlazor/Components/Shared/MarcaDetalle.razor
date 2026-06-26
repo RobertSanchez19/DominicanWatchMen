@@ -1,0 +1,40 @@
+<div class="marca-detalle">
+    <div class="marca-detalle-header">
+        <div>
+            <h2 class="marca-detalle-nombre">@Marca.Nombre</h2>
+            <p class="marca-detalle-pais">📍 @Marca.PaisOrigen</p>
+        </div>
+        <button class="marca-detalle-cerrar" @onclick="OnCerrar">✕ Cerrar</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Marca.Descripcion))
+    {
+        <p class="marca-detalle-desc">@Marca.Descripcion</p>
+    }
+
+    @if (Marca.Relojes.Any())
+    {
+        <div class="marca-detalle-relojes">
+            <h4 class="marca-detalle-sub">Relojes de @Marca.Nombre</h4>
+            <div class="marca-relojes-lista">
+                @foreach (var reloj in Marca.Relojes)
+                {
+                    <div class="marca-reloj-item">
+                        <span class="marca-reloj-nombre">@reloj.Nombre</span>
+                        <span class="marca-reloj-modelo">@reloj.Modelo</span>
+                        <span class="marca-reloj-precio">RD$ @reloj.Precio.ToString("N2")</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="empty-msg">Esta marca no tiene relojes registrados aún.</p>
+    }
+</div>
+
+@code {
+    [Parameter] public required Marca Marca { get; set; }
+    [Parameter] public EventCallback OnCerrar { get; set; }
+}
