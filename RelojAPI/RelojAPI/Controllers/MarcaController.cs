@@ -24,7 +24,9 @@ namespace RelojAPI.Controllers
         public async Task<ActionResult<IEnumerable<Marca>>> GetAll()
         {
             _logger.LogInformation("GET /api/marca - Obteniendo todas las marcas");
-            var marcas = await _context.Marcas.ToListAsync();
+            var marcas = await _context.Marcas
+                .Include(m => m.Relojes)
+                .ToListAsync();
             return Ok(marcas);
         }
 
@@ -34,7 +36,9 @@ namespace RelojAPI.Controllers
         {
             _logger.LogInformation("GET /api/marca/{Id} - Buscando marca", id);
 
-            var marca = await _context.Marcas.FindAsync(id);
+            var marca = await _context.Marcas
+                .Include(m => m.Relojes)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (marca == null)
             {
                 _logger.LogWarning("Marca con Id {Id} no encontrada", id);
@@ -73,6 +77,7 @@ namespace RelojAPI.Controllers
             existing.Nombre = marca.Nombre;
             existing.PaisOrigen = marca.PaisOrigen;
             existing.Descripcion = marca.Descripcion;
+            existing.LogoUrl = marca.LogoUrl;
 
             await _context.SaveChangesAsync();
 

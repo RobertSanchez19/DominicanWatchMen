@@ -1,14 +1,23 @@
 @inherits LayoutComponentBase
 @inject IAuthService Auth
+@inject ISiteConfigService Site
 @implements IDisposable
 
 <header class="dwm-header">
     <div class="dwm-header-inner">
         <a href="/" class="dwm-logo">
-            <span class="dwm-logo-icon">⌚</span>
+            @if (!string.IsNullOrEmpty(Site.Config.LogoUrl))
+            {
+                <img src="@Site.Config.LogoUrl" alt="@Site.Config.SitioNombre" class="dwm-logo-img"
+                     style="height:42px;width:42px;object-fit:contain;border-radius:8px;" />
+            }
+            else
+            {
+                <span class="dwm-logo-icon">⌚</span>
+            }
             <div>
-                <div class="dwm-logo-name">Dominican Watch Men</div>
-                <div class="dwm-logo-sub">RD · Alta Relojería</div>
+                <div class="dwm-logo-name">@Site.Config.SitioNombre</div>
+                <div class="dwm-logo-sub">@Site.Config.SitioSubtitulo</div>
             </div>
         </a>
         <nav class="dwm-nav">
@@ -41,8 +50,8 @@
 <footer class="dwm-footer">
     <div class="dwm-footer-inner">
         <div class="dwm-footer-brand">
-            <span class="dwm-footer-name">Dominican Watch Men</span>
-            <span class="dwm-footer-tagline">Alta Relojería · Santo Domingo, RD</span>
+            <span class="dwm-footer-name">@Site.Config.SitioNombre</span>
+            <span class="dwm-footer-tagline">@Site.Config.FooterTagline</span>
         </div>
         <div class="dwm-footer-links">
             <a href="/" class="dwm-footer-link">Inicio</a>
@@ -50,7 +59,7 @@
             <a href="/marcas" class="dwm-footer-link">Marcas</a>
         </div>
         <div class="dwm-footer-copy">
-            © @DateTime.Now.Year Dominican Watch Men · Todos los derechos reservados
+            © @DateTime.Now.Year @Site.Config.FooterCopyright
         </div>
     </div>
 </footer>
@@ -62,9 +71,11 @@
 </div>
 
 @code {
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         Auth.OnCambio += Actualizar;
+        Site.OnCambio += Actualizar;
+        await Site.CargarAsync();
     }
 
     private void Actualizar()
@@ -80,5 +91,6 @@
     public void Dispose()
     {
         Auth.OnCambio -= Actualizar;
+        Site.OnCambio -= Actualizar;
     }
 }

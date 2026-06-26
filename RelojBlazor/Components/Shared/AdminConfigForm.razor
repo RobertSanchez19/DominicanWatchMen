@@ -1,0 +1,139 @@
+@inject ISiteConfigService Site
+@inject IRelojService RelojSvc
+
+<div class="admin-form-panel">
+    <h3 class="admin-form-title">Configuración del sitio</h3>
+    <p class="form-hint">Personaliza el logo, el nombre, la portada y el pie de página. Los cambios se ven de inmediato en todo el sitio.</p>
+
+    @if (!string.IsNullOrEmpty(mensajeError)) { <div class="form-error">@mensajeError</div> }
+    @if (!string.IsNullOrEmpty(mensajeOk))    { <div class="form-ok">@mensajeOk</div> }
+
+    <!-- ── Encabezado / branding ── -->
+    <h4 class="admin-form-subtitle">Encabezado</h4>
+
+    <div class="form-group">
+        <label class="form-label">Logo del sitio</label>
+        @if (!string.IsNullOrEmpty(modelo.LogoUrl))
+        {
+            <div class="admin-img-preview-wrap">
+                <img src="@modelo.LogoUrl" class="admin-img-preview admin-logo-preview" alt="Logo del sitio" />
+                <button class="admin-btn-img-clear" @onclick="QuitarLogo">✕ Quitar</button>
+            </div>
+        }
+        <InputFile OnChange="SubirLogo" accept=".jpg,.jpeg,.png,.webp,.svg" class="form-file" />
+        @if (subiendoLogo) { <span class="form-hint">Subiendo logo…</span> }
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Nombre del sitio *</label>
+        <input class="form-input" @bind="modelo.SitioNombre" placeholder="Dominican Watch Men" />
+    </div>
+    <div class="form-group">
+        <label class="form-label">Subtítulo (junto al logo)</label>
+        <input class="form-input" @bind="modelo.SitioSubtitulo" placeholder="RD · Alta Relojería" />
+    </div>
+
+    <!-- ── Portada ── -->
+    <h4 class="admin-form-subtitle">Portada (página de inicio)</h4>
+
+    <div class="form-group">
+        <label class="form-label">Título principal</label>
+        <input class="form-input" @bind="modelo.HeroTitulo" placeholder="No vendemos relojes. Ensamblamos tiempo." />
+    </div>
+    <div class="form-group">
+        <label class="form-label">Subtítulo</label>
+        <textarea class="form-input form-textarea" @bind="modelo.HeroSubtitulo"
+                  placeholder="Movimientos Seiko originales..."></textarea>
+    </div>
+
+    <!-- ── Pie de página ── -->
+    <h4 class="admin-form-subtitle">Pie de página</h4>
+
+    <div class="form-group">
+        <label class="form-label">Lema (tagline)</label>
+        <input class="form-input" @bind="modelo.FooterTagline" placeholder="Alta Relojería · Santo Domingo, RD" />
+    </div>
+    <div class="form-group">
+        <label class="form-label">Texto de derechos (después del año)</label>
+        <input class="form-input" @bind="modelo.FooterCopyright" placeholder="Dominican Watch Men · Todos los derechos reservados" />
+        <div class="form-hint">Se mostrará como: © @DateTime.Now.Year @modelo.FooterCopyright</div>
+    </div>
+
+    <div class="admin-form-actions">
+        <button class="btn-primary" @onclick="Guardar" disabled="@guardando">
+            @(guardando ? "Guardando..." : "Guardar configuración")
+        </button>
+    </div>
+</div>
+
+@code {
+    private SiteConfig modelo = new();
+    private string mensajeError = "";
+    private string mensajeOk = "";
+    private bool guardando = false;
+    private bool subiendoLogo = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Site.CargarAsync();
+        modelo = Clonar(Site.Config);
+    }
+
+    private static SiteConfig Clonar(SiteConfig c) => new()
+    {
+        Id              = c.Id,
+        SitioNombre     = c.SitioNombre,
+        SitioSubtitulo  = c.SitioSubtitulo,
+        LogoUrl         = c.LogoUrl,
+        HeroTitulo      = c.HeroTitulo,
+        HeroSubtitulo   = c.HeroSubtitulo,
+        FooterTagline   = c.FooterTagline,
+        FooterCopyright = c.FooterCopyright
+    };
+
+    private async Task SubirLogo(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+        subiendoLogo = true;
+        mensajeError = "";
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 3 * 1024 * 1024);
+            var contentType = file.ContentType == "image/svg+xml" ? "image/png" : file.ContentType;
+            var url = await RelojSvc.UploadImageAsync(stream, file.Name, contentType);
+            if (url != null)
+                modelo.LogoUrl = url;
+            else
+                mensajeError = "No se pudo subir el logo (formatos: jpg/png/webp).";
+        }
+        catch
+        {
+            mensajeError = "Error al subir. Máx. 3 MB.";
+        }
+        finally { subiendoLogo = false; }
+    }
+
+    private void QuitarLogo() => modelo.LogoUrl = null;
+
+    private async Task Guardar()
+    {
+        mensajeError = "";
+        mensajeOk = "";
+
+        if (string.IsNullOrWhiteSpace(modelo.SitioNombre))
+        {
+            mensajeError = "El nombre del sitio es obligatorio.";
+            return;
+        }
+
+        guardando = true;
+        var ok = await Site.GuardarAsync(modelo);
+        guardando = false;
+
+        if (ok)
+            mensajeOk = "Configuración guardada. Los cambios ya están aplicados en el sitio.";
+        else
+            mensajeError = "No se pudo guardar. Verifica que la API esté activa.";
+    }
+}

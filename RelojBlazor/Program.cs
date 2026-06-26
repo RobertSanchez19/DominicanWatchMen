@@ -22,6 +22,13 @@ builder.Services.AddHttpClient("auth-api", client =>
 });
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// SiteConfigService: configuración editable del sitio (logo, branding, portada, footer)
+builder.Services.AddHttpClient("config-api", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+});
+builder.Services.AddScoped<ISiteConfigService, SiteConfigService>();
+
 // ILogger<T> e IConfiguration son registrados automáticamente por el framework
 
 var app = builder.Build();

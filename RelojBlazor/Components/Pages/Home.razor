@@ -1,13 +1,14 @@
 @page "/"
 @rendermode InteractiveServer
 @inject IRelojService RelojSvc
+@inject ISiteConfigService Site
 @inject ILogger<Home> Logger
 
 <PageTitle>Dominican Watch Men — Inicio</PageTitle>
 
 <HeroBanner
-    Titulo="No vendemos relojes. Ensamblamos tiempo."
-    Subtitulo="Movimientos Seiko originales. Componentes de grado quirúrgico. Diseños únicos con alma clásica."
+    Titulo="@Site.Config.HeroTitulo"
+    Subtitulo="@Site.Config.HeroSubtitulo"
     BotonTexto="Ver Catálogo"
     BotonUrl="/catalogo"
     Destacados="destacados" />
@@ -87,6 +88,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await Site.CargarAsync();
         try
         {
             var todos = await RelojSvc.GetAllAsync();

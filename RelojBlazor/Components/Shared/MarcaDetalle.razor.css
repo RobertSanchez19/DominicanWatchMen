@@ -1,0 +1,15 @@
+.marca-detalle-titulo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.marca-detalle-logo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 6px;
+    box-sizing: border-box;
+}

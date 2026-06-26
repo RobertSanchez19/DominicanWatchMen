@@ -1,8 +1,14 @@
 <div class="marca-detalle">
     <div class="marca-detalle-header">
-        <div>
-            <h2 class="marca-detalle-nombre">@Marca.Nombre</h2>
-            <p class="marca-detalle-pais">📍 @Marca.PaisOrigen</p>
+        <div class="marca-detalle-titulo">
+            @if (!string.IsNullOrEmpty(Marca.LogoUrl))
+            {
+                <img src="@Marca.LogoUrl" alt="@Marca.Nombre" class="marca-detalle-logo" />
+            }
+            <div>
+                <h2 class="marca-detalle-nombre">@Marca.Nombre</h2>
+                <p class="marca-detalle-pais">📍 @Marca.PaisOrigen</p>
+            </div>
         </div>
         <button class="marca-detalle-cerrar" @onclick="OnCerrar">✕ Cerrar</button>
     </div>

@@ -34,6 +34,8 @@ else
                     @onclick='() => CambiarTab("marcas")'>🏷️ Marcas</button>
             <button class="admin-tab @(tabActiva == "usuarios" ? "admin-tab-activa" : "")"
                     @onclick='() => CambiarTab("usuarios")'>👥 Usuarios</button>
+            <button class="admin-tab @(tabActiva == "configuracion" ? "admin-tab-activa" : "")"
+                    @onclick='() => CambiarTab("configuracion")'>⚙️ Configuración</button>
         </div>
 
         <!-- ── TAB: RELOJES ── -->
@@ -85,6 +87,14 @@ else
         {
             <div class="admin-col-list">
                 <AdminUsuarioList />
+            </div>
+        }
+
+        <!-- ── TAB: CONFIGURACIÓN ── -->
+        @if (tabActiva == "configuracion")
+        {
+            <div class="admin-col-list">
+                <AdminConfigForm />
             </div>
         }
     </div>
