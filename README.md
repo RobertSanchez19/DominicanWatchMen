@@ -39,7 +39,7 @@ Aplicación de catálogo y administración de relojes construida con ASP.NET Cor
 
 ## Integrantes
 
-- Ing. Roberto R. Sánchez Gutiérrez · 24-0177
+- Roberto R. Sánchez Gutiérrez · 24-0177
 - Axel Santana · 23-1568
 
-Facilitadora: Johanna Elisa Rodríguez Ricardo
+Facilitadora: Ing. Johanna Elisa Rodríguez Ricardo
