@@ -498,6 +498,7 @@ function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerr
 ══════════════════════════════════════════════════ */
 function Editorial() {
   const [sel, setSel] = React.useState(0);
+  const irA = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
   const watches = [
     { img: T + 'Nautiko_Rose_Gold_Chocolate_Open_Heart.png', series: 'Nautiko', name: 'Rose Gold Open Heart', ref: 'DWM-NAU-RG-OH', specs: ['NH38', 'Oro Rosa PVD', 'Corazón Abierto', '316L'] },
     { img: T + 'GMTeiko-Pepsi.png', series: 'GMTeiko', name: 'Pepsi Edition', ref: 'DWM-GMT-PEP', specs: ['NH34', 'GMT Dual Time', 'Jubilee 316L', 'Cerámica Bi-color'] },
@@ -539,10 +540,10 @@ function Editorial() {
               </div>
             ))}
           </div>
-          <button style={{
+          <button onClick={() => irA('colecciones')} style={{
             fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase',
             background: 'var(--ink)', color: 'var(--white)', padding: '15px 36px', borderRadius: 3,
-            transition: 'background 0.25s', marginBottom: 28, border: 'none',
+            transition: 'background 0.25s', marginBottom: 28, border: 'none', cursor: 'pointer',
           }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
             onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
@@ -802,9 +803,13 @@ function Footer() {
               <div key={title}>
                 <div style={{ fontSize: 8.5, fontWeight: 500, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 20 }}>{title}</div>
                 {items.map(item => (
-                  <div key={item} style={{ fontFamily: 'var(--serif)', fontSize: 15, color: 'var(--ink-2)', marginBottom: 10, cursor: 'pointer', transition: 'color 0.2s' }}
-                    onMouseEnter={e => e.target.style.color = 'var(--gold)'}
-                    onMouseLeave={e => e.target.style.color = 'var(--ink-2)'}>{item}</div>
+                  item === 'WhatsApp'
+                    ? <a key={item} href="https://wa.me/18094079575" target="_blank" rel="noopener noreferrer" style={{ display: 'block', fontFamily: 'var(--serif)', fontSize: 15, color: 'var(--ink-2)', marginBottom: 10, cursor: 'pointer', transition: 'color 0.2s', textDecoration: 'none' }}
+                        onMouseEnter={e => e.target.style.color = 'var(--gold)'}
+                        onMouseLeave={e => e.target.style.color = 'var(--ink-2)'}>{item}</a>
+                    : <div key={item} style={{ fontFamily: 'var(--serif)', fontSize: 15, color: 'var(--ink-2)', marginBottom: 10, cursor: 'pointer', transition: 'color 0.2s' }}
+                        onMouseEnter={e => e.target.style.color = 'var(--gold)'}
+                        onMouseLeave={e => e.target.style.color = 'var(--ink-2)'}>{item}</div>
                 ))}
               </div>
             ))}
@@ -1764,7 +1769,7 @@ function ConfiguradorReloj({ reloj, onClose, onAgregar }) {
                       }}
                         onMouseEnter={e => { if (!agregado) e.currentTarget.style.background = 'var(--gold)'; }}
                         onMouseLeave={e => { if (!agregado) e.currentTarget.style.background = 'var(--ink)'; }}>
-                        {agregado ? '✓ Agregado al carrito' : 'Añadir al carrito'}
+                        {agregado ? 'Agregado a tu seleccion' : 'Añadir al carrito'}
                       </button>
                     </>
                   )}
@@ -1806,8 +1811,8 @@ function CarritoPanel({ open, items, onClose, onQuitar, onVaciar, onCheckout }) 
         {/* Contenido */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 30px' }}>
           {items.length === 0 ? (
-            <div style={{ textAlign: 'center', paddingTop: 80, color: 'var(--ink-4)' }}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>🛒</div>
+            <div style={{ textAlign: 'center', paddingTop: 70, color: 'var(--ink-4)' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16, opacity: 0.5 }}><Emblem size={44} fg="var(--border-dk)" /></div>
               <p style={{ fontSize: 13, marginBottom: 20 }}>Tu carrito esta vacio.<br />Elige un reloj y personalizalo.</p>
               <button onClick={onClose} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, padding: '11px 24px', cursor: 'pointer' }}>Seguir comprando</button>
             </div>
@@ -1964,8 +1969,8 @@ function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
       </div>
 
       {items.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '100px 24px', color: 'var(--ink-4)' }}>
-          <div style={{ fontSize: 34, marginBottom: 12 }}>🛒</div>
+        <div style={{ textAlign: 'center', padding: '90px 24px', color: 'var(--ink-4)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16, opacity: 0.5 }}><Emblem size={48} fg="var(--border-dk)" /></div>
           <p style={{ fontSize: 14, marginBottom: 20 }}>Tu carrito esta vacio.</p>
           <button onClick={onVolver} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, padding: '12px 28px', cursor: 'pointer' }}>Volver</button>
         </div>
@@ -2034,12 +2039,12 @@ function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
                       <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
                         {marcaT
                           ? <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--white)', background: marcaT.color, padding: '4px 8px', borderRadius: 4 }}>{marcaT.marca}</span>
-                          : <span style={{ fontSize: 16, color: 'var(--ink-4)' }}>💳</span>}
+                          : null}
                       </span>
                     </div>
                     {form.tarjetaNumero && (
-                      <div style={{ fontSize: 10, marginBottom: 12, color: numCompleto ? '#2D6A4F' : 'var(--ink-4)' }}>
-                        {numCompleto ? '✓ Numero completo' : `Faltan digitos (${digitosTar.length}/${marcaT ? marcaT.largo : 16})`}
+                      <div style={{ fontSize: 10, marginBottom: 12, letterSpacing: '0.06em', color: numCompleto ? 'var(--gold)' : 'var(--ink-4)' }}>
+                        {numCompleto ? 'Numero completo' : `Faltan digitos (${digitosTar.length}/${marcaT ? marcaT.largo : 16})`}
                       </div>
                     )}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -2056,7 +2061,7 @@ function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
                             <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: 'var(--white)', background: t.color, padding: '3px 7px', borderRadius: 4, minWidth: 76, textAlign: 'center' }}>{t.marca}</span>
                             <span style={{ fontSize: 11, color: 'var(--ink-2)' }}>Empieza con <strong>{t.indicador}</strong></span>
                             <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--ink-4)' }}>demo: {t.demo}</span>
-                            {activa && <span style={{ color: 'var(--gold)', fontWeight: 700, marginLeft: 4 }}>●</span>}
+                            {activa && <span style={{ marginLeft: 6, fontSize: 8, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gold)' }}>Detectada</span>}
                           </div>
                         );
                       })}
@@ -2124,7 +2129,7 @@ function ConfirmacionPage({ pedido, onVolver }) {
           </div>
         ) : (<>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--gold-bg)', border: '1px solid var(--gold-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 30, color: 'var(--gold)' }}>✓</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}><Emblem size={52} fg="var(--gold)" flag={true} /></div>
             <h2 style={{ fontFamily: 'var(--serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>¡Pedido confirmado!</h2>
             <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>Gracias, {pedido.nombreCliente}. Tu pedido <strong style={{ color: 'var(--ink)' }}>#{pedido.id}</strong> fue registrado.</p>
           </div>
@@ -2357,7 +2362,7 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
               <div style={{ position: 'relative', marginBottom: 12 }}>
                 <input value={tForm.numero} onChange={e => tset('numero', formatearTarjeta(e.target.value))} placeholder="0000 0000 0000 0000" style={{ ...inp, paddingRight: 88, fontFamily: 'var(--mono)' }} />
                 <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
-                  {marcaTar ? <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: 'var(--white)', background: marcaTar.color, padding: '4px 8px', borderRadius: 4 }}>{marcaTar.marca}</span> : <span style={{ fontSize: 15, color: 'var(--ink-4)' }}>💳</span>}
+                  {marcaTar ? <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: 'var(--white)', background: marcaTar.color, padding: '4px 8px', borderRadius: 4 }}>{marcaTar.marca}</span> : null}
                 </span>
               </div>
               {field('Titular', <input value={tForm.titular} onChange={e => tset('titular', e.target.value)} placeholder="CLIENTE DEMO" style={inp} />)}
@@ -2430,16 +2435,27 @@ function GarantiaPage({ onVolver }) {
         </p>
 
         {/* Cobertura */}
-        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden', marginBottom: 40 }}>
-          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-3)', padding: '14px 20px', background: 'var(--off-white)' }}>Que cubre la garantia</div>
-          {cobertura.map((c, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 20px', borderTop: '1px solid var(--border)' }}>
-              <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>{c.item}</span>
-              <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 10px', borderRadius: 9999, background: c.ok ? 'rgba(45,106,79,0.12)' : 'rgba(178,56,56,0.1)', color: c.ok ? '#2D6A4F' : '#B23838' }}>
-                {c.ok ? '✓ Cubierto' : 'No cubierto'}
-              </span>
-            </div>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid var(--border)', borderRadius: 4, overflow: 'hidden', marginBottom: 44, background: 'var(--white)' }}>
+          <div style={{ padding: '26px 28px', borderRight: '1px solid var(--border)' }}>
+            <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>Incluido en la garantia</div>
+            <div style={{ width: 26, height: 1, background: 'var(--gold)', margin: '10px 0 18px' }} />
+            {cobertura.filter(c => c.ok).map((c, i) => (
+              <div key={i} style={{ display: 'flex', gap: 14, padding: '11px 0', borderTop: i ? '1px solid var(--border)' : 'none' }}>
+                <span style={{ width: 16, height: 1, background: 'var(--gold)', marginTop: 11, flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--ink)', lineHeight: 1.35 }}>{c.item}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: '26px 28px', background: 'var(--off-white)' }}>
+            <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-4)', marginBottom: 4 }}>No incluido</div>
+            <div style={{ width: 26, height: 1, background: 'var(--border-dk)', margin: '10px 0 18px' }} />
+            {cobertura.filter(c => !c.ok).map((c, i) => (
+              <div key={i} style={{ display: 'flex', gap: 14, padding: '11px 0', borderTop: i ? '1px solid var(--border)' : 'none' }}>
+                <span style={{ width: 16, height: 1, background: 'var(--border-dk)', marginTop: 11, flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--ink-3)', lineHeight: 1.35 }}>{c.item}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Como reclamar */}
@@ -2476,7 +2492,7 @@ function GarantiaPage({ onVolver }) {
             <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.7)' }}>Escribenos y con gusto activamos tu garantia.</div>
           </div>
           <div style={{ fontFamily: 'var(--mono)', fontSize: 13, textAlign: 'right' }}>
-            WhatsApp: 809-555-0100<br />
+            WhatsApp: <a href="https://wa.me/18094079575" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--white)', textDecoration: 'underline' }}>+1 809-407-9575</a><br />
             soporte@dominicanwatchmen.do
           </div>
         </div>
