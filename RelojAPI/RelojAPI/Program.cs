@@ -69,8 +69,17 @@ using (var scope = app.Services.CreateScope())
                 System.Security.Cryptography.SHA256.HashData(
                     System.Text.Encoding.UTF8.GetBytes("Admin123"))).ToLower(),
             EsAdmin      = true,
+            Rol          = "Admin",
             Activo       = true
         });
+        db.SaveChanges();
+    }
+
+    // Sincroniza el Rol para usuarios que existian antes de la columna Rol (o quedaron vacios)
+    var usuariosArreglar = db.Usuarios.Where(u => u.Rol == null || u.Rol == "" || (u.EsAdmin && u.Rol != "Admin")).ToList();
+    if (usuariosArreglar.Count > 0)
+    {
+        foreach (var u in usuariosArreglar) u.Rol = u.EsAdmin ? "Admin" : "Cliente";
         db.SaveChanges();
     }
 
@@ -131,6 +140,24 @@ using (var scope = app.Services.CreateScope())
             foreach (var m in maquinasDef) r.MovimientosCompatibles.Add(m);
             foreach (var p in pulserasDef) r.PulserasCompatibles.Add(p);
         }
+        db.SaveChanges();
+    }
+
+    // ===== SEED: piezas de taller (fabricacion) =====
+    if (!db.Piezas.Any())
+    {
+        db.Piezas.AddRange(
+            new RelojAPI.Models.Pieza { Categoria = "Case",    Nombre = "Case Diver 40mm",        Tipo = "Diver",     Color = "Acero",      Material = "316L",       Stock = 20 },
+            new RelojAPI.Models.Pieza { Categoria = "Case",    Nombre = "Case Dress 39mm",        Tipo = "Dress",     Color = "Oro",        Material = "316L PVD",   Stock = 10 },
+            new RelojAPI.Models.Pieza { Categoria = "Dial",    Nombre = "Dial Sunburst Azul",     Tipo = "Sunburst",  Color = "Azul",       Material = "Laton",      Stock = 15 },
+            new RelojAPI.Models.Pieza { Categoria = "Dial",    Nombre = "Dial Mate Negro",        Tipo = "Mate",      Color = "Negro",      Material = "Laton",      Stock = 25 },
+            new RelojAPI.Models.Pieza { Categoria = "Bezel",   Nombre = "Bezel Ceramica Pepsi",   Tipo = "GMT",       Color = "Azul/Rojo",  Material = "Ceramica",   Stock = 12 },
+            new RelojAPI.Models.Pieza { Categoria = "Bezel",   Nombre = "Bezel Aluminio Negro",   Tipo = "Diver",     Color = "Negro",      Material = "Aluminio",   Stock = 18 },
+            new RelojAPI.Models.Pieza { Categoria = "Aguja",   Nombre = "Set Agujas Mercedes",    Tipo = "Mercedes",  Color = "Plata",      Material = "Acero",      Stock = 30 },
+            new RelojAPI.Models.Pieza { Categoria = "Aguja",   Nombre = "Set Agujas Dauphine",    Tipo = "Dauphine",  Color = "Oro",        Material = "Acero",      Stock = 14 },
+            new RelojAPI.Models.Pieza { Categoria = "Maquina", Nombre = "NH35 (taller)",          Tipo = "Automatico",Color = "-",          Material = "-",          Stock = 22 },
+            new RelojAPI.Models.Pieza { Categoria = "Pulsera", Nombre = "Oyster 20mm (taller)",   Tipo = "Oyster",    Color = "Acero",      Material = "316L",       Stock = 16 }
+        );
         db.SaveChanges();
     }
 }

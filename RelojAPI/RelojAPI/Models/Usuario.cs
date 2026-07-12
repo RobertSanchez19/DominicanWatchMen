@@ -12,5 +12,8 @@ namespace RelojAPI.Models
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
         public bool Activo { get; set; } = true;
         public bool EsAdmin { get; set; } = false;
+
+        // Rol del usuario: Cliente, Admin, Fabricante, Soporte
+        public string Rol { get; set; } = "Cliente";
     }
 }

@@ -36,13 +36,14 @@ namespace RelojAPI.Controllers
                 Email        = dto.Email,
                 PasswordHash = HashPassword(dto.Password),
                 EsAdmin      = dto.EsAdmin,
+                Rol          = dto.EsAdmin ? "Admin" : "Cliente",
                 Activo       = true
             };
 
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Usuario creado con Id {Id}, EsAdmin={EsAdmin}", usuario.Id, usuario.EsAdmin);
-            return Ok(new UsuarioAdminDto(usuario.Id, usuario.Nombre, usuario.Apellido, usuario.Email, usuario.EsAdmin, usuario.Activo, usuario.FechaRegistro));
+            return Ok(new UsuarioAdminDto(usuario.Id, usuario.Nombre, usuario.Apellido, usuario.Email, usuario.EsAdmin, usuario.Activo, usuario.FechaRegistro, usuario.Rol));
         }
 
         // POST: api/usuario/registro
@@ -79,7 +80,7 @@ namespace RelojAPI.Controllers
             var usuarios = await _context.Usuarios
                 .OrderByDescending(u => u.EsAdmin)
                 .ThenBy(u => u.Nombre)
-                .Select(u => new UsuarioAdminDto(u.Id, u.Nombre, u.Apellido, u.Email, u.EsAdmin, u.Activo, u.FechaRegistro))
+                .Select(u => new UsuarioAdminDto(u.Id, u.Nombre, u.Apellido, u.Email, u.EsAdmin, u.Activo, u.FechaRegistro, u.Rol))
                 .ToListAsync();
             return Ok(usuarios);
         }
@@ -88,12 +89,13 @@ namespace RelojAPI.Controllers
         [HttpPut("{id}/rol")]
         public async Task<ActionResult> CambiarRol(int id, [FromBody] CambiarRolDto dto)
         {
-            _logger.LogInformation("PUT /api/usuario/{Id}/rol - EsAdmin={EsAdmin}", id, dto.EsAdmin);
+            _logger.LogInformation("PUT /api/usuario/{Id}/rol - Rol={Rol}", id, dto.Rol);
             var usuario = await _context.Usuarios.FindAsync(id);
             if (usuario == null) return NotFound(new { mensaje = "Usuario no encontrado" });
-            usuario.EsAdmin = dto.EsAdmin;
+            usuario.Rol = dto.Rol;
+            usuario.EsAdmin = dto.Rol == "Admin"; // se mantiene sincronizado con el rol
             await _context.SaveChangesAsync();
-            return Ok(new UsuarioAdminDto(usuario.Id, usuario.Nombre, usuario.Apellido, usuario.Email, usuario.EsAdmin, usuario.Activo, usuario.FechaRegistro));
+            return Ok(new UsuarioAdminDto(usuario.Id, usuario.Nombre, usuario.Apellido, usuario.Email, usuario.EsAdmin, usuario.Activo, usuario.FechaRegistro, usuario.Rol));
         }
 
         // DELETE: api/usuario/{id}
@@ -162,15 +164,15 @@ namespace RelojAPI.Controllers
 
     public record LoginDto(string Email, string Password);
 
-    public record UsuarioDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin, string? Telefono, string? Direccion)
+    public record UsuarioDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin, string? Telefono, string? Direccion, string Rol)
     {
-        public UsuarioDto(Usuario u) : this(u.Id, u.Nombre, u.Apellido, u.Email, u.EsAdmin, u.Telefono, u.Direccion) { }
+        public UsuarioDto(Usuario u) : this(u.Id, u.Nombre, u.Apellido, u.Email, u.EsAdmin, u.Telefono, u.Direccion, u.Rol) { }
     }
 
     public record ActualizarPerfilDto(string Nombre, string Apellido, string? Telefono, string? Direccion, string? Password, string? PasswordActual);
 
-    public record UsuarioAdminDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin, bool Activo, DateTime FechaRegistro);
+    public record UsuarioAdminDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin, bool Activo, DateTime FechaRegistro, string Rol);
 
-    public record CambiarRolDto(bool EsAdmin);
+    public record CambiarRolDto(string Rol);
     public record CrearUsuarioDto(string Nombre, string Apellido, string Email, string Password, bool EsAdmin);
 }

@@ -18,6 +18,7 @@ namespace RelojAPI.Data
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<PedidoItem> PedidoItems { get; set; }
         public DbSet<TarjetaGuardada> Tarjetas { get; set; }
+        public DbSet<Pieza> Piezas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
