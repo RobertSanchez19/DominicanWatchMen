@@ -108,6 +108,30 @@ namespace RelojAPI.Controllers
             return NoContent();
         }
 
+        // PUT: api/usuario/{id}  (el cliente actualiza su propio perfil)
+        [HttpPut("{id}")]
+        public async Task<ActionResult> ActualizarPerfil(int id, [FromBody] ActualizarPerfilDto dto)
+        {
+            _logger.LogInformation("PUT /api/usuario/{Id} - Actualizando perfil", id);
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null) return NotFound(new { mensaje = "Usuario no encontrado" });
+
+            usuario.Nombre    = dto.Nombre;
+            usuario.Apellido  = dto.Apellido;
+            usuario.Telefono  = dto.Telefono;
+            usuario.Direccion = dto.Direccion;
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+            {
+                // Para cambiar la contrasena se exige la actual correcta
+                if (usuario.PasswordHash != HashPassword(dto.PasswordActual ?? ""))
+                    return BadRequest(new { mensaje = "La contraseña actual es incorrecta" });
+                usuario.PasswordHash = HashPassword(dto.Password);
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new UsuarioDto(usuario));
+        }
+
         // POST: api/usuario/login
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginDto dto)
@@ -138,10 +162,12 @@ namespace RelojAPI.Controllers
 
     public record LoginDto(string Email, string Password);
 
-    public record UsuarioDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin)
+    public record UsuarioDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin, string? Telefono, string? Direccion)
     {
-        public UsuarioDto(Usuario u) : this(u.Id, u.Nombre, u.Apellido, u.Email, u.EsAdmin) { }
+        public UsuarioDto(Usuario u) : this(u.Id, u.Nombre, u.Apellido, u.Email, u.EsAdmin, u.Telefono, u.Direccion) { }
     }
+
+    public record ActualizarPerfilDto(string Nombre, string Apellido, string? Telefono, string? Direccion, string? Password, string? PasswordActual);
 
     public record UsuarioAdminDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin, bool Activo, DateTime FechaRegistro);
 

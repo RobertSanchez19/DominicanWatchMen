@@ -741,6 +741,7 @@ function FAQ() {
    CTA BANNER
 ══════════════════════════════════════════════════ */
 function CTABanner() {
+  const irA = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
   return (
     <section style={{ padding: '120px 56px', background: 'var(--off-white)', textAlign: 'center', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 600, borderRadius: '50%', border: '1px solid rgba(184,146,42,0.10)', pointerEvents: 'none' }} />
@@ -757,14 +758,14 @@ function CTABanner() {
         <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 17, color: 'var(--ink-3)', lineHeight: 1.6, marginBottom: 40, maxWidth: 480, margin: '0 auto 40px' }}>
           Cada reloj Dominican Watch Men es una decisión. Cuéntanos tu visión y la hacemos realidad.
         </p>
-        <button style={{
+        <button onClick={() => irA('colecciones')} style={{
           fontSize: 11, fontWeight: 500, letterSpacing: '0.28em', textTransform: 'uppercase',
           background: 'var(--ink)', color: 'var(--white)', padding: '18px 48px', borderRadius: 0,
-          transition: 'all 0.3s', border: 'none',
+          transition: 'all 0.3s', border: 'none', cursor: 'pointer',
         }}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
           onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
-          Iniciar Mi Configuración
+          Explorar la Colección
         </button>
       </div>
     </section>
@@ -1300,6 +1301,81 @@ function ComponentesModal({ onClose, onCambio }) {
   );
 }
 
+/* ══════════════════════════════════════════════════
+   MODAL DE PEDIDOS — el admin ve las ordenes de compra
+══════════════════════════════════════════════════ */
+function PedidosModal({ onClose }) {
+  const [pedidos, setPedidos] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [abierto, setAbierto] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch(`${API}/api/pedido`).then(r => r.json()).then(d => { setPedidos(d); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
+
+  const fmt = (f) => { try { return new Date(f).toLocaleString('es-DO'); } catch (e) { return f; } };
+
+  const estados = ['Pendiente', 'En proceso', 'Enviado', 'Completado', 'Cancelado'];
+  const cambiarEstado = async (id, estado) => {
+    try {
+      const r = await fetch(`${API}/api/pedido/${id}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado }) });
+      if (!r.ok) throw new Error();
+      setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado } : p));
+    } catch (e) {}
+  };
+
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(17,17,16,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ background: 'var(--white)', borderRadius: 16, padding: '30px 34px', width: '100%', maxWidth: 760, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.24)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
+          <div>
+            <div style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 6 }}>Ordenes de compra</div>
+            <h2 style={{ fontFamily: 'var(--serif)', fontSize: 24, fontWeight: 600, color: 'var(--ink)' }}>Pedidos ({pedidos.length})</h2>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--ink-3)' }}>✕</button>
+        </div>
+
+        {loading ? <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-4)' }}>Cargando...</div>
+          : pedidos.length === 0 ? <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-4)', fontSize: 13 }}>Aun no hay pedidos.</div>
+          : pedidos.map(p => (
+            <div key={p.id} style={{ border: '1px solid var(--border)', borderRadius: 10, marginBottom: 10, overflow: 'hidden' }}>
+              <div onClick={() => setAbierto(abierto === p.id ? null : p.id)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', cursor: 'pointer', background: 'var(--off-white)' }}>
+                <div>
+                  <span style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>Pedido #{p.id}</span>
+                  <span style={{ fontSize: 11, color: 'var(--ink-4)', marginLeft: 10 }}>{p.nombreCliente} {p.apellidoCliente} · {fmt(p.fecha)}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: 9999, background: 'var(--gold-bg)', color: 'var(--gold)' }}>{p.estado}</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>RD$ {p.total.toLocaleString('es-DO')}</span>
+                </div>
+              </div>
+              {abierto === p.id && (
+                <div style={{ padding: '14px 16px', fontSize: 12, color: 'var(--ink-2)' }}>
+                  {p.items.map(i => (
+                    <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+                      <span>{i.relojNombre} <span style={{ color: 'var(--ink-4)' }}>({i.maquinaNombre} · {i.pulseraNombre}) x{i.cantidad}</span></span>
+                      <span style={{ fontFamily: 'var(--mono)' }}>RD$ {i.subtotal.toLocaleString('es-DO')}</span>
+                    </div>
+                  ))}
+                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', fontSize: 11.5, color: 'var(--ink-3)', lineHeight: 1.7 }}>
+                    <strong style={{ color: 'var(--ink)' }}>Envio:</strong> {p.direccion}, {p.ciudad}, {p.provincia} {p.codigoPostal}{p.referencia ? ` (${p.referencia})` : ''}<br />
+                    <strong style={{ color: 'var(--ink)' }}>Contacto:</strong> {p.email} · {p.telefono} · <strong style={{ color: 'var(--ink)' }}>Pago:</strong> {p.metodoPago}
+                  </div>
+                  <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Cambiar estado:</span>
+                    <select value={p.estado} onChange={e => cambiarEstado(p.id, e.target.value)} style={{ padding: '6px 10px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 12, fontFamily: 'var(--sans)', background: 'var(--white)', color: 'var(--ink)' }}>
+                      {estados.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+}
+
 function AdminPage({ usuario, onVolver, onCambio }) {
   const [relojes, setRelojes]         = React.useState([]);
   const [marcas, setMarcas]           = React.useState([]);
@@ -1308,6 +1384,7 @@ function AdminPage({ usuario, onVolver, onCambio }) {
   const [confirmDelete, setConfirm]   = React.useState(null);
   const [variantesReloj, setVariantesReloj] = React.useState(null);
   const [componentesOpen, setComponentesOpen] = React.useState(false);
+  const [pedidosOpen, setPedidosOpen] = React.useState(false);
   const [msg, setMsg]                 = React.useState(null);
 
   const cargar = () => {
@@ -1354,6 +1431,11 @@ function AdminPage({ usuario, onVolver, onCambio }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => setPedidosOpen(true)} style={{ ...btnBase, background: 'transparent', color: 'var(--ink)', border: '1px solid var(--border-dk)', padding: '10px 20px' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-dk)'; e.currentTarget.style.color = 'var(--ink)'; }}>
+            Pedidos
+          </button>
           <button onClick={() => setComponentesOpen(true)} style={{ ...btnBase, background: 'transparent', color: 'var(--ink)', border: '1px solid var(--border-dk)', padding: '10px 20px' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-dk)'; e.currentTarget.style.color = 'var(--ink)'; }}>
@@ -1487,6 +1569,9 @@ function AdminPage({ usuario, onVolver, onCambio }) {
           onCambio={() => cargar()}
         />
       )}
+
+      {/* Modal de pedidos (ordenes de compra) */}
+      {pedidosOpen && <PedidosModal onClose={() => setPedidosOpen(false)} />}
 
       {/* Confirmación de eliminación */}
       {confirmDelete && (
@@ -1692,15 +1777,13 @@ function ConfiguradorReloj({ reloj, onClose, onAgregar }) {
 /* ══════════════════════════════════════════════════
    CARRITO — panel lateral con los items agregados
 ══════════════════════════════════════════════════ */
-function CarritoPanel({ open, items, onClose, onQuitar, onVaciar }) {
-  const [confirmado, setConfirmado] = React.useState(false);
+function CarritoPanel({ open, items, onClose, onQuitar, onVaciar, onCheckout }) {
   if (!open) return null;
 
   const total = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
   const unidades = items.reduce((s, i) => s + i.cantidad, 0);
 
-  const finalizar = () => { setConfirmado(true); onVaciar(); };
-  const cerrar = () => { setConfirmado(false); onClose(); };
+  const cerrar = () => onClose();
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 600, display: 'flex', justifyContent: 'flex-end' }}>
@@ -1718,16 +1801,11 @@ function CarritoPanel({ open, items, onClose, onQuitar, onVaciar }) {
 
         {/* Contenido */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 30px' }}>
-          {confirmado ? (
-            <div style={{ textAlign: 'center', paddingTop: 60 }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
-              <div style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>¡Pedido confirmado!</div>
-              <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>Gracias por tu compra. Nos pondremos en contacto para el ensamblaje de tus piezas.</p>
-            </div>
-          ) : items.length === 0 ? (
+          {items.length === 0 ? (
             <div style={{ textAlign: 'center', paddingTop: 80, color: 'var(--ink-4)' }}>
               <div style={{ fontSize: 32, marginBottom: 10 }}>🛒</div>
-              <p style={{ fontSize: 13 }}>Tu carrito esta vacio.<br />Elige un reloj y personalizalo.</p>
+              <p style={{ fontSize: 13, marginBottom: 20 }}>Tu carrito esta vacio.<br />Elige un reloj y personalizalo.</p>
+              <button onClick={onClose} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, padding: '11px 24px', cursor: 'pointer' }}>Seguir comprando</button>
             </div>
           ) : (
             items.map(i => (
@@ -1752,18 +1830,540 @@ function CarritoPanel({ open, items, onClose, onQuitar, onVaciar }) {
         </div>
 
         {/* Footer con total */}
-        {!confirmado && items.length > 0 && (
+        {items.length > 0 && (
           <div style={{ padding: '18px 30px 26px', borderTop: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Total ({unidades} pza)</span>
               <span style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 600, color: 'var(--ink)' }}>RD$ {total.toLocaleString('es-DO')}</span>
             </div>
-            <button onClick={finalizar} style={{ width: '100%', padding: '14px', fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer', transition: 'background 0.25s' }}
+            <button onClick={onCheckout} style={{ width: '100%', padding: '14px', fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer', transition: 'background 0.25s' }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
               onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
-              Finalizar compra
+              Proceder al pago
             </button>
+            <button onClick={onClose} style={{ width: '100%', marginTop: 10, padding: '11px', fontSize: 9.5, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink)', border: '1px solid var(--border-dk)', borderRadius: 3, cursor: 'pointer' }}>Seguir comprando</button>
             <button onClick={onVaciar} style={{ width: '100%', marginTop: 10, padding: '10px', fontSize: 9, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: '1px solid var(--border-dk)', borderRadius: 3, cursor: 'pointer' }}>Vaciar carrito</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   TARJETAS — tabla de indicadores (deteccion por prefijo/BIN, sin API, segura para demos)
+══════════════════════════════════════════════════ */
+const TARJETAS = [
+  { marca: 'Visa',       patron: /^4/,               formato: [4, 4, 4, 4], largo: 16, cvv: 3, color: '#1a1f71', indicador: 'Empieza con 4',        demo: '4242 4242 4242 4242' },
+  { marca: 'Mastercard', patron: /^(5[1-5]|2[2-7])/, formato: [4, 4, 4, 4], largo: 16, cvv: 3, color: '#eb001b', indicador: '51–55 o 2221–2720',    demo: '5555 5555 5555 4444' },
+  { marca: 'Amex',       patron: /^3[47]/,           formato: [4, 6, 5],    largo: 15, cvv: 4, color: '#2e77bc', indicador: '34 o 37',              demo: '3782 822463 10005' },
+];
+function detectarMarca(valor) {
+  const d = (valor || '').replace(/\D/g, '');
+  return TARJETAS.find(t => t.patron.test(d)) || null;
+}
+function formatearTarjeta(valor) {
+  const marca = detectarMarca(valor);
+  const largo = marca ? marca.largo : 16;
+  const digitos = (valor || '').replace(/\D/g, '').slice(0, largo);
+  const grupos = marca ? marca.formato : [4, 4, 4, 4];
+  let out = '', idx = 0;
+  for (const g of grupos) {
+    if (idx >= digitos.length) break;
+    out += (out ? ' ' : '') + digitos.slice(idx, idx + g);
+    idx += g;
+  }
+  if (idx < digitos.length) out += (out ? ' ' : '') + digitos.slice(idx);
+  return out;
+}
+// Algoritmo de Luhn: valida el formato del numero (atrapa errores de tipeo)
+function luhnValido(valor) {
+  const d = (valor || '').replace(/\D/g, '');
+  if (d.length < 13) return false;
+  let suma = 0, alt = false;
+  for (let i = d.length - 1; i >= 0; i--) {
+    let n = parseInt(d[i], 10);
+    if (alt) { n *= 2; if (n > 9) n -= 9; }
+    suma += n; alt = !alt;
+  }
+  return suma % 10 === 0;
+}
+// Formatea el vencimiento a MM/AA en vivo (ej: 0828 -> 08/28)
+function formatearVence(valor) {
+  const d = (valor || '').replace(/\D/g, '').slice(0, 4);
+  if (d.length <= 2) return d;
+  return d.slice(0, 2) + '/' + d.slice(2);
+}
+
+/* ══════════════════════════════════════════════════
+   CHECKOUT — pasos de la compra (datos, envio, pago, resumen)
+══════════════════════════════════════════════════ */
+function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
+  const total = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
+  const unidades = items.reduce((s, i) => s + i.cantidad, 0);
+  const [paso, setPaso]         = React.useState(1);
+  const [enviando, setEnviando] = React.useState(false);
+  const [error, setError]       = React.useState(null);
+  const [form, setForm] = React.useState({
+    nombreCliente: usuario?.nombre || '', apellidoCliente: usuario?.apellido || '',
+    email: usuario?.email || '', telefono: usuario?.telefono || '',
+    direccion: usuario?.direccion || '', ciudad: '', provincia: '', codigoPostal: '', referencia: '',
+    metodoPago: 'Contra entrega', tarjetaNumero: '', tarjetaVence: '', tarjetaCvv: '',
+  });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // Deteccion de marca de la tarjeta (en vivo). Para el demo basta con la cantidad correcta de digitos.
+  const marcaT = detectarMarca(form.tarjetaNumero);
+  const digitosTar = form.tarjetaNumero.replace(/\D/g, '');
+  const numCompleto = marcaT && digitosTar.length === marcaT.largo;
+
+  const pasos = ['Datos', 'Envio', 'Pago', 'Resumen'];
+  const validar = () => {
+    if (paso === 1) return form.nombreCliente && form.apellidoCliente && form.email && form.telefono;
+    if (paso === 2) return form.direccion && form.ciudad && form.provincia;
+    if (paso === 3) return form.metodoPago !== 'Tarjeta' || (numCompleto && form.tarjetaVence.length >= 4 && form.tarjetaCvv.length >= 3);
+    return true;
+  };
+  const siguiente = () => { if (!validar()) { setError('Completa los campos requeridos.'); return; } setError(null); setPaso(p => Math.min(4, p + 1)); };
+  const anterior  = () => { setError(null); setPaso(p => Math.max(1, p - 1)); };
+
+  const confirmar = async () => {
+    setEnviando(true); setError(null);
+    try {
+      const payload = {
+        nombreCliente: form.nombreCliente, apellidoCliente: form.apellidoCliente, email: form.email, telefono: form.telefono,
+        direccion: form.direccion, ciudad: form.ciudad, provincia: form.provincia, codigoPostal: form.codigoPostal, referencia: form.referencia,
+        metodoPago: form.metodoPago, usuarioId: usuario?.id || null,
+        items: items.map(i => ({ relojId: i.relojId, movimientoId: i.movimientoId, tipoPulseraId: i.tipoPulseraId, cantidad: i.cantidad })),
+      };
+      const r = await fetch(`${API}/api/pedido`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'No se pudo crear el pedido');
+      onConfirmado(d);
+    } catch (err) { setError(err.message); }
+    finally { setEnviando(false); }
+  };
+
+  const inp = { width: '100%', padding: '11px 13px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 13, color: 'var(--ink)', fontFamily: 'var(--sans)', boxSizing: 'border-box', outline: 'none', background: 'var(--white)' };
+  const lbl = { display: 'block', fontSize: 8.5, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 6 };
+  const field = (label, node) => <div style={{ marginBottom: 14 }}><label style={lbl}>{label}</label>{node}</div>;
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--off-white)', fontFamily: 'var(--sans)' }}>
+      {/* Barra superior */}
+      <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', padding: '0 48px', height: 66, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Emblem size={30} fg="var(--gold)" />
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 600, color: 'var(--ink)' }}>Finalizar compra</div>
+        </div>
+        <button onClick={onVolver} style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: '1px solid var(--border-dk)', borderRadius: 3, padding: '8px 18px', cursor: 'pointer' }}>← Volver al carrito</button>
+      </div>
+
+      {items.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '100px 24px', color: 'var(--ink-4)' }}>
+          <div style={{ fontSize: 34, marginBottom: 12 }}>🛒</div>
+          <p style={{ fontSize: 14, marginBottom: 20 }}>Tu carrito esta vacio.</p>
+          <button onClick={onVolver} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, padding: '12px 28px', cursor: 'pointer' }}>Volver</button>
+        </div>
+      ) : (
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: '36px 48px', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 32, alignItems: 'start' }}>
+
+          {/* Columna izquierda: pasos */}
+          <div>
+            {/* Stepper */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
+              {pasos.map((p, i) => {
+                const n = i + 1, activo = paso === n, hecho = paso > n;
+                return (
+                  <div key={p} style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ height: 3, borderRadius: 2, background: (activo || hecho) ? 'var(--gold)' : 'var(--border)', marginBottom: 8 }} />
+                    <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: (activo || hecho) ? 'var(--ink)' : 'var(--ink-4)' }}>{n}. {p}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '28px 30px' }}>
+              {error && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 16, fontSize: 12, background: '#fff5f5', border: '1px solid #fecaca', color: '#dc2626' }}>{error}</div>}
+
+              {/* Paso 1: datos personales */}
+              {paso === 1 && (<>
+                <h3 style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 18 }}>Datos personales</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {field('Nombre', <input value={form.nombreCliente} onChange={e => set('nombreCliente', e.target.value)} placeholder="Carlos" style={inp} />)}
+                  {field('Apellido', <input value={form.apellidoCliente} onChange={e => set('apellidoCliente', e.target.value)} placeholder="Martinez" style={inp} />)}
+                </div>
+                {field('Correo electronico', <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="correo@email.com" style={inp} />)}
+                {field('Telefono', <input value={form.telefono} onChange={e => set('telefono', e.target.value)} placeholder="809-555-0101" style={inp} />)}
+              </>)}
+
+              {/* Paso 2: envio */}
+              {paso === 2 && (<>
+                <h3 style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 18 }}>Direccion de envio</h3>
+                {field('Direccion', <input value={form.direccion} onChange={e => set('direccion', e.target.value)} placeholder="Av. Winston Churchill 45" style={inp} />)}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {field('Ciudad', <input value={form.ciudad} onChange={e => set('ciudad', e.target.value)} placeholder="Santo Domingo" style={inp} />)}
+                  {field('Provincia', <input value={form.provincia} onChange={e => set('provincia', e.target.value)} placeholder="Distrito Nacional" style={inp} />)}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
+                  {field('Codigo postal', <input value={form.codigoPostal} onChange={e => set('codigoPostal', e.target.value)} placeholder="10101" style={inp} />)}
+                  {field('Referencia (opcional)', <input value={form.referencia} onChange={e => set('referencia', e.target.value)} placeholder="Casa azul, porton negro" style={inp} />)}
+                </div>
+              </>)}
+
+              {/* Paso 3: pago */}
+              {paso === 3 && (<>
+                <h3 style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 18 }}>Metodo de pago</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 8 }}>
+                  {['Contra entrega', 'Transferencia', 'Tarjeta'].map(m => (
+                    <label key={m} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 6, cursor: 'pointer', background: form.metodoPago === m ? 'var(--gold-bg)' : 'var(--white)', border: `1px solid ${form.metodoPago === m ? 'var(--gold-lt)' : 'var(--border)'}` }}>
+                      <input type="radio" name="pago" checked={form.metodoPago === m} onChange={() => set('metodoPago', m)} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{m}</span>
+                    </label>
+                  ))}
+                </div>
+                {form.metodoPago === 'Tarjeta' && (
+                  <div style={{ marginTop: 14 }}>
+                    <label style={lbl}>Numero de tarjeta</label>
+                    <div style={{ position: 'relative', marginBottom: 6 }}>
+                      <input value={form.tarjetaNumero} onChange={e => set('tarjetaNumero', formatearTarjeta(e.target.value))} placeholder="0000 0000 0000 0000" style={{ ...inp, paddingRight: 92, fontFamily: 'var(--mono)', letterSpacing: '0.08em' }} />
+                      <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                        {marcaT
+                          ? <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--white)', background: marcaT.color, padding: '4px 8px', borderRadius: 4 }}>{marcaT.marca}</span>
+                          : <span style={{ fontSize: 16, color: 'var(--ink-4)' }}>💳</span>}
+                      </span>
+                    </div>
+                    {form.tarjetaNumero && (
+                      <div style={{ fontSize: 10, marginBottom: 12, color: numCompleto ? '#2D6A4F' : 'var(--ink-4)' }}>
+                        {numCompleto ? '✓ Numero completo' : `Faltan digitos (${digitosTar.length}/${marcaT ? marcaT.largo : 16})`}
+                      </div>
+                    )}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      {field('Vence (MM/AA)', <input value={form.tarjetaVence} onChange={e => set('tarjetaVence', formatearVence(e.target.value))} placeholder="MM/AA" maxLength={5} style={inp} />)}
+                      {field(`CVV (${marcaT ? marcaT.cvv : 3} dig.)`, <input value={form.tarjetaCvv} onChange={e => set('tarjetaCvv', e.target.value.replace(/\D/g, '').slice(0, marcaT ? marcaT.cvv : 4))} placeholder={marcaT && marcaT.cvv === 4 ? '1234' : '123'} style={inp} />)}
+                    </div>
+                    {/* Tabla de indicadores de marca (deteccion por prefijo/BIN) */}
+                    <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: 6 }}>
+                      <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', padding: '8px 12px', background: 'var(--off-white)' }}>Tarjetas aceptadas · indicador (prefijo)</div>
+                      {TARJETAS.map(t => {
+                        const activa = marcaT && marcaT.marca === t.marca;
+                        return (
+                          <div key={t.marca} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderTop: '1px solid var(--border)', background: activa ? 'var(--gold-bg)' : 'transparent' }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: 'var(--white)', background: t.color, padding: '3px 7px', borderRadius: 4, minWidth: 76, textAlign: 'center' }}>{t.marca}</span>
+                            <span style={{ fontSize: 11, color: 'var(--ink-2)' }}>Empieza con <strong>{t.indicador}</strong></span>
+                            <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--ink-4)' }}>demo: {t.demo}</span>
+                            {activa && <span style={{ color: 'var(--gold)', fontWeight: 700, marginLeft: 4 }}>●</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 8 }}>* Deteccion local por prefijo (BIN), sin API externa. Datos solo de demostracion; no se guardan ni se envian.</p>
+                  </div>
+                )}
+              </>)}
+
+              {/* Paso 4: resumen */}
+              {paso === 4 && (<>
+                <h3 style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 18 }}>Revisa y confirma</h3>
+                <div style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.9 }}>
+                  <div><strong style={{ color: 'var(--ink)' }}>{form.nombreCliente} {form.apellidoCliente}</strong> · {form.email} · {form.telefono}</div>
+                  <div>{form.direccion}, {form.ciudad}, {form.provincia} {form.codigoPostal}</div>
+                  {form.referencia && <div style={{ color: 'var(--ink-4)' }}>Ref: {form.referencia}</div>}
+                  <div style={{ marginTop: 6 }}>Pago: <strong style={{ color: 'var(--ink)' }}>{form.metodoPago}</strong></div>
+                </div>
+              </>)}
+
+              {/* Navegacion de pasos */}
+              <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+                {paso > 1 && <button onClick={anterior} style={{ flex: 1, padding: '12px', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink)', border: '1px solid var(--border-dk)', borderRadius: 3, cursor: 'pointer' }}>Atras</button>}
+                {paso < 4
+                  ? <button onClick={siguiente} style={{ flex: 2, padding: '12px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Continuar</button>
+                  : <button onClick={confirmar} disabled={enviando} style={{ flex: 2, padding: '12px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: enviando ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: enviando ? 'not-allowed' : 'pointer' }}>{enviando ? 'Procesando...' : 'Confirmar pedido'}</button>}
+              </div>
+            </div>
+          </div>
+
+          {/* Columna derecha: resumen del pedido */}
+          <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '24px 26px', position: 'sticky', top: 90 }}>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 16 }}>Tu pedido ({unidades} pza)</div>
+            {items.map(i => (
+              <div key={i.key} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--serif)', fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{i.relojNombre}</div>
+                  <div style={{ fontSize: 10, color: 'var(--ink-4)' }}>{i.maquina} · {i.pulsera} · x{i.cantidad}</div>
+                </div>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap' }}>RD$ {(i.precio * i.cantidad).toLocaleString('es-DO')}</div>
+              </div>
+            ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Total</span>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 600, color: 'var(--ink)' }}>RD$ {total.toLocaleString('es-DO')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   CONFIRMACION — pedido creado con exito
+══════════════════════════════════════════════════ */
+function ConfirmacionPage({ pedido, onVolver }) {
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--off-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'var(--sans)' }}>
+      <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 16, padding: '48px 44px', maxWidth: 560, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}>
+        {!pedido ? (
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 20 }}>No hay un pedido reciente para mostrar.</p>
+            <button onClick={onVolver} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, padding: '12px 28px', cursor: 'pointer' }}>Ir a la tienda</button>
+          </div>
+        ) : (<>
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--gold-bg)', border: '1px solid var(--gold-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 30, color: 'var(--gold)' }}>✓</div>
+            <h2 style={{ fontFamily: 'var(--serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>¡Pedido confirmado!</h2>
+            <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>Gracias, {pedido.nombreCliente}. Tu pedido <strong style={{ color: 'var(--ink)' }}>#{pedido.id}</strong> fue registrado.</p>
+          </div>
+
+          <div style={{ background: 'var(--off-white)', borderRadius: 10, padding: '18px 20px', marginBottom: 20 }}>
+            {pedido.items.map(i => (
+              <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '6px 0', fontSize: 12.5, color: 'var(--ink-2)' }}>
+                <span>{i.relojNombre} <span style={{ color: 'var(--ink-4)' }}>({i.maquinaNombre} · {i.pulseraNombre}) x{i.cantidad}</span></span>
+                <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--ink)' }}>RD$ {i.subtotal.toLocaleString('es-DO')}</span>
+              </div>
+            ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', marginTop: 8, paddingTop: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Total</span>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>RD$ {pedido.total.toLocaleString('es-DO')}</span>
+            </div>
+          </div>
+
+          <div style={{ fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.8, marginBottom: 24 }}>
+            <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 6 }}>Envio a</div>
+            {pedido.direccion}, {pedido.ciudad}, {pedido.provincia} {pedido.codigoPostal}<br />
+            Pago: {pedido.metodoPago} · Estado: {pedido.estado}
+          </div>
+
+          <button onClick={onVolver} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Seguir comprando</button>
+        </>)}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   PERFIL DEL CLIENTE — datos, pedidos (con estatus) y tarjetas guardadas
+══════════════════════════════════════════════════ */
+const estadoColor = (e) => e === 'Completado' ? '#2D6A4F' : e === 'Cancelado' ? '#B23838' : e === 'Enviado' ? '#1B3461' : e === 'En proceso' ? '#A8862C' : 'var(--ink-3)';
+
+function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
+  const [tab, setTab] = React.useState('datos');
+  const inp = { width: '100%', padding: '11px 13px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 13, color: 'var(--ink)', fontFamily: 'var(--sans)', boxSizing: 'border-box', outline: 'none', background: 'var(--white)' };
+  const lbl = { display: 'block', fontSize: 8.5, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 6 };
+  const field = (label, node) => <div style={{ marginBottom: 14 }}><label style={lbl}>{label}</label>{node}</div>;
+
+  // ---- Mis datos ----
+  const [form, setForm] = React.useState({ nombre: usuario.nombre || '', apellido: usuario.apellido || '', telefono: usuario.telefono || '', direccion: usuario.direccion || '' });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [msgDatos, setMsgDatos] = React.useState(null);
+  const guardarDatos = async (e) => {
+    e.preventDefault(); setMsgDatos(null);
+    try {
+      const r = await fetch(`${API}/api/usuario/${usuario.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: form.nombre, apellido: form.apellido, telefono: form.telefono, direccion: form.direccion }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'Error al guardar');
+      onActualizar(d);
+      setMsgDatos({ ok: true, texto: 'Perfil actualizado' });
+    } catch (err) { setMsgDatos({ ok: false, texto: err.message }); }
+  };
+
+  // ---- Cambiar contrasena ----
+  const [pwForm, setPwForm] = React.useState({ actual: '', nueva: '', repetir: '' });
+  const pwset = (k, v) => setPwForm(f => ({ ...f, [k]: v }));
+  const [msgPw, setMsgPw] = React.useState(null);
+  const cambiarPassword = async (e) => {
+    e.preventDefault(); setMsgPw(null);
+    if (pwForm.nueva.length < 4) { setMsgPw({ ok: false, texto: 'La nueva contrasena es muy corta' }); return; }
+    if (pwForm.nueva !== pwForm.repetir) { setMsgPw({ ok: false, texto: 'Las contrasenas no coinciden' }); return; }
+    try {
+      const r = await fetch(`${API}/api/usuario/${usuario.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: form.nombre, apellido: form.apellido, telefono: form.telefono, direccion: form.direccion, password: pwForm.nueva, passwordActual: pwForm.actual }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'Error al cambiar la contrasena');
+      onActualizar(d); setPwForm({ actual: '', nueva: '', repetir: '' });
+      setMsgPw({ ok: true, texto: 'Contrasena actualizada' });
+    } catch (err) { setMsgPw({ ok: false, texto: err.message }); }
+  };
+
+  // ---- Mis pedidos ----
+  const [pedidos, setPedidos] = React.useState([]);
+  const [cargandoP, setCargandoP] = React.useState(false);
+  const [filtro, setFiltro] = React.useState('Todos');
+  const [abierto, setAbierto] = React.useState(null);
+  const cargarPedidos = () => { setCargandoP(true); fetch(`${API}/api/pedido?usuarioId=${usuario.id}`).then(r => r.json()).then(d => { setPedidos(d); setCargandoP(false); }).catch(() => setCargandoP(false)); };
+  React.useEffect(() => { if (tab === 'pedidos') cargarPedidos(); }, [tab]);
+  const pedidosFiltrados = filtro === 'Todos' ? pedidos : pedidos.filter(p => p.estado === filtro);
+
+  // ---- Mis tarjetas ----
+  const [tarjetas, setTarjetas] = React.useState([]);
+  const [tForm, setTForm] = React.useState({ numero: '', titular: '', vence: '', cvv: '' });
+  const [msgT, setMsgT] = React.useState(null);
+  const tset = (k, v) => setTForm(f => ({ ...f, [k]: v }));
+  const marcaTar = detectarMarca(tForm.numero);
+  const cargarTarjetas = () => { fetch(`${API}/api/tarjeta?usuarioId=${usuario.id}`).then(r => r.json()).then(setTarjetas).catch(() => {}); };
+  React.useEffect(() => { if (tab === 'tarjetas') cargarTarjetas(); }, [tab]);
+  const guardarTarjeta = async (e) => {
+    e.preventDefault(); setMsgT(null);
+    const digitos = tForm.numero.replace(/\D/g, '');
+    if (!marcaTar || digitos.length !== marcaTar.largo) { setMsgT({ ok: false, texto: `El numero debe tener ${marcaTar ? marcaTar.largo : 16} digitos` }); return; }
+    try {
+      const payload = { usuarioId: usuario.id, marca: marcaTar.marca, ultimos4: digitos.slice(-4), vence: tForm.vence, titular: tForm.titular };
+      const r = await fetch(`${API}/api/tarjeta`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error('Error al guardar');
+      setTForm({ numero: '', titular: '', vence: '', cvv: '' }); setMsgT({ ok: true, texto: 'Tarjeta guardada' }); cargarTarjetas();
+    } catch (err) { setMsgT({ ok: false, texto: err.message }); }
+  };
+  const borrarTarjeta = async (id) => { await fetch(`${API}/api/tarjeta/${id}`, { method: 'DELETE' }); cargarTarjetas(); };
+
+  const tabBtn = (id, label) => (
+    <button onClick={() => setTab(id)} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', padding: '12px 4px', color: tab === id ? 'var(--ink)' : 'var(--ink-4)', borderBottom: tab === id ? '2px solid var(--gold)' : '2px solid transparent', marginBottom: -1 }}>{label}</button>
+  );
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--off-white)', fontFamily: 'var(--sans)' }}>
+      {/* Barra superior */}
+      <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', padding: '0 48px', height: 66, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Emblem size={30} fg="var(--gold)" />
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 600, color: 'var(--ink)' }}>Mi Perfil</div>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onVolver} style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: '1px solid var(--border-dk)', borderRadius: 3, padding: '8px 18px', cursor: 'pointer' }}>← Tienda</button>
+          <button onClick={onLogout} style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', color: 'var(--rose)', border: '1px solid rgba(176,112,85,0.35)', borderRadius: 3, padding: '8px 18px', cursor: 'pointer' }}>Cerrar sesion</button>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: '36px 48px' }}>
+        <div style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 6 }}>Cuenta</div>
+        <h1 style={{ fontFamily: 'var(--serif)', fontSize: 34, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>Hola, {usuario.nombre}</h1>
+        <div style={{ fontSize: 12, color: 'var(--ink-4)', marginBottom: 20 }}>{usuario.email}</div>
+
+        {/* Pestanas */}
+        <div style={{ display: 'flex', gap: 22, borderBottom: '1px solid var(--border)', marginBottom: 26 }}>
+          {tabBtn('datos', 'Mis datos')}
+          {tabBtn('pedidos', 'Mis pedidos')}
+          {tabBtn('tarjetas', 'Mis tarjetas')}
+        </div>
+
+        {/* ---- Datos ---- */}
+        {tab === 'datos' && (
+          <div style={{ maxWidth: 560 }}>
+            {/* Datos personales */}
+            <form onSubmit={guardarDatos} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '28px 30px', marginBottom: 20 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>Datos personales</div>
+              {msgDatos && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 16, fontSize: 12, background: msgDatos.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msgDatos.ok ? '#bbf7d0' : '#fecaca'}`, color: msgDatos.ok ? '#166534' : '#dc2626' }}>{msgDatos.texto}</div>}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {field('Nombre', <input value={form.nombre} onChange={e => set('nombre', e.target.value)} required style={inp} />)}
+                {field('Apellido', <input value={form.apellido} onChange={e => set('apellido', e.target.value)} required style={inp} />)}
+              </div>
+              {field('Correo (no editable)', <input value={usuario.email} disabled style={{ ...inp, background: 'var(--off-white)', color: 'var(--ink-4)' }} />)}
+              {field('Telefono', <input value={form.telefono} onChange={e => set('telefono', e.target.value)} placeholder="809-555-0101" style={inp} />)}
+              {field('Direccion', <input value={form.direccion} onChange={e => set('direccion', e.target.value)} placeholder="Av. Winston Churchill, SD" style={inp} />)}
+              <button type="submit" style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer', marginTop: 6 }}>Guardar cambios</button>
+            </form>
+
+            {/* Cambiar contrasena */}
+            <form onSubmit={cambiarPassword} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '28px 30px' }}>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>Cambiar contrasena</div>
+              {msgPw && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 16, fontSize: 12, background: msgPw.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msgPw.ok ? '#bbf7d0' : '#fecaca'}`, color: msgPw.ok ? '#166534' : '#dc2626' }}>{msgPw.texto}</div>}
+              {field('Contrasena actual', <input type="password" value={pwForm.actual} onChange={e => pwset('actual', e.target.value)} required style={inp} />)}
+              {field('Nueva contrasena', <input type="password" value={pwForm.nueva} onChange={e => pwset('nueva', e.target.value)} required style={inp} />)}
+              {field('Repetir contrasena', <input type="password" value={pwForm.repetir} onChange={e => pwset('repetir', e.target.value)} required style={inp} />)}
+              <div style={{ fontSize: 11, color: 'var(--ink-3)', lineHeight: 1.6, background: 'var(--off-white)', borderRadius: 8, padding: '11px 13px', marginBottom: 14 }}>
+                <strong style={{ color: 'var(--ink)' }}>Recomendacion de seguridad:</strong> usa al menos 8 caracteres, combinando letras <strong>mayusculas</strong> y minusculas, <strong>numeros</strong> y <strong>caracteres especiales</strong> (! @ # $ % &amp;). Evita datos personales o contrasenas repetidas. Aunque por ahora no es obligatorio, es muy recomendable para proteger tu cuenta.
+              </div>
+              <button type="submit" style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Actualizar contrasena</button>
+            </form>
+          </div>
+        )}
+
+        {/* ---- Pedidos ---- */}
+        {tab === 'pedidos' && (
+          <div>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
+              {['Todos', 'Pendiente', 'En proceso', 'Enviado', 'Completado'].map(f => (
+                <button key={f} onClick={() => setFiltro(f)} style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 14px', borderRadius: 9999, cursor: 'pointer', background: filtro === f ? 'var(--ink)' : 'transparent', color: filtro === f ? 'var(--white)' : 'var(--ink-3)', border: filtro === f ? '1px solid var(--ink)' : '1px solid var(--border-dk)' }}>{f}</button>
+              ))}
+            </div>
+            {cargandoP ? <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-4)' }}>Cargando...</div>
+              : pedidosFiltrados.length === 0 ? <div style={{ textAlign: 'center', padding: 50, color: 'var(--ink-4)', fontSize: 13, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12 }}>No tienes pedidos {filtro !== 'Todos' ? `en estado "${filtro}"` : 'todavia'}.</div>
+              : pedidosFiltrados.map(p => (
+                <div key={p.id} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, marginBottom: 10, overflow: 'hidden' }}>
+                  <div onClick={() => setAbierto(abierto === p.id ? null : p.id)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', cursor: 'pointer' }}>
+                    <div>
+                      <span style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>Pedido #{p.id}</span>
+                      <span style={{ fontSize: 11, color: 'var(--ink-4)', marginLeft: 10 }}>{new Date(p.fecha).toLocaleDateString('es-DO')}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 11px', borderRadius: 9999, color: 'var(--white)', background: estadoColor(p.estado) }}>{p.estado}</span>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>RD$ {p.total.toLocaleString('es-DO')}</span>
+                    </div>
+                  </div>
+                  {abierto === p.id && (
+                    <div style={{ padding: '0 18px 16px', fontSize: 12, color: 'var(--ink-2)' }}>
+                      {p.items.map(i => (
+                        <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+                          <span>{i.relojNombre} <span style={{ color: 'var(--ink-4)' }}>({i.maquinaNombre} · {i.pulseraNombre}) x{i.cantidad}</span></span>
+                          <span style={{ fontFamily: 'var(--mono)' }}>RD$ {i.subtotal.toLocaleString('es-DO')}</span>
+                        </div>
+                      ))}
+                      <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--ink-4)' }}>Envio: {p.direccion}, {p.ciudad}, {p.provincia} · Pago: {p.metodoPago}</div>
+                    </div>
+                  )}
+                </div>
+              ))}
+          </div>
+        )}
+
+        {/* ---- Tarjetas ---- */}
+        {tab === 'tarjetas' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+            {/* Lista */}
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 12 }}>Guardadas</div>
+              {tarjetas.length === 0 ? <p style={{ fontSize: 12, color: 'var(--ink-4)' }}>No tienes tarjetas guardadas.</p>
+                : tarjetas.map(t => {
+                  const m = TARJETAS.find(x => x.marca === t.marca);
+                  return (
+                    <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px', marginBottom: 10 }}>
+                      <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: 'var(--white)', background: m ? m.color : 'var(--ink-3)', padding: '4px 8px', borderRadius: 4 }}>{t.marca}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--ink)' }}>•••• {t.ultimos4}</div>
+                        <div style={{ fontSize: 10, color: 'var(--ink-4)' }}>{t.titular} · vence {t.vence}</div>
+                      </div>
+                      <button onClick={() => borrarTarjeta(t.id)} style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: 'none', color: 'var(--rose)', cursor: 'pointer' }}>Eliminar</button>
+                    </div>
+                  );
+                })}
+            </div>
+            {/* Agregar */}
+            <form onSubmit={guardarTarjeta} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '22px 24px' }}>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>Agregar tarjeta</div>
+              {msgT && <div style={{ padding: '9px 12px', borderRadius: 6, marginBottom: 12, fontSize: 12, background: msgT.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msgT.ok ? '#bbf7d0' : '#fecaca'}`, color: msgT.ok ? '#166534' : '#dc2626' }}>{msgT.texto}</div>}
+              <label style={lbl}>Numero</label>
+              <div style={{ position: 'relative', marginBottom: 12 }}>
+                <input value={tForm.numero} onChange={e => tset('numero', formatearTarjeta(e.target.value))} placeholder="0000 0000 0000 0000" style={{ ...inp, paddingRight: 88, fontFamily: 'var(--mono)' }} />
+                <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                  {marcaTar ? <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: 'var(--white)', background: marcaTar.color, padding: '4px 8px', borderRadius: 4 }}>{marcaTar.marca}</span> : <span style={{ fontSize: 15, color: 'var(--ink-4)' }}>💳</span>}
+                </span>
+              </div>
+              {field('Titular', <input value={tForm.titular} onChange={e => tset('titular', e.target.value)} placeholder="CLIENTE DEMO" style={inp} />)}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {field('Vence', <input value={tForm.vence} onChange={e => tset('vence', formatearVence(e.target.value))} placeholder="MM/AA" maxLength={5} style={inp} />)}
+                {field('CVV (no se guarda)', <input value={tForm.cvv} onChange={e => tset('cvv', e.target.value.replace(/\D/g, '').slice(0, marcaTar ? marcaTar.cvv : 4))} placeholder="123" style={inp} />)}
+              </div>
+              <button type="submit" style={{ width: '100%', padding: '12px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Guardar tarjeta</button>
+              <p style={{ fontSize: 9.5, color: 'var(--ink-4)', marginTop: 8 }}>Solo se guarda marca, ultimos 4 digitos, vencimiento y titular.</p>
+            </form>
           </div>
         )}
       </div>
@@ -1793,13 +2393,14 @@ function App() {
   const [usuario, setUsuario]           = React.useState(null);
   const [refreshKey, setRefreshKey]     = React.useState(0);
   const [carrito, setCarrito]           = React.useState([]);
+  const [ultimoPedido, setUltimoPedido] = React.useState(null);
 
   // Ruta actual (por hash)
   const hash = useHashRoute();
   const ruta = hash.replace(/^#/, '') || '/';
   const mProducto = ruta.match(/^\/producto\/(\d+)/);
   const productoId = mProducto ? parseInt(mProducto[1]) : null;
-  const pedirLogin = ruta === '/admin' && !usuario?.esAdmin; // /admin sin sesion admin -> pide login
+  const pedirLogin = (ruta === '/admin' && !usuario?.esAdmin) || (ruta === '/perfil' && !usuario); // ruta protegida sin sesion -> pide login
 
   // Agrega un item al carrito (agrupa por reloj+maquina+pulsera, sin pasar del stock disponible)
   const agregarAlCarrito = (item) => {
@@ -1834,12 +2435,41 @@ function App() {
     );
   }
 
+  // Ruta /checkout (pasos de la compra)
+  if (ruta === '/checkout') {
+    return (
+      <CheckoutPage
+        items={carrito}
+        usuario={usuario}
+        onVolver={() => irARuta('/carrito')}
+        onConfirmado={(p) => { setUltimoPedido(p); vaciarCarrito(); irARuta('/confirmacion'); }}
+      />
+    );
+  }
+
+  // Ruta /confirmacion (pedido creado)
+  if (ruta === '/confirmacion') {
+    return <ConfirmacionPage pedido={ultimoPedido} onVolver={() => irARuta('/')} />;
+  }
+
+  // Ruta /perfil (cliente con sesion)
+  if (ruta === '/perfil' && usuario) {
+    return (
+      <PerfilPage
+        usuario={usuario}
+        onActualizar={(u) => setUsuario(u)}
+        onVolver={() => irARuta('/')}
+        onLogout={() => { setUsuario(null); irARuta('/'); }}
+      />
+    );
+  }
+
   return (
     <>
       <Nav
         scrolled={scrolled}
         usuario={usuario}
-        onOpenCuenta={() => irARuta('/cuenta')}
+        onOpenCuenta={() => irARuta(usuario ? '/perfil' : '/cuenta')}
         onOpenAdmin={() => irARuta('/admin')}
         onNavigate={irARuta}
         carritoCount={carrito.reduce((s, i) => s + i.cantidad, 0)}
@@ -1875,6 +2505,7 @@ function App() {
         onClose={() => irARuta('/')}
         onQuitar={quitarDelCarrito}
         onVaciar={vaciarCarrito}
+        onCheckout={() => irARuta('/checkout')}
       />
     </>
   );

@@ -15,6 +15,9 @@ namespace RelojAPI.Data
         public DbSet<SiteConfig> Configuracion { get; set; }
         public DbSet<Movimiento> Movimientos { get; set; }
         public DbSet<TipoPulsera> TiposPulsera { get; set; }
+        public DbSet<Pedido> Pedidos { get; set; }
+        public DbSet<PedidoItem> PedidoItems { get; set; }
+        public DbSet<TarjetaGuardada> Tarjetas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -97,6 +100,23 @@ namespace RelojAPI.Data
                 .HasMany(r => r.PulserasCompatibles)
                 .WithMany(t => t.RelojesCompatibles)
                 .UsingEntity(j => j.ToTable("RelojTipoPulsera"));
+
+            // Pedidos (ordenes de compra) y sus lineas
+            modelBuilder.Entity<Pedido>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Total).HasColumnType("decimal(18,2)");
+                entity.HasMany(p => p.Items)
+                      .WithOne(i => i.Pedido)
+                      .HasForeignKey(i => i.PedidoId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<PedidoItem>(entity =>
+            {
+                entity.HasKey(i => i.Id);
+                entity.Property(i => i.PrecioUnitario).HasColumnType("decimal(18,2)");
+                entity.Property(i => i.Subtotal).HasColumnType("decimal(18,2)");
+            });
         }
     }
 }
