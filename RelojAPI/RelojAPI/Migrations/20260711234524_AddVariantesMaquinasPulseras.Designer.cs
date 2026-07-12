@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RelojAPI.Data;
 
@@ -11,9 +12,11 @@ using RelojAPI.Data;
 namespace RelojAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711234524_AddVariantesMaquinasPulseras")]
+    partial class AddVariantesMaquinasPulseras
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,21 +24,6 @@ namespace RelojAPI.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("MovimientoReloj", b =>
-                {
-                    b.Property<int>("MovimientosCompatiblesId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RelojesCompatiblesId")
-                        .HasColumnType("int");
-
-                    b.HasKey("MovimientosCompatiblesId", "RelojesCompatiblesId");
-
-                    b.HasIndex("RelojesCompatiblesId");
-
-                    b.ToTable("RelojMovimiento", (string)null);
-                });
 
             modelBuilder.Entity("RelojAPI.Models.Marca", b =>
                 {
@@ -88,9 +76,6 @@ namespace RelojAPI.Migrations
 
                     b.Property<decimal>("PrecioExtra")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Stock")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -209,9 +194,6 @@ namespace RelojAPI.Migrations
                     b.Property<decimal>("PrecioExtra")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Stock")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("TiposPulsera");
@@ -270,34 +252,38 @@ namespace RelojAPI.Migrations
                     b.ToTable("Usuarios");
                 });
 
-            modelBuilder.Entity("RelojTipoPulsera", b =>
+            modelBuilder.Entity("RelojAPI.Models.Variante", b =>
                 {
-                    b.Property<int>("PulserasCompatiblesId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("RelojesCompatiblesId")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MovimientoId")
                         .HasColumnType("int");
 
-                    b.HasKey("PulserasCompatiblesId", "RelojesCompatiblesId");
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.HasIndex("RelojesCompatiblesId");
+                    b.Property<int>("RelojId")
+                        .HasColumnType("int");
 
-                    b.ToTable("RelojTipoPulsera", (string)null);
-                });
+                    b.Property<int>("Stock")
+                        .HasColumnType("int");
 
-            modelBuilder.Entity("MovimientoReloj", b =>
-                {
-                    b.HasOne("RelojAPI.Models.Movimiento", null)
-                        .WithMany()
-                        .HasForeignKey("MovimientosCompatiblesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<int>("TipoPulseraId")
+                        .HasColumnType("int");
 
-                    b.HasOne("RelojAPI.Models.Reloj", null)
-                        .WithMany()
-                        .HasForeignKey("RelojesCompatiblesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasKey("Id");
+
+                    b.HasIndex("MovimientoId");
+
+                    b.HasIndex("RelojId");
+
+                    b.HasIndex("TipoPulseraId");
+
+                    b.ToTable("Variantes");
                 });
 
             modelBuilder.Entity("RelojAPI.Models.Reloj", b =>
@@ -311,24 +297,51 @@ namespace RelojAPI.Migrations
                     b.Navigation("Marca");
                 });
 
-            modelBuilder.Entity("RelojTipoPulsera", b =>
+            modelBuilder.Entity("RelojAPI.Models.Variante", b =>
                 {
-                    b.HasOne("RelojAPI.Models.TipoPulsera", null)
-                        .WithMany()
-                        .HasForeignKey("PulserasCompatiblesId")
+                    b.HasOne("RelojAPI.Models.Movimiento", "Movimiento")
+                        .WithMany("Variantes")
+                        .HasForeignKey("MovimientoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RelojAPI.Models.Reloj", "Reloj")
+                        .WithMany("Variantes")
+                        .HasForeignKey("RelojId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RelojAPI.Models.Reloj", null)
-                        .WithMany()
-                        .HasForeignKey("RelojesCompatiblesId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("RelojAPI.Models.TipoPulsera", "TipoPulsera")
+                        .WithMany("Variantes")
+                        .HasForeignKey("TipoPulseraId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Movimiento");
+
+                    b.Navigation("Reloj");
+
+                    b.Navigation("TipoPulsera");
                 });
 
             modelBuilder.Entity("RelojAPI.Models.Marca", b =>
                 {
                     b.Navigation("Relojes");
+                });
+
+            modelBuilder.Entity("RelojAPI.Models.Movimiento", b =>
+                {
+                    b.Navigation("Variantes");
+                });
+
+            modelBuilder.Entity("RelojAPI.Models.Reloj", b =>
+                {
+                    b.Navigation("Variantes");
+                });
+
+            modelBuilder.Entity("RelojAPI.Models.TipoPulsera", b =>
+                {
+                    b.Navigation("Variantes");
                 });
 #pragma warning restore 612, 618
         }

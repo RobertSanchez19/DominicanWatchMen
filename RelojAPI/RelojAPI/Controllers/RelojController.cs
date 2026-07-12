@@ -76,6 +76,19 @@ namespace RelojAPI.Controllers
             return Ok(updated);
         }
 
+        // PUT: api/reloj/5/compatibilidad  -> define que maquinas y pulseras admite el reloj
+        [HttpPut("{id}/compatibilidad")]
+        public async Task<ActionResult<Reloj>> SetCompatibilidad(int id, [FromBody] CompatibilidadDto dto)
+        {
+            _logger.LogInformation("PUT /api/reloj/{Id}/compatibilidad - {Maq} maquinas, {Pul} pulseras", id, dto.MovimientoIds.Count, dto.TipoPulseraIds.Count);
+
+            var updated = await _relojService.SetCompatibilidadAsync(id, dto.MovimientoIds, dto.TipoPulseraIds);
+            if (updated == null)
+                return NotFound(new { mensaje = $"Reloj con Id {id} no encontrado" });
+
+            return Ok(updated);
+        }
+
         // DELETE: api/reloj/5
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
@@ -92,5 +105,12 @@ namespace RelojAPI.Controllers
             _logger.LogInformation("Reloj con Id {Id} eliminado exitosamente", id);
             return NoContent();
         }
+    }
+
+    // DTO para asignar compatibilidad (que componentes admite un reloj)
+    public class CompatibilidadDto
+    {
+        public List<int> MovimientoIds { get; set; } = new();
+        public List<int> TipoPulseraIds { get; set; } = new();
     }
 }

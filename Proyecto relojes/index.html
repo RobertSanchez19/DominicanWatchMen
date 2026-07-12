@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dominican Watch Men — Precision Horology</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Jost:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --white:     #FFFFFF;
+  --off-white: #F8F6F2;
+  --warm-grey: #F0EDE8;
+  --border:    #E2DDD7;
+  --border-dk: #C8C3BB;
+
+  --ink:       #111110;
+  --ink-2:     #3A3835;
+  --ink-3:     #6B6762;
+  --ink-4:     #9C9892;
+
+  --gold:      #B8922A;
+  --gold-lt:   #C9A84C;
+  --gold-pale: #F5ECD5;
+  --gold-bg:   rgba(184,146,42,0.07);
+
+  --navy:      #1B3461;
+  --rose:      #B07055;
+
+  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --serif: 'Cormorant Garamond', Garamond, Georgia, serif;
+  --sans:  'Jost', 'Helvetica Neue', sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+}
+html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body { background: var(--white); color: var(--ink); font-family: var(--sans); }
+button { font-family: var(--sans); cursor: pointer; border: none; }
+a { text-decoration: none; color: inherit; }
+
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-33.33%); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+
+/* ══════════════════════════════════════════════════
+   EMBLEM — Dominican flag crosshair dial
+══════════════════════════════════════════════════ */
+function Emblem({ size = 64, fg = 'var(--gold)', flag = false }) {
+  const c = 60, ticks = [];
+  for (let i = 0; i < 12; i++) {
+    const a = (i * 30 - 90) * Math.PI / 180, major = i % 3 === 0;
+    const r1 = 50, r2 = major ? 40 : 45;
+    ticks.push(
+      <line key={i}
+        x1={(c + Math.cos(a) * r1).toFixed(2)} y1={(c + Math.sin(a) * r1).toFixed(2)}
+        x2={(c + Math.cos(a) * r2).toFixed(2)} y2={(c + Math.sin(a) * r2).toFixed(2)}
+        stroke={fg} strokeWidth={major ? 2.2 : 1} strokeLinecap="round" />
+    );
+  }
+  return (
+    <svg width={size} height={size} viewBox="0 0 120 120" fill="none"
+      style={{ display: 'block', flexShrink: 0 }} aria-label="Dominican Watch Men">
+      <circle cx="60" cy="60" r="56" fill="none" stroke={fg} strokeWidth="2.2" />
+      <circle cx="60" cy="60" r="50.5" fill="none" stroke={fg} strokeWidth="0.6" opacity="0.5" />
+      {flag && (
+        <g>
+          <path d="M60,60 L60,18 A42,42,0,0,0,18,60 Z" fill="#0A3A8C" />
+          <path d="M60,60 L102,60 A42,42,0,0,0,60,18 Z" fill="#CE1126" />
+          <path d="M60,60 L18,60 A42,42,0,0,0,60,102 Z" fill="#CE1126" />
+          <path d="M60,60 L60,102 A42,42,0,0,0,102,60 Z" fill="#0A3A8C" />
+        </g>
+      )}
+      {ticks}
+      <g stroke={fg} strokeWidth="1" opacity="0.9">
+        <line x1="60" y1="20" x2="60" y2="100" />
+        <line x1="20" y1="60" x2="100" y2="60" />
+      </g>
+      <circle cx="60" cy="60" r="4.4" fill={fg} />
+      <circle cx="60" cy="60" r="8" fill="none" stroke={fg} strokeWidth="1" />
+      <text x="60" y="80" textAnchor="middle" fontFamily="var(--mono)" fontSize="8.5"
+        fontWeight="500" letterSpacing="1.5" fill={fg}>RD</text>
+    </svg>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   NAV
+══════════════════════════════════════════════════ */
+function Nav({ scrolled, usuario, onOpenCuenta, onOpenAdmin, onNavigate, carritoCount = 0, onOpenCarrito }) {
+  const links = [
+    { label: 'Colecciones',      target: 'colecciones' },
+    { label: 'Especificaciones', target: 'especificaciones' },
+    { label: 'El Proceso',       target: 'proceso' },
+  ];
+  const irA = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
+  return (
+    <nav style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+      height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 56px',
+      background: scrolled ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0)',
+      borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
+      backdropFilter: scrolled ? 'blur(20px)' : 'none',
+      transition: 'all 0.45s var(--ease)',
+    }}>
+      <div onClick={() => onNavigate && onNavigate('/')} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+        <Emblem size={38} fg="var(--gold)" />
+        <div style={{ lineHeight: 1 }}>
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 21, fontWeight: 600, color: 'var(--ink)', letterSpacing: '0.03em' }}>Dominican</div>
+          <div style={{ fontSize: 7.5, fontWeight: 600, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)', marginTop: 3 }}>Watch Men · RD</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+        {links.map(l => (
+          <a key={l.label} href="#" style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', transition: 'color 0.2s' }}
+            onClick={e => { e.preventDefault(); irA(l.target); }}
+            onMouseEnter={e => e.target.style.color = 'var(--ink)'}
+            onMouseLeave={e => e.target.style.color = 'var(--ink-3)'}>{l.label}</a>
+        ))}
+        {usuario?.esAdmin && (
+          <button onClick={onOpenAdmin} style={{
+            fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
+            background: 'var(--ink)', color: 'var(--white)', border: 'none',
+            padding: '8px 16px', borderRadius: 3, transition: 'background 0.25s', cursor: 'pointer',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
+            Admin
+          </button>
+        )}
+        <button onClick={onOpenCuenta} style={{
+          fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase',
+          background: usuario ? 'var(--gold-pale)' : 'transparent',
+          color: usuario ? 'var(--gold)' : 'var(--ink-3)',
+          border: `1px solid ${usuario ? 'var(--gold-lt)' : 'var(--border-dk)'}`,
+          padding: '9px 18px', borderRadius: 3, transition: 'all 0.25s', cursor: 'pointer',
+        }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = usuario ? 'var(--gold-lt)' : 'var(--border-dk)'; e.currentTarget.style.color = usuario ? 'var(--gold)' : 'var(--ink-3)'; }}
+        >
+          {usuario ? `${usuario.nombre}` : 'Mi Cuenta'}
+        </button>
+        <button onClick={onOpenCarrito} style={{
+          fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase',
+          background: 'var(--ink)', color: 'var(--white)', border: 'none',
+          padding: '9px 16px', borderRadius: 3, cursor: 'pointer', transition: 'background 0.25s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
+          Carrito{carritoCount > 0 ? ` · ${carritoCount}` : ''}
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════════ */
+function Hero() {
+  const irA = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
+  return (
+    <section style={{
+      minHeight: '100vh', background: 'var(--white)', display: 'grid',
+      gridTemplateColumns: '1fr 1fr', alignItems: 'center', padding: '0 0 0 56px', overflow: 'hidden',
+    }}>
+      {/* Left text */}
+      <div style={{ paddingTop: 72, maxWidth: 540 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <span style={{ display: 'block', width: 28, height: 1, background: 'var(--gold)' }}></span>
+          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)' }}>Alta Relojería · Seiko Mods</span>
+        </div>
+        <h1 style={{
+          fontFamily: 'var(--serif)', fontSize: 'clamp(54px,5.5vw,84px)', fontWeight: 600,
+          lineHeight: 1.05, letterSpacing: '-0.01em', color: 'var(--ink)', marginBottom: 28,
+        }}>
+          No vendemos<br />
+          <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--gold)' }}>relojes.</em><br />
+          Ensamblamos<br />tiempo.
+        </h1>
+        <p style={{ fontSize: 14, fontWeight: 400, lineHeight: 1.8, color: 'var(--ink-3)', maxWidth: 420, marginBottom: 40 }}>
+          Movimientos Seiko originales. Componentes de grado quirúrgico.
+          Diseños inspirados en los íconos de la alta relojería. Piezas únicas con alma clásica.
+        </p>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 56 }}>
+          <button onClick={() => irA('colecciones')} style={{
+            fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase',
+            background: 'var(--ink)', color: 'var(--white)', padding: '15px 32px', borderRadius: 3,
+            transition: 'all 0.3s', cursor: 'pointer', border: 'none',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
+            Explorar Colección
+          </button>
+          <button onClick={() => irA('especificaciones')} style={{
+            fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase',
+            background: 'transparent', color: 'var(--ink)',
+            border: '1px solid var(--border-dk)', padding: '15px 32px', borderRadius: 3,
+            transition: 'all 0.3s', cursor: 'pointer',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-dk)'; e.currentTarget.style.color = 'var(--ink)'; }}>
+            Ver Especificaciones
+          </button>
+        </div>
+        {/* Stats */}
+        <div style={{ display: 'flex', gap: 40, borderTop: '1px solid var(--border)', paddingTop: 28 }}>
+          {[['20+', 'Modelos únicos'], ['100%', 'Seiko original'], ['316L', 'Acero quirúrgico']].map(([n, l]) => (
+            <div key={l}>
+              <div style={{ fontFamily: 'var(--serif)', fontSize: 36, fontWeight: 600, color: 'var(--ink)', lineHeight: 1 }}>{n}</div>
+              <div style={{ fontSize: 8.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-4)', marginTop: 5 }}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right — hero watch */}
+      <div style={{
+        height: '100vh', background: 'var(--off-white)', display: 'flex',
+        alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse 70% 70% at 50% 45%, rgba(255,255,255,1) 0%, var(--off-white) 100%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{ position: 'absolute', width: 480, height: 480, borderRadius: '50%', border: '1px solid rgba(184,146,42,0.12)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', border: '1px solid rgba(184,146,42,0.06)', pointerEvents: 'none' }} />
+        <img src="assets/products/transparent/submariner-steel-bk-bk.png" alt="Submariner Steel"
+          style={{
+            position: 'relative', zIndex: 1, width: '75%', maxWidth: 440, height: 'auto',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.18)) drop-shadow(0 8px 24px rgba(0,0,0,0.12))',
+          }} />
+        <div style={{
+          position: 'absolute', bottom: 40, left: 40,
+          fontSize: 8, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-4)',
+        }}>
+          THE DIVER SERIES · NH35A
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   MARQUEE STRIP
+══════════════════════════════════════════════════ */
+function Strip() {
+  const items = ['Cristal de Zafiro', 'Acero 316L', 'Movimiento NH35', '300m Water Resistant', 'Ensamblado a Mano', 'Seiko Original', 'Alta Relojería'];
+  const repeated = [...items, ...items, ...items];
+  return (
+    <div style={{ background: 'var(--off-white)', padding: '16px 0', overflow: 'hidden', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', gap: 48, whiteSpace: 'nowrap', animation: 'marquee 28s linear infinite' }}>
+        {repeated.map((t, i) => (
+          <span key={i} style={{
+            fontSize: 9, fontWeight: 500, letterSpacing: '0.28em',
+            textTransform: 'uppercase', color: 'var(--ink-2)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 48,
+          }}>
+            {t}
+            <span style={{ color: 'var(--gold)', fontSize: 8 }}>✦</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   COLLECTION GRID — datos desde la API
+══════════════════════════════════════════════════ */
+const T   = 'assets/products/transparent/';
+const API = 'http://localhost:5157';
+
+function WatchPlaceholder({ size = 185, hovered = false }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      background: hovered ? 'var(--gold-pale)' : 'var(--warm-grey)',
+      border: `2px solid ${hovered ? 'var(--gold-lt)' : 'var(--border)'}`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      transition: 'all 0.4s var(--ease)',
+    }}>
+      <Emblem size={size * 0.55} fg={hovered ? 'var(--gold)' : 'var(--border-dk)'} />
+    </div>
+  );
+}
+
+function getImageUrl(imagenUrl) {
+  if (!imagenUrl) return null;
+  if (imagenUrl.startsWith('http')) return imagenUrl;
+  return `${window.location.origin}/${imagenUrl}`;
+}
+
+function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerrarDetalle }) {
+  const [active, setActive]   = React.useState('Todos');
+  const [hov, setHov]         = React.useState(null);
+  const [relojes, setRelojes] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError]     = React.useState(null);
+  // El reloj a configurar viene de la ruta /producto/:id
+  const detalle = productoId ? relojes.find(r => r.id === productoId) : null;
+
+  React.useEffect(() => {
+    setLoading(true);
+    fetch(`${API}/api/reloj`)
+      .then(res => {
+        if (!res.ok) throw new Error('Error al conectar con la API');
+        return res.json();
+      })
+      .then(data => { setRelojes(data); setLoading(false); })
+      .catch(() => { setError('No se pudo conectar con la API. Verifica que el servidor esté corriendo.'); setLoading(false); });
+  }, [refreshKey]);
+
+  const marcas   = ['Todos', ...[...new Set(relojes.map(r => r.marca?.nombre || 'Sin Marca'))]];
+  const filtered = active === 'Todos' ? relojes : relojes.filter(r => (r.marca?.nombre || 'Sin Marca') === active);
+
+  return (
+    <section id="colecciones" style={{ padding: '96px 56px', background: 'var(--white)', scrollMarginTop: 80 }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+
+        {/* Cabecera */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 48 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <span style={{ width: 24, height: 1, background: 'var(--gold)', display: 'block' }}></span>
+              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)' }}>Nuestros Modelos</span>
+            </div>
+            <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(38px,4vw,58px)', fontWeight: 600, color: 'var(--ink)', lineHeight: 1.05 }}>La Colección</h2>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {loading && (
+              <span style={{ fontSize: 9, color: 'var(--ink-4)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                Cargando desde API...
+              </span>
+            )}
+            {!loading && !error && (
+              <span style={{ fontSize: 9, color: 'var(--gold)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                {relojes.length} modelos disponibles ✦
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div style={{
+            background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 8,
+            padding: '16px 20px', marginBottom: 32, color: '#dc2626', fontSize: 13,
+          }}>
+            {error}
+          </div>
+        )}
+
+        {/* Filtros por marca */}
+        {!loading && !error && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 44 }}>
+            {marcas.map(s => {
+              const on = active === s;
+              return (
+                <button key={s} onClick={() => setActive(s)} style={{
+                  fontSize: 9.5, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase',
+                  padding: '8px 18px', borderRadius: 9999,
+                  background: on ? 'var(--ink)' : 'transparent',
+                  color: on ? 'var(--white)' : 'var(--ink-3)',
+                  border: on ? '1px solid var(--ink)' : '1px solid var(--border-dk)',
+                  transition: 'all 0.2s', cursor: 'pointer',
+                }}>{s}</button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Skeleton de carga */}
+        {loading && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 20 }}>
+            {[...Array(6)].map((_, i) => (
+              <div key={i} style={{
+                borderRadius: 12, border: '1px solid var(--border)',
+                background: 'var(--white)', overflow: 'hidden',
+              }}>
+                <div style={{ height: 210, background: 'var(--warm-grey)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div style={{ padding: '15px 17px 17px' }}>
+                  <div style={{ height: 10, background: 'var(--warm-grey)', borderRadius: 4, marginBottom: 8, width: '60%' }} />
+                  <div style={{ height: 18, background: 'var(--warm-grey)', borderRadius: 4, marginBottom: 6 }} />
+                  <div style={{ height: 10, background: 'var(--warm-grey)', borderRadius: 4, marginBottom: 18, width: '80%' }} />
+                  <div style={{ height: 32, background: 'var(--warm-grey)', borderRadius: 3 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Grid de relojes */}
+        {!loading && !error && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 20 }}>
+            {filtered.map((w, i) => {
+              // Modelo BOM: precio "desde" = base + extras mas baratos; disponible = min(base, mejor maquina, mejor pulsera)
+              const maq = w.movimientosCompatibles || [];
+              const pul = w.pulserasCompatibles || [];
+              const desde = (w.precio || 0) + (maq.length ? Math.min(...maq.map(m => m.precioExtra)) : 0) + (pul.length ? Math.min(...pul.map(p => p.precioExtra)) : 0);
+              const stockTotal = (maq.length && pul.length) ? Math.min(w.stock || 0, Math.max(...maq.map(m => m.stock)), Math.max(...pul.map(p => p.stock))) : (w.stock || 0);
+              return (
+              <div key={w.id}
+                onClick={() => onAbrir(w.id)}
+                onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}
+                style={{
+                  borderRadius: 12, overflow: 'hidden', cursor: 'pointer',
+                  border: `1px solid ${hov === i ? 'var(--border-dk)' : 'var(--border)'}`,
+                  background: 'var(--white)',
+                  transition: 'all 0.35s var(--ease)',
+                  transform: hov === i ? 'translateY(-6px)' : 'translateY(0)',
+                  boxShadow: hov === i
+                    ? '0 20px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)'
+                    : '0 2px 8px rgba(0,0,0,0.04)',
+                }}>
+
+                {/* Imagen / placeholder */}
+                <div style={{ background: 'var(--white)', height: 210, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 70% at 50% 55%, var(--off-white) 0%, var(--white) 70%)', pointerEvents: 'none' }} />
+                  {getImageUrl(w.imagenUrl) ? (
+                    <img src={getImageUrl(w.imagenUrl)} alt={w.nombre}
+                      style={{
+                        height: 185, width: 'auto', objectFit: 'contain', position: 'relative', zIndex: 1,
+                        transition: 'transform 0.5s var(--ease)',
+                        transform: hov === i ? 'scale(1.07)' : 'scale(1)',
+                        filter: 'drop-shadow(0 16px 32px rgba(0,0,0,0.16)) drop-shadow(0 4px 8px rgba(0,0,0,0.08))',
+                      }} />
+                  ) : (
+                    <div style={{ position: 'relative', zIndex: 1, transition: 'transform 0.5s var(--ease)', transform: hov === i ? 'scale(1.07)' : 'scale(1)' }}>
+                      <WatchPlaceholder size={160} hovered={hov === i} />
+                    </div>
+                  )}
+                  {stockTotal <= 3 && stockTotal > 0 && (
+                    <span style={{
+                      position: 'absolute', top: 10, left: 10, zIndex: 2,
+                      fontSize: 7.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase',
+                      background: 'var(--rose)', color: 'var(--white)', padding: '4px 9px', borderRadius: 2,
+                    }}>Últimas {stockTotal}</span>
+                  )}
+                  {stockTotal === 0 && (
+                    <span style={{
+                      position: 'absolute', top: 10, left: 10, zIndex: 2,
+                      fontSize: 7.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase',
+                      background: 'var(--ink-3)', color: 'var(--white)', padding: '4px 9px', borderRadius: 2,
+                    }}>Agotado</span>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div style={{ padding: '15px 17px 17px' }}>
+                  <div style={{ fontSize: 7.5, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 5 }}>
+                    {w.marca?.nombre || 'Sin Marca'}
+                  </div>
+                  <div style={{ fontFamily: 'var(--serif)', fontSize: 19, fontWeight: 600, color: 'var(--ink)', marginBottom: 4, lineHeight: 1.2 }}>
+                    {w.nombre}
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--ink-4)', letterSpacing: '0.05em', marginBottom: 6 }}>
+                    {w.modelo}
+                  </div>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 600, color: 'var(--ink-2)', marginBottom: 14 }}>
+                    Desde RD$ {desde.toLocaleString('es-DO')}
+                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); onAbrir(w.id); }} style={{
+                    width: '100%', fontSize: 9, fontWeight: 600, letterSpacing: '0.12em',
+                    textTransform: 'uppercase', padding: '9px', borderRadius: 3,
+                    background: hov === i ? 'var(--ink)' : 'transparent',
+                    color: hov === i ? 'var(--white)' : 'var(--ink-3)',
+                    border: '1px solid var(--border-dk)', transition: 'all 0.25s',
+                  }}>
+                    Ver Detalle
+                  </button>
+                </div>
+              </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      {detalle && <ConfiguradorReloj reloj={detalle} onClose={onCerrarDetalle} onAgregar={onAgregar} />}
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   FEATURED / EDITORIAL
+══════════════════════════════════════════════════ */
+function Editorial() {
+  const [sel, setSel] = React.useState(0);
+  const watches = [
+    { img: T + 'Nautiko_Rose_Gold_Chocolate_Open_Heart.png', series: 'Nautiko', name: 'Rose Gold Open Heart', ref: 'DWM-NAU-RG-OH', specs: ['NH38', 'Oro Rosa PVD', 'Corazón Abierto', '316L'] },
+    { img: T + 'GMTeiko-Pepsi.png', series: 'GMTeiko', name: 'Pepsi Edition', ref: 'DWM-GMT-PEP', specs: ['NH34', 'GMT Dual Time', 'Jubilee 316L', 'Cerámica Bi-color'] },
+    { img: T + 'Santeiko-SV-WH.png', series: 'Santeiko', name: 'Silver White', ref: 'DWM-SAN-SV-WH', specs: ['VK63 Meca-Quartz', 'Tornillos Expuestos', 'Agujas Azul Zafiro', '316L'] },
+  ];
+  const w = watches[sel];
+  return (
+    <section style={{ background: 'var(--off-white)', padding: '96px 0', borderTop: '1px solid var(--border)' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 56px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+        {/* Watch image panel */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'var(--white)', borderRadius: 16, padding: '60px 48px',
+          boxShadow: '0 4px 32px rgba(0,0,0,0.06)', border: '1px solid var(--border)',
+          minHeight: 480, position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', border: '1px solid rgba(184,146,42,0.1)', pointerEvents: 'none' }} />
+          <img src={w.img} alt={w.name}
+            style={{
+              width: '80%', maxWidth: 320, height: 'auto', objectFit: 'contain',
+              filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.18))',
+              transition: 'all 0.5s var(--ease)',
+            }} />
+        </div>
+        {/* Info */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <span style={{ width: 20, height: 1, background: 'var(--gold)', display: 'block' }}></span>
+            <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)' }}>Pieza Destacada</span>
+          </div>
+          <div style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.20em', textTransform: 'uppercase', color: 'var(--ink-4)', marginBottom: 10 }}>{w.series}</div>
+          <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(40px,4vw,60px)', fontWeight: 600, color: 'var(--ink)', lineHeight: 1.05, marginBottom: 8 }}>{w.name}</h2>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--ink-4)', marginBottom: 28 }}>{w.ref}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 36 }}>
+            {w.specs.map((s, i) => (
+              <div key={i} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 6, padding: '12px 14px' }}>
+                <div style={{ fontSize: 7.5, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>Característica 0{i + 1}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{s}</div>
+              </div>
+            ))}
+          </div>
+          <button style={{
+            fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase',
+            background: 'var(--ink)', color: 'var(--white)', padding: '15px 36px', borderRadius: 3,
+            transition: 'background 0.25s', marginBottom: 28, border: 'none',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
+            Solicitar Este Modelo
+          </button>
+          {/* Selector dots */}
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            {watches.map((_, i) => (
+              <button key={i} onClick={() => setSel(i)} style={{
+                width: sel === i ? 28 : 8, height: 8, borderRadius: 9999,
+                background: sel === i ? 'var(--ink)' : 'var(--border-dk)',
+                border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0,
+              }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   SPECS
+══════════════════════════════════════════════════ */
+const SPECS = [
+  { label: 'Calibre',      value: 'NH34 · NH35 · NH38', desc: 'Movimientos automáticos Seiko originales. Sin batería, sin compromiso.' },
+  { label: 'Caja',         value: 'Acero 316L',          desc: 'Grado quirúrgico. Resistente a corrosión y reacciones alérgicas.' },
+  { label: 'Cristal',      value: 'Zafiro AR',           desc: 'Dureza Mohs 9. Antirreflejo ambas caras para máxima legibilidad.' },
+  { label: 'Hermeticidad', value: '50m – 300m',          desc: 'Juntas de silicona. Test individual por modelo antes de entregar.' },
+  { label: 'Reserva',      value: '41 – 70 horas',       desc: 'Autonomía sin cuerda según calibre instalado.' },
+  { label: 'Frecuencia',   value: '21,600 bph',          desc: '6 ticks por segundo. Precisión mecánica certificada.' },
+];
+
+function Specs() {
+  return (
+    <section id="especificaciones" style={{ padding: '96px 56px', background: 'var(--white)', borderTop: '1px solid var(--border)', scrollMarginTop: 80 }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 96, alignItems: 'start' }}>
+          <div style={{ position: 'sticky', top: 100 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+              <span style={{ width: 20, height: 1, background: 'var(--gold)', display: 'block' }}></span>
+              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)' }}>Ingeniería</span>
+            </div>
+            <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(36px,3.5vw,52px)', fontWeight: 600, color: 'var(--ink)', lineHeight: 1.1, marginBottom: 20 }}>
+              Especificaciones<br /><em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--gold)' }}>Técnicas</em>
+            </h2>
+            <p style={{ fontSize: 13.5, lineHeight: 1.8, color: 'var(--ink-3)', marginBottom: 36 }}>
+              Cada componente es seleccionado por su rendimiento y durabilidad.
+              No hacemos concesiones — solo los mejores materiales para cada pieza.
+            </p>
+            <div style={{ background: 'var(--off-white)', borderRadius: 12, padding: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+              <img src="assets/products/transparent/PRXeiko-SV-BL.png" alt="PRXeiko"
+                style={{ width: 220, height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 16px 32px rgba(0,0,0,0.12))' }} />
+            </div>
+          </div>
+          <div>
+            {SPECS.map((s, i) => (
+              <div key={i} style={{
+                display: 'grid', gridTemplateColumns: '160px 1fr', gap: 24, padding: '28px 0',
+                borderBottom: i < SPECS.length - 1 ? '1px solid var(--border)' : 'none',
+              }}>
+                <div>
+                  <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.20em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8 }}>{s.label}</div>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 13.5, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.3 }}>{s.value}</div>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.7, paddingTop: 22 }}>{s.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   PROCESS
+══════════════════════════════════════════════════ */
+const STEPS = [
+  { n: '01', title: 'Selección del Calibre', desc: 'Elegimos el movimiento Seiko ideal — NH35, NH38 o NH34 — según complicación y carácter de cada pieza.' },
+  { n: '02', title: 'Componentes Quirúrgicos', desc: 'Cajas 316L, cristales de zafiro AR, bezels, coronas y sellos con tolerancias de precisión milimétrica.' },
+  { n: '03', title: 'Ensamblaje Artesanal', desc: 'Cada pieza es montada a mano, paso a paso. Cada tornillo y junta, en su posición exacta.' },
+  { n: '04', title: 'Control de Calidad', desc: 'Test de hermeticidad, regulación del movimiento y revisión visual. Solo sale lo que pasa el estándar DWM.' },
+];
+
+function Process() {
+  const [hov, setHov] = React.useState(null);
+  return (
+    <section id="proceso" style={{ padding: '96px 56px', background: 'var(--off-white)', borderTop: '1px solid var(--border)', scrollMarginTop: 80 }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 64 }}>
+          <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>El Arte del Modding</div>
+          <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(36px,4vw,56px)', fontWeight: 600, color: 'var(--ink)' }}>El Proceso DWM</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+          {STEPS.map((s, i) => (
+            <div key={i}
+              onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}
+              style={{
+                background: 'var(--white)', borderRadius: 10, padding: '36px 28px',
+                border: '1px solid var(--border)',
+                transition: 'all 0.3s var(--ease)',
+                boxShadow: hov === i ? '0 12px 36px rgba(0,0,0,0.08)' : 'none',
+                transform: hov === i ? 'translateY(-4px)' : 'none',
+                cursor: 'default',
+              }}>
+              <div style={{
+                fontFamily: 'var(--serif)', fontSize: 52, fontWeight: 600,
+                color: hov === i ? 'rgba(184,146,42,0.25)' : 'rgba(0,0,0,0.06)',
+                lineHeight: 1, marginBottom: 20, transition: 'color 0.3s',
+              }}>{s.n}</div>
+              <div style={{ width: 28, height: 1, background: 'var(--gold)', marginBottom: 18 }}></div>
+              <h4 style={{ fontFamily: 'var(--serif)', fontSize: 19, fontWeight: 600, color: 'var(--ink)', marginBottom: 10, lineHeight: 1.3 }}>{s.title}</h4>
+              <p style={{ fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.75 }}>{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   TESTIMONIALS
+══════════════════════════════════════════════════ */
+const TESTIS = [
+  { text: '"Recibí el GMT Pepsi y es simplemente perfecto. El acabado es de boutique suiza, pero con el corazón japonés que amo."', name: 'Carlos M.', loc: 'Santo Domingo, RD' },
+  { text: '"El Nautiko Royal Blue superó todas mis expectativas. Nadie cree que no es una pieza de colección auténtica."', name: 'Andrés V.', loc: 'Bogotá' },
+  { text: '"Proceso impecable desde la consulta hasta la entrega. Mi Submariner 007 es una obra de arte en mi muñeca."', name: 'Daniela R.', loc: 'Buenos Aires' },
+];
+
+function Testimonials() {
+  return (
+    <section style={{ padding: '96px 56px', background: 'var(--white)', borderTop: '1px solid var(--border)' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+          <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>Coleccionistas DWM</div>
+          <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(32px,3.5vw,48px)', fontWeight: 600, color: 'var(--ink)' }}>Lo que dicen quienes ya eligieron</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+          {TESTIS.map((t, i) => (
+            <div key={i} style={{ background: 'var(--off-white)', border: '1px solid var(--border)', borderRadius: 12, padding: '36px 28px' }}>
+              <div style={{ fontFamily: 'var(--serif)', fontSize: 48, color: 'var(--gold)', lineHeight: 0.7, marginBottom: 18, opacity: 0.4 }}>"</div>
+              <p style={{ fontFamily: 'var(--serif)', fontSize: 15.5, fontStyle: 'italic', color: 'var(--ink-2)', lineHeight: 1.75, marginBottom: 24 }}>{t.text}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--warm-grey)', border: '1px solid var(--border-dk)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontFamily: 'var(--serif)', fontSize: 16, color: 'var(--gold)', fontWeight: 600 }}>{t.name[0]}</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{t.name}</div>
+                  <div style={{ fontSize: 9.5, color: 'var(--ink-4)', letterSpacing: '0.06em' }}>{t.loc}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   FAQ
+══════════════════════════════════════════════════ */
+const FAQS = [
+  { q: '¿Son movimientos Seiko originales?', a: 'Sí. Utilizamos exclusivamente calibres Seiko originales: NH35A, NH34, NH38 y VK63. Nunca movimientos genéricos o réplicas.' },
+  { q: '¿Cuánto tiempo demora el ensamblaje?', a: 'Entre 7 y 14 días hábiles dependiendo del modelo y la configuración. Para piezas personalizadas, puede extenderse hasta 21 días.' },
+  { q: '¿Tienen garantía?', a: 'Sí. 12 meses de garantía sobre el movimiento y el ensamblaje. El cristal de zafiro tiene garantía de por vida contra defectos de fabricación.' },
+  { q: '¿Puedo personalizar mi reloj?', a: 'Absolutamente. Ofrecemos personalización de dial, bezel, brazalete y tratamientos PVD. Contáctanos para una consulta sin costo.' },
+  { q: '¿Hacen envíos internacionales?', a: 'Sí, enviamos a toda Latinoamérica y España con seguro incluido. El tiempo de envío varía entre 5 y 15 días hábiles.' },
+];
+
+function FAQ() {
+  const [open, setOpen] = React.useState(null);
+  return (
+    <section style={{ padding: '96px 56px', background: 'var(--off-white)', borderTop: '1px solid var(--border)' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+          <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>Preguntas Frecuentes</div>
+          <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(32px,3.5vw,48px)', fontWeight: 600, color: 'var(--ink)' }}>FAQ Técnica</h2>
+        </div>
+        {FAQS.map((f, i) => (
+          <div key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+            <button onClick={() => setOpen(open === i ? null : i)} style={{
+              width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '22px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+            }}>
+              <span style={{ fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 600, color: 'var(--ink)' }}>{f.q}</span>
+              <span style={{ color: 'var(--gold)', fontSize: 22, transform: open === i ? 'rotate(45deg)' : 'none', transition: 'transform 0.3s', flexShrink: 0, marginLeft: 16, fontWeight: 300 }}>+</span>
+            </button>
+            {open === i && <div style={{ padding: '0 0 22px', fontSize: 13.5, color: 'var(--ink-3)', lineHeight: 1.8 }}>{f.a}</div>}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   CTA BANNER
+══════════════════════════════════════════════════ */
+function CTABanner() {
+  return (
+    <section style={{ padding: '120px 56px', background: 'var(--off-white)', textAlign: 'center', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 600, borderRadius: '50%', border: '1px solid rgba(184,146,42,0.10)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 800, height: 800, borderRadius: '50%', border: '1px solid rgba(184,146,42,0.05)', pointerEvents: 'none' }} />
+      <div style={{ maxWidth: 600, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 24 }}>
+          <span style={{ display: 'block', width: 28, height: 1, background: 'var(--gold)' }}></span>
+          <span style={{ fontSize: 9, fontWeight: 500, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--gold)' }}>Comencemos</span>
+          <span style={{ display: 'block', width: 28, height: 1, background: 'var(--gold)' }}></span>
+        </div>
+        <div style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(38px,4.5vw,64px)', fontWeight: 400, color: 'var(--ink)', lineHeight: 1.05, marginBottom: 20 }}>
+          ¿Listo para tu<br /><em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--gold)' }}>pieza única</em>?
+        </div>
+        <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 17, color: 'var(--ink-3)', lineHeight: 1.6, marginBottom: 40, maxWidth: 480, margin: '0 auto 40px' }}>
+          Cada reloj Dominican Watch Men es una decisión. Cuéntanos tu visión y la hacemos realidad.
+        </p>
+        <button style={{
+          fontSize: 11, fontWeight: 500, letterSpacing: '0.28em', textTransform: 'uppercase',
+          background: 'var(--ink)', color: 'var(--white)', padding: '18px 48px', borderRadius: 0,
+          transition: 'all 0.3s', border: 'none',
+        }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
+          Iniciar Mi Configuración
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════ */
+function Footer() {
+  const cols = [
+    ['Colecciones', ['Diver Series', 'Nautiko', 'PRXeiko', 'GMTeiko', 'Executive', 'Chrono']],
+    ['Empresa', ['El Proceso', 'Personalizar', 'Garantía', 'FAQ']],
+    ['Contacto', ['Instagram', 'WhatsApp', 'Email', 'Showroom']],
+  ];
+  return (
+    <footer style={{ background: 'var(--white)', borderTop: '1px solid var(--border)', padding: '72px 56px 36px' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 56 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 8 }}>
+              <Emblem size={46} fg="var(--gold)" flag={true} />
+              <div style={{ fontFamily: 'var(--serif)', fontSize: 28, fontWeight: 500, color: 'var(--ink)', letterSpacing: '0.02em', lineHeight: 1.05 }}>Dominican<br />Watch Men</div>
+            </div>
+            <div style={{ width: 24, height: 1, background: 'var(--gold)', marginBottom: 8 }}></div>
+            <div style={{ fontSize: 8, fontWeight: 500, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--ink-4)' }}>Alta Relojería · Santo Domingo, RD</div>
+          </div>
+          <div style={{ display: 'flex', gap: 64 }}>
+            {cols.map(([title, items]) => (
+              <div key={title}>
+                <div style={{ fontSize: 8.5, fontWeight: 500, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 20 }}>{title}</div>
+                {items.map(item => (
+                  <div key={item} style={{ fontFamily: 'var(--serif)', fontSize: 15, color: 'var(--ink-2)', marginBottom: 10, cursor: 'pointer', transition: 'color 0.2s' }}
+                    onMouseEnter={e => e.target.style.color = 'var(--gold)'}
+                    onMouseLeave={e => e.target.style.color = 'var(--ink-2)'}>{item}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontFamily: 'var(--sans)', fontSize: 10, color: 'var(--ink-4)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>© 2026 Dominican Watch Men · Todos los derechos reservados</div>
+          <div style={{ fontFamily: 'var(--sans)', fontSize: 10, color: 'var(--ink-4)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+            Cristal Zafiro <span style={{ color: 'var(--gold)', margin: '0 6px' }}>·</span> Acero 316L <span style={{ color: 'var(--gold)', margin: '0 6px' }}>·</span> Movimiento Seiko
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   PANEL DE CUENTA (Login / Registro / Admin)
+══════════════════════════════════════════════════ */
+function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado }) {
+  const [tab, setTab]         = React.useState('login');
+  const [loading, setLoading] = React.useState(false);
+  const [msg, setMsg]         = React.useState(null);
+  const [marcas, setMarcas]   = React.useState([]);
+  const [imagen, setImagen]   = React.useState(null);
+  const [preview, setPreview] = React.useState(null);
+  const [adminMsg, setAdminMsg] = React.useState(null);
+  const [adminLoading, setAdminLoading] = React.useState(false);
+
+  const [loginForm, setLoginForm]     = React.useState({ email: '', password: '' });
+  const [regForm, setRegForm]         = React.useState({ nombre: '', apellido: '', email: '', password: '', telefono: '', direccion: '' });
+  const [relojForm, setRelojForm]     = React.useState({ nombre: '', modelo: '', precio: '', stock: '', marcaId: '' });
+
+  React.useEffect(() => {
+    if (usuario?.esAdmin && marcas.length === 0)
+      fetch(`${API}/api/marca`).then(r => r.json()).then(setMarcas).catch(() => {});
+  }, [usuario]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); setLoading(true); setMsg(null);
+    try {
+      const r = await fetch(`${API}/api/usuario/login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginForm),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'Error al iniciar sesión');
+      onLogin(d);
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+    finally { setLoading(false); }
+  };
+
+  const handleRegistro = async (e) => {
+    e.preventDefault(); setLoading(true); setMsg(null);
+    try {
+      const r = await fetch(`${API}/api/usuario/registro`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(regForm),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'Error al registrarse');
+      onLogin(d);
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+    finally { setLoading(false); }
+  };
+
+  const handleAgregarReloj = async (e) => {
+    e.preventDefault(); setAdminLoading(true); setAdminMsg(null);
+    try {
+      let imagenUrl = null;
+      if (imagen) {
+        const fd = new FormData(); fd.append('archivo', imagen);
+        const r = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
+        if (!r.ok) throw new Error('Error al subir la imagen');
+        imagenUrl = (await r.json()).url;
+      }
+      const r = await fetch(`${API}/api/reloj`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...relojForm, precio: parseFloat(relojForm.precio), stock: parseInt(relojForm.stock), marcaId: parseInt(relojForm.marcaId), imagenUrl }),
+      });
+      if (!r.ok) throw new Error('Error al crear el reloj');
+      const nuevo = await r.json();
+      setAdminMsg({ ok: true, texto: `"${nuevo.nombre}" agregado exitosamente` });
+      setRelojForm({ nombre: '', modelo: '', precio: '', stock: '', marcaId: '' });
+      setImagen(null); setPreview(null);
+      onRelojCreado();
+    } catch (err) { setAdminMsg({ ok: false, texto: err.message }); }
+    finally { setAdminLoading(false); }
+  };
+
+  const inp = { width: '100%', padding: '11px 13px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 13, color: 'var(--ink)', fontFamily: 'var(--sans)', boxSizing: 'border-box', outline: 'none', background: 'var(--white)' };
+  const lbl = { display: 'block', fontSize: 8.5, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 6 };
+  const field = (children) => <div style={{ marginBottom: 14 }}>{children}</div>;
+
+  if (!open) return null;
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', justifyContent: 'flex-end' }}>
+      {/* Overlay */}
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(17,17,16,0.5)', backdropFilter: 'blur(6px)' }} />
+
+      {/* Panel lateral */}
+      <div style={{
+        position: 'relative', zIndex: 1, width: 420, height: '100%',
+        background: 'var(--white)', boxShadow: '-24px 0 60px rgba(0,0,0,0.18)',
+        display: 'flex', flexDirection: 'column', overflowY: 'auto',
+      }}>
+        {/* Header del panel */}
+        <div style={{ padding: '28px 32px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>Dominican Watch Men</div>
+            <div style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>
+              {usuario ? `Hola, ${usuario.nombre}` : 'Mi Cuenta'}
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--ink-3)', padding: 6 }}>✕</button>
+        </div>
+
+        <div style={{ padding: '24px 32px', flex: 1 }}>
+
+          {/* ── LOGUEADO ── */}
+          {usuario && (
+            <>
+              {/* Info del usuario */}
+              <div style={{ background: 'var(--off-white)', borderRadius: 10, padding: '20px', marginBottom: 24, border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--gold-pale)', border: '1px solid var(--gold-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontFamily: 'var(--serif)', fontSize: 20, color: 'var(--gold)', fontWeight: 600 }}>{usuario.nombre[0]}</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{usuario.nombre} {usuario.apellido}</div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 2 }}>{usuario.email}</div>
+                    {usuario.esAdmin && (
+                      <span style={{ display: 'inline-block', marginTop: 4, fontSize: 7.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', padding: '3px 8px', borderRadius: 2 }}>Administrador</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel admin — solo si esAdmin */}
+              {usuario.esAdmin && (
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                    <span style={{ width: 16, height: 1, background: 'var(--gold)', display: 'block' }} />
+                    <span style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--gold)' }}>Panel Admin</span>
+                  </div>
+                  <div style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 18 }}>Agregar Reloj</div>
+
+                  <form onSubmit={handleAgregarReloj}>
+                    {field(<><label style={lbl}>Marca</label>
+                      <select value={relojForm.marcaId} onChange={e => setRelojForm({...relojForm, marcaId: e.target.value})} required style={inp}>
+                        <option value="">Selecciona una marca</option>
+                        {marcas.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+                      </select></>)}
+                    {field(<><label style={lbl}>Nombre</label><input value={relojForm.nombre} onChange={e => setRelojForm({...relojForm, nombre: e.target.value})} required placeholder="Submariner Mod" style={inp} /></>)}
+                    {field(<><label style={lbl}>Modelo</label><input value={relojForm.modelo} onChange={e => setRelojForm({...relojForm, modelo: e.target.value})} required placeholder="NH35-SUB-BK" style={inp} /></>)}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                      <div><label style={lbl}>Precio (RD$)</label><input type="number" value={relojForm.precio} onChange={e => setRelojForm({...relojForm, precio: e.target.value})} required min="0" step="0.01" placeholder="12500" style={inp} /></div>
+                      <div><label style={lbl}>Stock</label><input type="number" value={relojForm.stock} onChange={e => setRelojForm({...relojForm, stock: e.target.value})} required min="0" placeholder="5" style={inp} /></div>
+                    </div>
+                    {field(<>
+                      <label style={lbl}>Imagen</label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', border: '1px dashed var(--border-dk)', borderRadius: 4, cursor: 'pointer' }}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold)'}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-dk)'}>
+                        <input type="file" accept="image/*" onChange={e => { const f = e.target.files[0]; if(f){ setImagen(f); setPreview(URL.createObjectURL(f)); }}} style={{ display: 'none' }} />
+                        {preview ? <img src={preview} style={{ height: 48, objectFit: 'contain' }} /> : <span style={{ fontSize: 20, color: 'var(--ink-4)' }}>+</span>}
+                        <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{imagen ? imagen.name : 'Seleccionar imagen'}</span>
+                      </label>
+                    </>)}
+                    {adminMsg && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 12, fontSize: 12, background: adminMsg.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${adminMsg.ok ? '#bbf7d0' : '#fecaca'}`, color: adminMsg.ok ? '#166534' : '#dc2626' }}>{adminMsg.texto}</div>}
+                    <button type="submit" disabled={adminLoading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: adminLoading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: adminLoading ? 'not-allowed' : 'pointer' }}>
+                      {adminLoading ? 'Guardando...' : 'Agregar a la Colección'}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* Cerrar sesión */}
+              <button onClick={onLogout} style={{ width: '100%', padding: '12px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: '1px solid var(--border-dk)', borderRadius: 3, cursor: 'pointer', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--rose)'; e.currentTarget.style.color = 'var(--rose)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-dk)'; e.currentTarget.style.color = 'var(--ink-3)'; }}>
+                Cerrar Sesión
+              </button>
+            </>
+          )}
+
+          {/* ── NO LOGUEADO ── */}
+          {!usuario && (
+            <>
+              {/* Tabs */}
+              <div style={{ display: 'flex', gap: 0, marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
+                {[['login', 'Iniciar Sesión'], ['registro', 'Crear Cuenta']].map(([key, label]) => (
+                  <button key={key} onClick={() => { setTab(key); setMsg(null); }} style={{
+                    flex: 1, padding: '12px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em',
+                    textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer',
+                    color: tab === key ? 'var(--ink)' : 'var(--ink-4)',
+                    borderBottom: tab === key ? '2px solid var(--gold)' : '2px solid transparent',
+                    marginBottom: -1, transition: 'all 0.2s',
+                  }}>{label}</button>
+                ))}
+              </div>
+
+              {msg && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 16, fontSize: 12, background: msg.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msg.ok ? '#bbf7d0' : '#fecaca'}`, color: msg.ok ? '#166534' : '#dc2626' }}>{msg.texto}</div>}
+
+              {/* Login */}
+              {tab === 'login' && (
+                <form onSubmit={handleLogin}>
+                  {field(<><label style={lbl}>Correo Electrónico</label><input type="email" value={loginForm.email} onChange={e => setLoginForm({...loginForm, email: e.target.value})} required placeholder="correo@email.com" style={inp} /></>)}
+                  {field(<><label style={lbl}>Contraseña</label><input type="password" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} required placeholder="••••••••" style={inp} /></>)}
+                  <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
+                    {loading ? 'Verificando...' : 'Iniciar Sesión'}
+                  </button>
+                </form>
+              )}
+
+              {/* Registro */}
+              {tab === 'registro' && (
+                <form onSubmit={handleRegistro}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                    <div><label style={lbl}>Nombre</label><input value={regForm.nombre} onChange={e => setRegForm({...regForm, nombre: e.target.value})} required placeholder="Carlos" style={inp} /></div>
+                    <div><label style={lbl}>Apellido</label><input value={regForm.apellido} onChange={e => setRegForm({...regForm, apellido: e.target.value})} required placeholder="Martínez" style={inp} /></div>
+                  </div>
+                  {field(<><label style={lbl}>Correo Electrónico</label><input type="email" value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})} required placeholder="correo@email.com" style={inp} /></>)}
+                  {field(<><label style={lbl}>Contraseña</label><input type="password" value={regForm.password} onChange={e => setRegForm({...regForm, password: e.target.value})} required placeholder="••••••••" style={inp} /></>)}
+                  {field(<><label style={lbl}>Teléfono</label><input value={regForm.telefono} onChange={e => setRegForm({...regForm, telefono: e.target.value})} placeholder="809-555-0101" style={inp} /></>)}
+                  {field(<><label style={lbl}>Dirección</label><input value={regForm.direccion} onChange={e => setRegForm({...regForm, direccion: e.target.value})} placeholder="Av. Winston Churchill, SD" style={inp} /></>)}
+                  <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
+                    {loading ? 'Creando cuenta...' : 'Crear Mi Cuenta'}
+                  </button>
+                </form>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   MODAL CREAR / EDITAR RELOJ
+══════════════════════════════════════════════════ */
+function RelojModal({ modo, reloj, marcas, onClose, onGuardado }) {
+  const [form, setForm]       = React.useState({
+    nombre: reloj?.nombre || '', modelo: reloj?.modelo || '',
+    precio: reloj?.precio || '', stock: reloj?.stock || '',
+    marcaId: reloj?.marcaId || '', imagenUrl: reloj?.imagenUrl || '',
+    tipoModelo: reloj?.tipoModelo || '',
+  });
+  const [imagen, setImagen]   = React.useState(null);
+  const [preview, setPreview] = React.useState(reloj?.imagenUrl ? getImageUrl(reloj.imagenUrl) : null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError]     = React.useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); setLoading(true); setError(null);
+    try {
+      let imagenUrl = form.imagenUrl;
+      if (imagen) {
+        const fd = new FormData(); fd.append('archivo', imagen);
+        const upRes = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
+        if (!upRes.ok) throw new Error('Error al subir imagen');
+        imagenUrl = (await upRes.json()).url;
+      }
+      const url    = modo === 'crear' ? `${API}/api/reloj` : `${API}/api/reloj/${reloj.id}`;
+      const method = modo === 'crear' ? 'POST' : 'PUT';
+      const saveRes = await fetch(url, {
+        method, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, precio: parseFloat(form.precio), stock: parseInt(form.stock), marcaId: parseInt(form.marcaId), imagenUrl }),
+      });
+      if (!saveRes.ok) throw new Error('Error al guardar');
+      onGuardado();
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  };
+
+  const inp = { width: '100%', padding: '11px 13px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 13, color: 'var(--ink)', fontFamily: 'var(--sans)', boxSizing: 'border-box', outline: 'none', background: 'var(--white)' };
+  const lbl = { display: 'block', fontSize: 8.5, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 6 };
+
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(17,17,16,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ background: 'var(--white)', borderRadius: 16, padding: '36px 40px', width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.24)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+          <div>
+            <div style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 6 }}>{modo === 'crear' ? 'Nuevo Reloj' : 'Editar Reloj'}</div>
+            <h2 style={{ fontFamily: 'var(--serif)', fontSize: 26, fontWeight: 600, color: 'var(--ink)' }}>{modo === 'crear' ? 'Agregar a la Colección' : reloj.nombre}</h2>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--ink-3)', padding: 4 }}>✕</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: 14 }}>
+            <label style={lbl}>Marca</label>
+            <select value={form.marcaId} onChange={e => setForm({...form, marcaId: e.target.value})} required style={inp}>
+              <option value="">Selecciona una marca</option>
+              {marcas.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+            </select>
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={lbl}>Nombre</label>
+            <input value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} required placeholder="Submariner Mod" style={inp} />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={lbl}>Modelo</label>
+            <input value={form.modelo} onChange={e => setForm({...form, modelo: e.target.value})} required placeholder="NH35-SUB-BK" style={inp} />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={lbl}>Tipo de modelo (sugiere pulseras)</label>
+            <select value={form.tipoModelo} onChange={e => setForm({...form, tipoModelo: e.target.value})} style={inp}>
+              <option value="">Sin especificar</option>
+              <option value="Diver">Diver (buceo)</option>
+              <option value="GMT">GMT</option>
+              <option value="Dress">Dress (vestir)</option>
+              <option value="Field">Field (campo)</option>
+            </select>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+            <div><label style={lbl}>Precio base (RD$)</label><input type="number" value={form.precio} onChange={e => setForm({...form, precio: e.target.value})} required min="0" step="0.01" placeholder="12500" style={inp} /></div>
+            <div><label style={lbl}>Stock</label><input type="number" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} required min="0" placeholder="5" style={inp} /></div>
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            <label style={lbl}>Imagen</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', border: '1px dashed var(--border-dk)', borderRadius: 4, cursor: 'pointer', transition: 'border-color 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-dk)'}>
+              <input type="file" accept="image/*" onChange={e => { const f = e.target.files[0]; if(f){ setImagen(f); setPreview(URL.createObjectURL(f)); }}} style={{ display: 'none' }} />
+              {preview
+                ? <img src={preview} style={{ height: 56, width: 56, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.12))' }} />
+                : <div style={{ width: 56, height: 56, borderRadius: 6, background: 'var(--warm-grey)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--ink-4)' }}>+</div>
+              }
+              <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>{imagen ? imagen.name : (preview ? 'Imagen actual · Clic para cambiar' : 'Seleccionar imagen')}</span>
+            </label>
+          </div>
+          {error && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 14, fontSize: 12, background: '#fff5f5', border: '1px solid #fecaca', color: '#dc2626' }}>{error}</div>}
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button type="button" onClick={onClose} style={{ flex: 1, padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink)', border: '1px solid var(--border-dk)', borderRadius: 3, cursor: 'pointer' }}>Cancelar</button>
+            <button type="submit" disabled={loading} style={{ flex: 2, padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}
+              onMouseEnter={e => { if(!loading) e.currentTarget.style.background = 'var(--gold)'; }}
+              onMouseLeave={e => { if(!loading) e.currentTarget.style.background = 'var(--ink)'; }}>
+              {loading ? 'Guardando...' : (modo === 'crear' ? 'Agregar Reloj' : 'Guardar Cambios')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   PÁGINA DE ADMINISTRACIÓN
+══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   MODAL DE COMPATIBILIDAD — que maquinas y pulseras admite un reloj
+   (el inventario NO vive aqui; vive en cada componente)
+══════════════════════════════════════════════════ */
+function CompatibilidadModal({ reloj, onClose, onCambio }) {
+  const [maquinas, setMaquinas] = React.useState([]);
+  const [pulseras, setPulseras] = React.useState([]);
+  const [selMaq, setSelMaq]     = React.useState({});
+  const [selPul, setSelPul]     = React.useState({});
+  const [msg, setMsg]           = React.useState(null);
+  const [loading, setLoading]   = React.useState(true);
+
+  React.useEffect(() => {
+    Promise.all([
+      fetch(`${API}/api/movimiento`).then(r => r.json()),
+      fetch(`${API}/api/tipopulsera`).then(r => r.json()),
+      fetch(`${API}/api/reloj/${reloj.id}`).then(r => r.json()),
+    ]).then(([m, p, r]) => {
+      setMaquinas(m); setPulseras(p);
+      const sm = {}; (r.movimientosCompatibles || []).forEach(x => sm[x.id] = true); setSelMaq(sm);
+      const sp = {}; (r.pulserasCompatibles || []).forEach(x => sp[x.id] = true); setSelPul(sp);
+      setLoading(false);
+    }).catch(() => { setMsg({ ok: false, texto: 'Error al cargar' }); setLoading(false); });
+  }, []);
+
+  const toggle = (setter, id) => setter(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const guardar = async () => {
+    setMsg(null);
+    const payload = {
+      movimientoIds: Object.keys(selMaq).filter(k => selMaq[k]).map(Number),
+      tipoPulseraIds: Object.keys(selPul).filter(k => selPul[k]).map(Number),
+    };
+    try {
+      const r = await fetch(`${API}/api/reloj/${reloj.id}/compatibilidad`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error('Error al guardar');
+      setMsg({ ok: true, texto: 'Compatibilidad guardada' }); onCambio();
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+  };
+
+  const fila = (item, checked, onToggle) => (
+    <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 6, cursor: 'pointer', background: checked ? 'var(--gold-bg)' : 'transparent', border: `1px solid ${checked ? 'var(--gold-lt)' : 'var(--border)'}`, marginBottom: 6 }}>
+      <input type="checkbox" checked={checked} onChange={onToggle} />
+      <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{item.nombre}</span>
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--ink-4)' }}>{item.precioExtra > 0 ? `+${item.precioExtra.toLocaleString('es-DO')}` : 'incl'} · stk{item.stock}</span>
+    </label>
+  );
+
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(17,17,16,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ background: 'var(--white)', borderRadius: 16, padding: '30px 34px', width: '100%', maxWidth: 680, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.24)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+          <div>
+            <div style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 6 }}>Opciones compatibles</div>
+            <h2 style={{ fontFamily: 'var(--serif)', fontSize: 24, fontWeight: 600, color: 'var(--ink)' }}>{reloj.nombre}</h2>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--ink-3)' }}>✕</button>
+        </div>
+        <p style={{ fontSize: 12, color: 'var(--ink-4)', marginBottom: 18 }}>Elige que maquinas y pulseras admite este modelo. El stock de cada pieza se gestiona en "Componentes".</p>
+
+        {msg && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 14, fontSize: 12, background: msg.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msg.ok ? '#bbf7d0' : '#fecaca'}`, color: msg.ok ? '#166534' : '#dc2626' }}>{msg.texto}</div>}
+
+        {loading ? <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-4)' }}>Cargando...</div> : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}>Maquinas</div>
+              {maquinas.map(m => fila(m, !!selMaq[m.id], () => toggle(setSelMaq, m.id)))}
+            </div>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}>Pulseras</div>
+              {pulseras.map(p => fila(p, !!selPul[p.id], () => toggle(setSelPul, p.id)))}
+            </div>
+          </div>
+        )}
+
+        <button onClick={guardar} style={{ marginTop: 24, width: '100%', padding: '13px', fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Guardar compatibilidad</button>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   MODAL DE COMPONENTES — inventario propio de maquinas y pulseras (BOM)
+══════════════════════════════════════════════════ */
+function ComponentesModal({ onClose, onCambio }) {
+  const [maquinas, setMaquinas] = React.useState([]);
+  const [pulseras, setPulseras] = React.useState([]);
+  const [msg, setMsg]           = React.useState(null);
+  const [loading, setLoading]   = React.useState(true);
+
+  const cargar = () => {
+    Promise.all([
+      fetch(`${API}/api/movimiento`).then(r => r.json()),
+      fetch(`${API}/api/tipopulsera`).then(r => r.json()),
+    ]).then(([m, p]) => { setMaquinas(m); setPulseras(p); setLoading(false); })
+      .catch(() => { setMsg({ ok: false, texto: 'Error al cargar' }); setLoading(false); });
+  };
+  React.useEffect(() => { cargar(); }, []);
+
+  const setCampo = (tipo, id, campo, valor) => {
+    const num = campo === 'stock' ? parseInt(valor || 0) : parseFloat(valor || 0);
+    const upd = prev => prev.map(x => x.id === id ? { ...x, [campo]: isNaN(num) ? 0 : num } : x);
+    if (tipo === 'maquina') setMaquinas(upd); else setPulseras(upd);
+  };
+
+  const guardar = async (tipo, item) => {
+    setMsg(null);
+    const url = tipo === 'maquina' ? `${API}/api/movimiento/${item.id}` : `${API}/api/tipopulsera/${item.id}`;
+    try {
+      const r = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+      if (!r.ok) throw new Error('Error al guardar');
+      setMsg({ ok: true, texto: `${item.nombre} actualizado` }); onCambio();
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+  };
+
+  const inpm = { width: 66, padding: '6px 8px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 12, fontFamily: 'var(--mono)', boxSizing: 'border-box' };
+
+  const tabla = (titulo, items, tipo) => (
+    <div style={{ marginBottom: 22 }}>
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 10 }}>{titulo}</div>
+      {items.map(it => (
+        <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+          <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{it.nombre}</span>
+          <label style={{ fontSize: 8, color: 'var(--ink-4)', textTransform: 'uppercase' }}>Stock <input type="number" min="0" value={it.stock} onChange={e => setCampo(tipo, it.id, 'stock', e.target.value)} style={inpm} /></label>
+          <label style={{ fontSize: 8, color: 'var(--ink-4)', textTransform: 'uppercase' }}>+RD$ <input type="number" min="0" step="0.01" value={it.precioExtra} onChange={e => setCampo(tipo, it.id, 'precioExtra', e.target.value)} style={inpm} /></label>
+          <button onClick={() => guardar(tipo, it)} style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, padding: '6px 12px', cursor: 'pointer' }}>Guardar</button>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(17,17,16,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ background: 'var(--white)', borderRadius: 16, padding: '30px 34px', width: '100%', maxWidth: 640, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.24)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+          <div>
+            <div style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 6 }}>Inventario de componentes</div>
+            <h2 style={{ fontFamily: 'var(--serif)', fontSize: 24, fontWeight: 600, color: 'var(--ink)' }}>Maquinas y pulseras</h2>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--ink-3)' }}>✕</button>
+        </div>
+        <p style={{ fontSize: 12, color: 'var(--ink-4)', marginBottom: 18 }}>Cada componente tiene su propio stock. Un reloj se arma mientras haya base, maquina y pulsera disponibles.</p>
+        {msg && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 14, fontSize: 12, background: msg.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msg.ok ? '#bbf7d0' : '#fecaca'}`, color: msg.ok ? '#166534' : '#dc2626' }}>{msg.texto}</div>}
+        {loading ? <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-4)' }}>Cargando...</div> : (<>{tabla('Maquinas', maquinas, 'maquina')}{tabla('Pulseras', pulseras, 'pulsera')}</>)}
+      </div>
+    </div>
+  );
+}
+
+function AdminPage({ usuario, onVolver, onCambio }) {
+  const [relojes, setRelojes]         = React.useState([]);
+  const [marcas, setMarcas]           = React.useState([]);
+  const [loading, setLoading]         = React.useState(true);
+  const [modal, setModal]             = React.useState(null);
+  const [confirmDelete, setConfirm]   = React.useState(null);
+  const [variantesReloj, setVariantesReloj] = React.useState(null);
+  const [componentesOpen, setComponentesOpen] = React.useState(false);
+  const [msg, setMsg]                 = React.useState(null);
+
+  const cargar = () => {
+    setLoading(true);
+    Promise.all([
+      fetch(`${API}/api/reloj`).then(r => r.json()),
+      fetch(`${API}/api/marca`).then(r => r.json()),
+    ]).then(([r, m]) => { setRelojes(r); setMarcas(m); setLoading(false); })
+      .catch(() => setLoading(false));
+  };
+
+  React.useEffect(() => { cargar(); }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      const r = await fetch(`${API}/api/reloj/${id}`, { method: 'DELETE' });
+      if (!r.ok) throw new Error('Error al eliminar');
+      setMsg({ ok: true, texto: 'Reloj eliminado correctamente' });
+      cargar(); onCambio();
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+    setConfirm(null);
+  };
+
+  const btnBase = { fontSize: 9.5, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: 3, cursor: 'pointer', padding: '8px 16px', transition: 'all 0.2s', border: 'none' };
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--off-white)', fontFamily: 'var(--sans)' }}>
+
+      {/* Barra superior */}
+      <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', padding: '0 48px', height: 66, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <button onClick={onVolver} style={{ ...btnBase, background: 'transparent', color: 'var(--ink-3)', border: '1px solid var(--border-dk)', padding: '8px 18px' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.borderColor = 'var(--ink)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--ink-3)'; e.currentTarget.style.borderColor = 'var(--border-dk)'; }}>
+            ← Volver a la tienda
+          </button>
+          <div style={{ width: 1, height: 22, background: 'var(--border)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Emblem size={28} fg="var(--gold)" />
+            <div>
+              <div style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--gold)' }}>Panel Admin</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', lineHeight: 1 }}>{usuario?.nombre} {usuario?.apellido}</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => setComponentesOpen(true)} style={{ ...btnBase, background: 'transparent', color: 'var(--ink)', border: '1px solid var(--border-dk)', padding: '10px 20px' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-dk)'; e.currentTarget.style.color = 'var(--ink)'; }}>
+            Componentes
+          </button>
+          <button onClick={() => setModal({ modo: 'crear' })} style={{ ...btnBase, background: 'var(--ink)', color: 'var(--white)', padding: '10px 24px' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
+            + Agregar Reloj
+          </button>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '36px 48px' }}>
+
+        {/* Título y stats */}
+        <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div>
+            <h1 style={{ fontFamily: 'var(--serif)', fontSize: 38, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>Gestión de Relojes</h1>
+            <p style={{ fontSize: 12, color: 'var(--ink-4)' }}>{relojes.length} modelos en el catálogo · {relojes.filter(r => r.stock === 0).length} agotados · {relojes.filter(r => r.stock > 0 && r.stock <= 3).length} con stock bajo</p>
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            {[['Total', relojes.length, 'var(--ink)'], ['Agotados', relojes.filter(r => r.stock === 0).length, '#dc2626'], ['Stock bajo', relojes.filter(r => r.stock > 0 && r.stock <= 3).length, '#d97706']].map(([label, val, color]) => (
+              <div key={label} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, padding: '12px 20px', textAlign: 'center', minWidth: 80 }}>
+                <div style={{ fontFamily: 'var(--serif)', fontSize: 28, fontWeight: 600, color, lineHeight: 1 }}>{val}</div>
+                <div style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-4)', marginTop: 4 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Mensaje */}
+        {msg && (
+          <div style={{ padding: '12px 16px', borderRadius: 8, marginBottom: 20, fontSize: 13, background: msg.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msg.ok ? '#bbf7d0' : '#fecaca'}`, color: msg.ok ? '#166534' : '#dc2626', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {msg.texto}
+            <button onClick={() => setMsg(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 600, fontSize: 14 }}>✕</button>
+          </div>
+        )}
+
+        {/* Tabla */}
+        <div style={{ background: 'var(--white)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 80, color: 'var(--ink-4)', fontSize: 13 }}>Cargando catálogo...</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'var(--off-white)', borderBottom: '2px solid var(--border)' }}>
+                  {['', 'Reloj', 'Marca', 'Modelo', 'Precio', 'Stock', 'Acciones'].map(h => (
+                    <th key={h} style={{ padding: '13px 16px', textAlign: 'left', fontSize: 8, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {relojes.map((w, i) => {
+                  const maq = w.movimientosCompatibles || [];
+                  const pul = w.pulserasCompatibles || [];
+                  const stockTotal = (maq.length && pul.length) ? Math.min(w.stock || 0, Math.max(...maq.map(m => m.stock)), Math.max(...pul.map(p => p.stock))) : (w.stock || 0);
+                  return (
+                  <tr key={w.id} style={{ borderBottom: i < relojes.length - 1 ? '1px solid var(--border)' : 'none' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--off-white)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <td style={{ padding: '10px 16px', width: 64 }}>
+                      {getImageUrl(w.imagenUrl)
+                        ? <img src={getImageUrl(w.imagenUrl)} style={{ height: 50, width: 50, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.12))' }} />
+                        : <div style={{ width: 50, height: 50, borderRadius: 6, background: 'var(--warm-grey)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Emblem size={28} fg="var(--border-dk)" /></div>
+                      }
+                    </td>
+                    <td style={{ padding: '10px 16px' }}>
+                      <div style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>{w.nombre}</div>
+                      <div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 2 }}>ID #{w.id}</div>
+                    </td>
+                    <td style={{ padding: '10px 16px', fontSize: 11, color: 'var(--gold)', fontWeight: 600, letterSpacing: '0.06em' }}>{w.marca?.nombre || '—'}</td>
+                    <td style={{ padding: '10px 16px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink-4)' }}>{w.modelo}</td>
+                    <td style={{ padding: '10px 16px', fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 600, color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>RD$ {w.precio.toLocaleString('es-DO')}</td>
+                    <td style={{ padding: '10px 16px' }}>
+                      <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap', background: stockTotal === 0 ? '#fee2e2' : stockTotal <= 3 ? '#fef9c3' : '#dcfce7', color: stockTotal === 0 ? '#dc2626' : stockTotal <= 3 ? '#854d0e' : '#166534' }}>
+                        {stockTotal === 0 ? 'Agotado' : `${stockTotal} uds`}
+                      </span>
+                      <div style={{ fontSize: 9, color: 'var(--ink-4)', marginTop: 4 }}>{maq.length} maq · {pul.length} pul</div>
+                    </td>
+                    <td style={{ padding: '10px 16px' }}>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => setVariantesReloj(w)} style={{ ...btnBase, background: 'var(--gold-bg)', color: 'var(--gold)', border: '1px solid var(--gold-lt)' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'var(--gold)'; e.currentTarget.style.color = 'var(--white)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'var(--gold-bg)'; e.currentTarget.style.color = 'var(--gold)'; }}>
+                          Opciones
+                        </button>
+                        <button onClick={() => setModal({ modo: 'editar', reloj: w })} style={{ ...btnBase, background: 'transparent', color: 'var(--ink)', border: '1px solid var(--border-dk)' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = 'var(--white)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink)'; }}>
+                          Editar
+                        </button>
+                        <button onClick={() => setConfirm(w)} style={{ ...btnBase, background: 'transparent', color: 'var(--rose)', border: '1px solid rgba(176,112,85,0.35)' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'var(--rose)'; e.currentTarget.style.color = 'var(--white)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--rose)'; }}>
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* Modal crear/editar */}
+      {modal && (
+        <RelojModal
+          modo={modal.modo} reloj={modal.reloj} marcas={marcas}
+          onClose={() => setModal(null)}
+          onGuardado={() => { setModal(null); cargar(); onCambio(); setMsg({ ok: true, texto: modal.modo === 'crear' ? 'Reloj creado exitosamente' : 'Reloj actualizado exitosamente' }); }}
+        />
+      )}
+
+      {/* Modal de compatibilidad (que opciones admite el reloj) */}
+      {variantesReloj && (
+        <CompatibilidadModal
+          reloj={variantesReloj}
+          onClose={() => setVariantesReloj(null)}
+          onCambio={() => { cargar(); onCambio(); }}
+        />
+      )}
+
+      {/* Modal de componentes (inventario de maquinas y pulseras) */}
+      {componentesOpen && (
+        <ComponentesModal
+          onClose={() => setComponentesOpen(false)}
+          onCambio={() => cargar()}
+        />
+      )}
+
+      {/* Confirmación de eliminación */}
+      {confirmDelete && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(17,17,16,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--white)', borderRadius: 12, padding: '36px 40px', maxWidth: 420, width: '100%', margin: 24, boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontFamily: 'var(--serif)', fontSize: 24, fontWeight: 600, color: 'var(--ink)', marginBottom: 10 }}>¿Eliminar reloj?</div>
+            <p style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 28, lineHeight: 1.7 }}>
+              Estás a punto de eliminar <strong style={{ color: 'var(--ink)' }}>{confirmDelete.nombre}</strong>.<br />Esta acción no se puede deshacer.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => setConfirm(null)} style={{ flex: 1, padding: '12px', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink)', border: '1px solid var(--border-dk)', borderRadius: 3, cursor: 'pointer' }}>Cancelar</button>
+              <button onClick={() => handleDelete(confirmDelete.id)} style={{ flex: 1, padding: '12px', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'var(--rose)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   PANEL — contenedor reutilizable (recibe PROPS + CHILDREN)
+   El componente PADRE coloca contenido dentro de <Panel>...</Panel>
+══════════════════════════════════════════════════ */
+function Panel({ eyebrow, titulo, children }) {
+  return (
+    <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '30px 32px', boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
+      {eyebrow && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          <span style={{ width: 18, height: 1, background: 'var(--gold)', display: 'block' }} />
+          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--gold)' }}>{eyebrow}</span>
+        </div>
+      )}
+      {titulo && <h3 style={{ fontFamily: 'var(--serif)', fontSize: 23, fontWeight: 600, color: 'var(--ink)', marginBottom: 18 }}>{titulo}</h3>}
+      {/* children = lo que el padre pasó dentro de este componente */}
+      {children}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   CONTADOR — selector de cantidad (useState) con cotización
+══════════════════════════════════════════════════ */
+function Contador({ precio = 0, max = Infinity, onCantidad }) {
+  const [cantidad, setCantidad] = React.useState(1);
+  // Si cambia el tope (otro componente/stock), ajusta la cantidad para no pasarse del stock
+  React.useEffect(() => { setCantidad(c => Math.min(Math.max(1, c), Math.max(1, max))); }, [max]);
+  // Reporta la cantidad al padre (para agregar al carrito con la cantidad elegida)
+  React.useEffect(() => { if (onCantidad) onCantidad(cantidad); }, [cantidad]);
+  const btn = { width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--border-dk)', background: 'var(--white)', color: 'var(--ink)', fontSize: 20, fontWeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' };
+  const hoverOn  = e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)'; };
+  const hoverOff = e => { e.currentTarget.style.borderColor = 'var(--border-dk)'; e.currentTarget.style.color = 'var(--ink)'; };
+  const enTope = cantidad >= max;
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24, marginBottom: 22 }}>
+        <button style={btn} onClick={() => setCantidad(c => Math.max(1, c - 1))} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>−</button>
+        <div style={{ textAlign: 'center', minWidth: 84 }}>
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 46, fontWeight: 600, color: 'var(--ink)', lineHeight: 1 }}>{cantidad}</div>
+          <div style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-4)', marginTop: 6 }}>{cantidad === 1 ? 'Pieza' : 'Piezas'}</div>
+        </div>
+        <button style={{ ...btn, opacity: enTope ? 0.35 : 1, cursor: enTope ? 'not-allowed' : 'pointer' }} disabled={enTope} onClick={() => setCantidad(c => Math.min(max, c + 1))} onMouseEnter={e => { if (!enTope) hoverOn(e); }} onMouseLeave={hoverOff}>+</button>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+        <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Total estimado</span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 18, fontWeight: 600, color: 'var(--ink)' }}>RD$ {(precio * cantidad).toLocaleString('es-DO')}</span>
+      </div>
+      <button onClick={() => setCantidad(1)} style={{ marginTop: 16, width: '100%', padding: '11px', fontSize: 9, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: '1px solid var(--border-dk)', borderRadius: 3, cursor: 'pointer' }}>Reiniciar</button>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   CONFIGURADOR POR-RELOJ — se abre al seleccionar un reloj
+   Elige maquina + pulsera -> muestra precio y stock de esa variante
+══════════════════════════════════════════════════ */
+function ConfiguradorReloj({ reloj, onClose, onAgregar }) {
+  // Componentes INDEPENDIENTES compatibles con este reloj (modelo BOM)
+  const maquinas = reloj.movimientosCompatibles || [];
+  const pulseras = reloj.pulserasCompatibles || [];
+  const [movId, setMovId]       = React.useState(maquinas[0] ? maquinas[0].id : null);
+  const [pulId, setPulId]       = React.useState(pulseras[0] ? pulseras[0].id : null);
+  const [cantidad, setCantidad] = React.useState(1);
+  const [agregado, setAgregado] = React.useState(false);
+
+  const maquina = maquinas.find(m => m.id === movId) || null;
+  const pulsera = pulseras.find(p => p.id === pulId) || null;
+
+  // Precio = base del reloj + extra de la maquina + extra de la pulsera
+  const precio = (reloj.precio || 0) + (maquina ? maquina.precioExtra : 0) + (pulsera ? pulsera.precioExtra : 0);
+  // Disponibilidad = minimo entre base, maquina y pulsera (se ensambla con 1 de cada uno)
+  const disponible = Math.min(reloj.stock || 0, maquina ? maquina.stock : 0, pulsera ? pulsera.stock : 0);
+  const faltante = (reloj.stock || 0) <= 0 ? 'la base' : (maquina && maquina.stock <= 0 ? maquina.nombre : (pulsera && pulsera.stock <= 0 ? pulsera.nombre : null));
+
+  const chip = (activo, agotado) => ({
+    fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase',
+    padding: '9px 16px', borderRadius: 9999, cursor: agotado ? 'not-allowed' : 'pointer',
+    background: activo ? 'var(--ink)' : 'transparent',
+    color: agotado ? 'var(--ink-4)' : (activo ? 'var(--white)' : 'var(--ink-3)'),
+    border: activo ? '1px solid var(--ink)' : '1px solid var(--border-dk)',
+    opacity: agotado ? 0.5 : 1, transition: 'all 0.2s',
+  });
+
+  const agregar = () => {
+    if (!maquina || !pulsera || disponible <= 0) return;
+    onAgregar && onAgregar({
+      relojId: reloj.id, relojNombre: reloj.nombre, imagenUrl: reloj.imagenUrl,
+      movimientoId: maquina.id, maquina: maquina.nombre,
+      tipoPulseraId: pulsera.id, pulsera: pulsera.nombre,
+      precio, cantidad, max: disponible,
+    });
+    setAgregado(true);
+    setTimeout(() => setAgregado(false), 1800);
+  };
+
+  const sinOpciones = maquinas.length === 0 || pulseras.length === 0;
+
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(17,17,16,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ background: 'var(--white)', borderRadius: 16, width: '100%', maxWidth: 840, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.24)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+
+          {/* Imagen del reloj */}
+          <div style={{ background: 'var(--off-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, position: 'relative', minHeight: 360 }}>
+            <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', border: '1px solid rgba(184,146,42,0.12)' }} />
+            {getImageUrl(reloj.imagenUrl)
+              ? <img src={getImageUrl(reloj.imagenUrl)} alt={reloj.nombre} style={{ position: 'relative', zIndex: 1, width: '80%', maxWidth: 260, objectFit: 'contain', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.18))' }} />
+              : <WatchPlaceholder size={200} />}
+          </div>
+
+          {/* Configuracion */}
+          <div style={{ padding: '30px 34px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+              <div style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gold)' }}>{reloj.marca?.nombre || 'Dominican Watch Men'}</div>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--ink-3)' }}>✕</button>
+            </div>
+            <h2 style={{ fontFamily: 'var(--serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink)', marginBottom: 2 }}>{reloj.nombre}</h2>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--ink-4)', marginBottom: 22 }}>{reloj.modelo}</div>
+
+            {sinOpciones ? (
+              <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>Este reloj aun no tiene maquinas o pulseras configuradas.</p>
+            ) : (
+              <>
+                {/* Selector de maquina (independiente) */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}>Maquina</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {maquinas.map(m => {
+                      const ag = m.stock <= 0;
+                      return <button key={m.id} disabled={ag} onClick={() => !ag && setMovId(m.id)} style={chip(movId === m.id, ag)}>
+                        {m.nombre}{m.precioExtra > 0 ? ` +${m.precioExtra.toLocaleString('es-DO')}` : ''}{ag ? ' · agotada' : ''}
+                      </button>;
+                    })}
+                  </div>
+                </div>
+
+                {/* Selector de pulsera (independiente) */}
+                <div style={{ marginBottom: 22 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}>Pulsera</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {pulseras.map(p => {
+                      const ag = p.stock <= 0;
+                      return <button key={p.id} disabled={ag} onClick={() => !ag && setPulId(p.id)} style={chip(pulId === p.id, ag)}>
+                        {p.nombre}{p.precioExtra > 0 ? ` +${p.precioExtra.toLocaleString('es-DO')}` : ''}{ag ? ' · agotada' : ''}
+                      </button>;
+                    })}
+                  </div>
+                </div>
+
+                {/* Resumen y accion (Panel recibe children) */}
+                <Panel>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <div style={{ fontFamily: 'var(--mono)', fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>RD$ {precio.toLocaleString('es-DO')}</div>
+                    {disponible > 0
+                      ? <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)' }}>{disponible} disponibles</span>
+                      : <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--rose)' }}>Agotado{faltante ? ` (${faltante})` : ''}</span>}
+                  </div>
+
+                  {disponible > 0 && (
+                    <>
+                      <Contador precio={precio} max={disponible} onCantidad={setCantidad} />
+                      <button onClick={agregar} style={{
+                        marginTop: 14, width: '100%', padding: '14px', fontSize: 10, fontWeight: 700,
+                        letterSpacing: '0.16em', textTransform: 'uppercase', borderRadius: 3, border: 'none', cursor: 'pointer',
+                        background: agregado ? 'var(--forest, #2D6A4F)' : 'var(--ink)', color: 'var(--white)', transition: 'background 0.25s',
+                      }}
+                        onMouseEnter={e => { if (!agregado) e.currentTarget.style.background = 'var(--gold)'; }}
+                        onMouseLeave={e => { if (!agregado) e.currentTarget.style.background = 'var(--ink)'; }}>
+                        {agregado ? '✓ Agregado al carrito' : 'Añadir al carrito'}
+                      </button>
+                    </>
+                  )}
+                </Panel>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   CARRITO — panel lateral con los items agregados
+══════════════════════════════════════════════════ */
+function CarritoPanel({ open, items, onClose, onQuitar, onVaciar }) {
+  const [confirmado, setConfirmado] = React.useState(false);
+  if (!open) return null;
+
+  const total = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
+  const unidades = items.reduce((s, i) => s + i.cantidad, 0);
+
+  const finalizar = () => { setConfirmado(true); onVaciar(); };
+  const cerrar = () => { setConfirmado(false); onClose(); };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 600, display: 'flex', justifyContent: 'flex-end' }}>
+      <div onClick={cerrar} style={{ position: 'absolute', inset: 0, background: 'rgba(17,17,16,0.5)', backdropFilter: 'blur(6px)' }} />
+      <div style={{ position: 'relative', zIndex: 1, width: 420, maxWidth: '100%', height: '100%', background: 'var(--white)', boxShadow: '-24px 0 60px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column' }}>
+
+        {/* Header */}
+        <div style={{ padding: '26px 30px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>Tu seleccion</div>
+            <div style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>Carrito</div>
+          </div>
+          <button onClick={cerrar} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--ink-3)' }}>✕</button>
+        </div>
+
+        {/* Contenido */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 30px' }}>
+          {confirmado ? (
+            <div style={{ textAlign: 'center', paddingTop: 60 }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
+              <div style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>¡Pedido confirmado!</div>
+              <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>Gracias por tu compra. Nos pondremos en contacto para el ensamblaje de tus piezas.</p>
+            </div>
+          ) : items.length === 0 ? (
+            <div style={{ textAlign: 'center', paddingTop: 80, color: 'var(--ink-4)' }}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>🛒</div>
+              <p style={{ fontSize: 13 }}>Tu carrito esta vacio.<br />Elige un reloj y personalizalo.</p>
+            </div>
+          ) : (
+            items.map(i => (
+              <div key={i.key} style={{ display: 'flex', gap: 14, padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ width: 56, height: 56, borderRadius: 8, background: 'var(--off-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                  {getImageUrl(i.imagenUrl)
+                    ? <img src={getImageUrl(i.imagenUrl)} alt={i.relojNombre} style={{ width: 50, height: 50, objectFit: 'contain' }} />
+                    : <Emblem size={30} fg="var(--border-dk)" />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: 'var(--serif)', fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>{i.relojNombre}</div>
+                  <div style={{ fontSize: 10, color: 'var(--ink-4)', margin: '2px 0 4px' }}>{i.maquina} · {i.pulsera}</div>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-2)' }}>{i.cantidad} × RD$ {i.precio.toLocaleString('es-DO')}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>RD$ {(i.precio * i.cantidad).toLocaleString('es-DO')}</div>
+                  <button onClick={() => onQuitar(i.key)} style={{ marginTop: 8, fontSize: 8.5, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: 'none', color: 'var(--rose)', cursor: 'pointer', padding: 0 }}>Quitar</button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Footer con total */}
+        {!confirmado && items.length > 0 && (
+          <div style={{ padding: '18px 30px 26px', borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Total ({unidades} pza)</span>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 600, color: 'var(--ink)' }}>RD$ {total.toLocaleString('es-DO')}</span>
+            </div>
+            <button onClick={finalizar} style={{ width: '100%', padding: '14px', fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer', transition: 'background 0.25s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
+              Finalizar compra
+            </button>
+            <button onClick={onVaciar} style={{ width: '100%', marginTop: 10, padding: '10px', fontSize: 9, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: '1px solid var(--border-dk)', borderRadius: 3, cursor: 'pointer' }}>Vaciar carrito</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   RUTEO POR HASH — rutas con URL: #/ , #/admin , #/cuenta , #/carrito , #/producto/:id
+══════════════════════════════════════════════════ */
+function useHashRoute() {
+  const [hash, setHash] = React.useState(window.location.hash || '#/');
+  React.useEffect(() => {
+    const fn = () => setHash(window.location.hash || '#/');
+    window.addEventListener('hashchange', fn);
+    return () => window.removeEventListener('hashchange', fn);
+  }, []);
+  return hash;
+}
+function irARuta(r) { window.location.hash = r; }
+
+/* ══════════════════════════════════════════════════
+   APP ROOT
+══════════════════════════════════════════════════ */
+function App() {
+  const [scrolled, setScrolled]         = React.useState(false);
+  const [usuario, setUsuario]           = React.useState(null);
+  const [refreshKey, setRefreshKey]     = React.useState(0);
+  const [carrito, setCarrito]           = React.useState([]);
+
+  // Ruta actual (por hash)
+  const hash = useHashRoute();
+  const ruta = hash.replace(/^#/, '') || '/';
+  const mProducto = ruta.match(/^\/producto\/(\d+)/);
+  const productoId = mProducto ? parseInt(mProducto[1]) : null;
+  const pedirLogin = ruta === '/admin' && !usuario?.esAdmin; // /admin sin sesion admin -> pide login
+
+  // Agrega un item al carrito (agrupa por reloj+maquina+pulsera, sin pasar del stock disponible)
+  const agregarAlCarrito = (item) => {
+    const key = `${item.relojId}-${item.movimientoId}-${item.tipoPulseraId}`;
+    setCarrito(prev => {
+      const existe = prev.find(i => i.key === key);
+      if (existe) return prev.map(i => i.key === key ? { ...i, cantidad: Math.min(i.max, i.cantidad + item.cantidad) } : i);
+      return [...prev, { ...item, key }];
+    });
+    irARuta('/carrito');
+  };
+  const quitarDelCarrito = (key) => setCarrito(prev => prev.filter(i => i.key !== key));
+  const vaciarCarrito = () => setCarrito([]);
+
+  React.useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+  // Al cambiar de ruta, sube al tope
+  React.useEffect(() => { window.scrollTo(0, 0); }, [ruta]);
+
+  // Ruta /admin (solo administradores)
+  if (ruta === '/admin' && usuario?.esAdmin) {
+    return (
+      <AdminPage
+        usuario={usuario}
+        onVolver={() => irARuta('/')}
+        onCambio={() => setRefreshKey(k => k + 1)}
+      />
+    );
+  }
+
+  return (
+    <>
+      <Nav
+        scrolled={scrolled}
+        usuario={usuario}
+        onOpenCuenta={() => irARuta('/cuenta')}
+        onOpenAdmin={() => irARuta('/admin')}
+        onNavigate={irARuta}
+        carritoCount={carrito.reduce((s, i) => s + i.cantidad, 0)}
+        onOpenCarrito={() => irARuta('/carrito')}
+      />
+      <Hero />
+      <Strip />
+      <CollectionGrid
+        refreshKey={refreshKey}
+        onAgregar={agregarAlCarrito}
+        productoId={productoId}
+        onAbrir={(id) => irARuta('/producto/' + id)}
+        onCerrarDetalle={() => irARuta('/')}
+      />
+      <Editorial />
+      <Specs />
+      <Process />
+      <Testimonials />
+      <FAQ />
+      <CTABanner />
+      <Footer />
+      <PanelCuenta
+        open={ruta === '/cuenta' || pedirLogin}
+        onClose={() => irARuta('/')}
+        usuario={usuario}
+        onLogin={u => { setUsuario(u); irARuta(u.esAdmin ? '/admin' : '/'); }}
+        onLogout={() => { setUsuario(null); irARuta('/'); }}
+        onRelojCreado={() => setRefreshKey(k => k + 1)}
+      />
+      <CarritoPanel
+        open={ruta === '/carrito'}
+        items={carrito}
+        onClose={() => irARuta('/')}
+        onQuitar={quitarDelCarrito}
+        onVaciar={vaciarCarrito}
+      />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -43,3 +43,11 @@ Desktop.ini
 
 ## VS Code ##
 .vscode/
+
+## Local / scratch (no versionar) ##
+.claude/
+node_modules/
+New folder/
+Iniciar DWM.bat
+Detener DWM.bat
+*.rar

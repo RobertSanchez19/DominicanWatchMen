@@ -10,5 +10,6 @@ namespace RelojAPI.Interfaces
         Task<Reloj> CreateAsync(Reloj reloj);
         Task<Reloj?> UpdateAsync(int id, Reloj reloj);
         Task<bool> DeleteAsync(int id);
+        Task<Reloj?> SetCompatibilidadAsync(int id, List<int> movimientoIds, List<int> tipoPulseraIds);
     }
 }
