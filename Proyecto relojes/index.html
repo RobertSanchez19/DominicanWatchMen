@@ -42,6 +42,14 @@ a { text-decoration: none; color: inherit; }
 
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-33.33%); } }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ===== Responsive: apila columnas y ajusta paddings en pantallas chicas ===== */
+@media (max-width: 760px) {
+  .col2 { grid-template-columns: 1fr !important; }
+  .col3 { grid-template-columns: 1fr !important; gap: 12px !important; }
+  nav { padding: 0 20px !important; height: auto !important; flex-wrap: wrap !important; gap: 10px !important; }
+  .page-pad { padding-left: 20px !important; padding-right: 20px !important; }
+}
 </style>
 </head>
 <body>
@@ -150,6 +158,17 @@ function Nav({ scrolled, usuario, onOpenCuenta, onOpenAdmin, onNavigate, carrito
             Taller
           </button>
         )}
+        {(usuario?.rol === 'Soporte' || usuario?.rol === 'Admin') && (
+          <button onClick={() => onNavigate && onNavigate('/soporte')} style={{
+            fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
+            background: 'var(--ink)', color: 'var(--white)', border: 'none',
+            padding: '8px 16px', borderRadius: 3, transition: 'background 0.25s', cursor: 'pointer',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--gold)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}>
+            Soporte
+          </button>
+        )}
         <button onClick={onOpenCuenta} style={{
           fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase',
           background: usuario ? 'var(--gold-pale)' : 'transparent',
@@ -182,7 +201,7 @@ function Nav({ scrolled, usuario, onOpenCuenta, onOpenAdmin, onNavigate, carrito
 function Hero() {
   const irA = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
   return (
-    <section style={{
+    <section className="col2" style={{
       minHeight: '100vh', background: 'var(--white)', display: 'grid',
       gridTemplateColumns: '1fr 1fr', alignItems: 'center', padding: '0 0 0 56px', overflow: 'hidden',
     }}>
@@ -592,7 +611,7 @@ function Specs() {
   return (
     <section id="especificaciones" style={{ padding: '96px 56px', background: 'var(--white)', borderTop: '1px solid var(--border)', scrollMarginTop: 80 }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 96, alignItems: 'start' }}>
+        <div className="col2" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 96, alignItems: 'start' }}>
           <div style={{ position: 'sticky', top: 100 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
               <span style={{ width: 20, height: 1, background: 'var(--gold)', display: 'block' }}></span>
@@ -649,7 +668,7 @@ function Process() {
           <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>El Arte del Modding</div>
           <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(36px,4vw,56px)', fontWeight: 600, color: 'var(--ink)' }}>El Proceso DWM</h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+        <div className="col2" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
           {STEPS.map((s, i) => (
             <div key={i}
               onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}
@@ -694,7 +713,7 @@ function Testimonials() {
           <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>Coleccionistas DWM</div>
           <h2 style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(32px,3.5vw,48px)', fontWeight: 600, color: 'var(--ink)' }}>Lo que dicen quienes ya eligieron</h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+        <div className="col3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
           {TESTIS.map((t, i) => (
             <div key={i} style={{ background: 'var(--off-white)', border: '1px solid var(--border)', borderRadius: 12, padding: '36px 28px' }}>
               <div style={{ fontFamily: 'var(--serif)', fontSize: 48, color: 'var(--gold)', lineHeight: 0.7, marginBottom: 18, opacity: 0.4 }}>"</div>
@@ -1235,7 +1254,7 @@ function CompatibilidadModal({ reloj, onClose, onCambio }) {
         {msg && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 14, fontSize: 12, background: msg.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msg.ok ? '#bbf7d0' : '#fecaca'}`, color: msg.ok ? '#166534' : '#dc2626' }}>{msg.texto}</div>}
 
         {loading ? <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-4)' }}>Cargando...</div> : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div className="col2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             <div>
               <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}>Maquinas</div>
               {maquinas.map(m => fila(m, !!selMaq[m.id], () => toggle(setSelMaq, m.id)))}
@@ -1784,7 +1803,7 @@ function ConfiguradorReloj({ reloj, onClose, onAgregar }) {
   return (
     <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(17,17,16,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ background: 'var(--white)', borderRadius: 16, width: '100%', maxWidth: 840, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.24)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+        <div className="col2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
 
           {/* Imagen del reloj */}
           <div style={{ background: 'var(--off-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, position: 'relative', minHeight: 360 }}>
@@ -2058,7 +2077,7 @@ function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
           <button onClick={onVolver} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, padding: '12px 28px', cursor: 'pointer' }}>Volver</button>
         </div>
       ) : (
-        <div style={{ maxWidth: 1000, margin: '0 auto', padding: '36px 48px', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 32, alignItems: 'start' }}>
+        <div className="col2" style={{ maxWidth: 1000, margin: '0 auto', padding: '36px 48px', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 32, alignItems: 'start' }}>
 
           {/* Columna izquierda: pasos */}
           <div>
@@ -2316,6 +2335,27 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
   };
   const borrarTarjeta = async (id) => { await fetch(`${API}/api/tarjeta/${id}`, { method: 'DELETE' }); cargarTarjetas(); };
 
+  // ---- Soporte (tickets del cliente) ----
+  const [tickets, setTickets]         = React.useState([]);
+  const [ticketForm, setTicketForm]   = React.useState({ pedidoId: '', asunto: '', descripcion: '', prioridad: 'Media', imagenUrl: '' });
+  const [ticketPrev, setTicketPrev]   = React.useState(null);
+  const [msgTicket, setMsgTicket]     = React.useState(null);
+  const [abiertoTicket, setAbiertoTicket] = React.useState(null);
+  const tkset = (k, v) => setTicketForm(f => ({ ...f, [k]: v }));
+  const cargarTickets = () => fetch(`${API}/api/ticket?usuarioId=${usuario.id}`).then(r => r.json()).then(setTickets).catch(() => {});
+  React.useEffect(() => { if (tab === 'soporte') { cargarTickets(); if (pedidos.length === 0) cargarPedidos(); } }, [tab]);
+  const subirTicket = async (file) => { const fd = new FormData(); fd.append('archivo', file); const r = await fetch(`${API}/api/upload`, { method: 'POST', body: fd }); if (!r.ok) throw new Error(); return (await r.json()).url; };
+  const crearTicket = async (e) => {
+    e.preventDefault(); setMsgTicket(null);
+    try {
+      const payload = { usuarioId: usuario.id, nombreCliente: `${usuario.nombre} ${usuario.apellido}`, email: usuario.email, pedidoId: ticketForm.pedidoId ? parseInt(ticketForm.pedidoId) : null, asunto: ticketForm.asunto, descripcion: ticketForm.descripcion, prioridad: ticketForm.prioridad, imagenUrl: ticketForm.imagenUrl || null };
+      const r = await fetch(`${API}/api/ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error('Error al crear el ticket');
+      setTicketForm({ pedidoId: '', asunto: '', descripcion: '', prioridad: 'Media', imagenUrl: '' }); setTicketPrev(null);
+      setMsgTicket({ ok: true, texto: 'Ticket enviado. Te responderemos por aqui.' }); cargarTickets();
+    } catch (err) { setMsgTicket({ ok: false, texto: err.message }); }
+  };
+
   const tabBtn = (id, label) => (
     <button onClick={() => setTab(id)} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', padding: '12px 4px', color: tab === id ? 'var(--ink)' : 'var(--ink-4)', borderBottom: tab === id ? '2px solid var(--gold)' : '2px solid transparent', marginBottom: -1 }}>{label}</button>
   );
@@ -2344,6 +2384,7 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
           {tabBtn('datos', 'Mis datos')}
           {tabBtn('pedidos', 'Mis pedidos')}
           {tabBtn('tarjetas', 'Mis tarjetas')}
+          {tabBtn('soporte', 'Soporte')}
         </div>
 
         {/* ---- Datos ---- */}
@@ -2418,7 +2459,7 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
 
         {/* ---- Tarjetas ---- */}
         {tab === 'tarjetas' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+          <div className="col2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
             {/* Lista */}
             <div>
               <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 12 }}>Guardadas</div>
@@ -2458,7 +2499,38 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
             </form>
           </div>
         )}
+
+        {/* ---- Soporte (tickets) ---- */}
+        {tab === 'soporte' && (
+          <div className="col2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 12 }}>Mis tickets</div>
+              {tickets.length === 0 ? <p style={{ fontSize: 12, color: 'var(--ink-4)' }}>No tienes tickets todavia.</p>
+                : tickets.map(t => (
+                  <div key={t.id} onClick={() => setAbiertoTicket(t.id)} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px', marginBottom: 8, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div><div style={{ fontFamily: 'var(--serif)', fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{t.asunto}</div><div style={{ fontSize: 10, color: 'var(--ink-4)' }}>#{t.id}{t.pedidoId ? ` · Pedido #${t.pedidoId}` : ''} · {t.mensajes.length} msg</div></div>
+                    <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 9px', borderRadius: 9999, color: 'var(--white)', background: estadoTicketColor(t.estado) }}>{t.estado}</span>
+                  </div>
+                ))}
+            </div>
+            <form onSubmit={crearTicket} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '22px 24px' }}>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>Reportar un problema</div>
+              {msgTicket && <div style={{ padding: '9px 12px', borderRadius: 6, marginBottom: 12, fontSize: 12, background: msgTicket.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msgTicket.ok ? '#bbf7d0' : '#fecaca'}`, color: msgTicket.ok ? '#166534' : '#dc2626' }}>{msgTicket.texto}</div>}
+              {field('Pedido (opcional)', <select value={ticketForm.pedidoId} onChange={e => tkset('pedidoId', e.target.value)} style={inp}><option value="">Sin pedido</option>{pedidos.map(p => <option key={p.id} value={p.id}>Pedido #{p.id} — RD$ {p.total.toLocaleString('es-DO')}</option>)}</select>)}
+              {field('Asunto', <input value={ticketForm.asunto} onChange={e => tkset('asunto', e.target.value)} required placeholder="Problema con mi pedido" style={inp} />)}
+              {field('Prioridad', <select value={ticketForm.prioridad} onChange={e => tkset('prioridad', e.target.value)} style={inp}><option>Baja</option><option>Media</option><option>Alta</option></select>)}
+              {field('Descripcion', <textarea value={ticketForm.descripcion} onChange={e => tkset('descripcion', e.target.value)} required rows={3} placeholder="Explica el problema con detalle..." style={{ ...inp, resize: 'vertical' }} />)}
+              {field('Imagen (opcional)', <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', border: '1px dashed var(--border-dk)', borderRadius: 4, cursor: 'pointer' }}>
+                <input type="file" accept="image/*" onChange={async ev => { const f = ev.target.files[0]; if (f) { try { const url = await subirTicket(f); tkset('imagenUrl', url); setTicketPrev(URL.createObjectURL(f)); } catch (e) {} } }} style={{ display: 'none' }} />
+                {ticketPrev ? <img src={ticketPrev} style={{ height: 40, objectFit: 'contain' }} /> : <span style={{ fontSize: 18, color: 'var(--ink-4)' }}>+</span>}
+                <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{ticketForm.imagenUrl ? 'Imagen lista' : 'Adjuntar foto'}</span>
+              </label>)}
+              <button type="submit" style={{ width: '100%', padding: '12px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Enviar ticket</button>
+            </form>
+          </div>
+        )}
       </div>
+      {abiertoTicket && <HiloTicket ticketId={abiertoTicket} autor={usuario.nombre} esSoporte={false} permiteEstado={false} onClose={() => setAbiertoTicket(null)} onCambio={cargarTickets} />}
     </div>
   );
 }
@@ -2518,7 +2590,7 @@ function GarantiaPage({ onVolver }) {
         </p>
 
         {/* Cobertura */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid var(--border)', borderRadius: 4, overflow: 'hidden', marginBottom: 44, background: 'var(--white)' }}>
+        <div className="col2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid var(--border)', borderRadius: 4, overflow: 'hidden', marginBottom: 44, background: 'var(--white)' }}>
           <div style={{ padding: '26px 28px', borderRight: '1px solid var(--border)' }}>
             <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>Incluido en la garantia</div>
             <div style={{ width: 26, height: 1, background: 'var(--gold)', margin: '10px 0 18px' }} />
@@ -2543,7 +2615,7 @@ function GarantiaPage({ onVolver }) {
 
         {/* Como reclamar */}
         <h2 style={{ fontFamily: 'var(--serif)', fontSize: 26, fontWeight: 600, color: 'var(--ink)', marginBottom: 20 }}>Como reclamar tu garantia</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 44 }}>
+        <div className="col3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 44 }}>
           {pasos.map(([n, t, d]) => (
             <div key={n} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, padding: '24px 22px' }}>
               <div style={{ fontFamily: 'var(--serif)', fontSize: 40, fontWeight: 600, color: 'rgba(168,134,44,0.28)', lineHeight: 1, marginBottom: 12 }}>{n}</div>
@@ -2687,7 +2759,7 @@ function FabricacionPage({ usuario, onVolver }) {
 
         {/* ---- PIEZAS ---- */}
         {tab === 'piezas' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 26, alignItems: 'start' }}>
+          <div className="col2" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 26, alignItems: 'start' }}>
             <div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
                 {['Todas', ...CATEGORIAS_PIEZA].map(c => (
@@ -2758,7 +2830,7 @@ function FabricacionPage({ usuario, onVolver }) {
                 </div>
               ))}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            <div className="col2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
               <div>
                 <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 10 }}>Maquinas (venta)</div>
                 {maquinas.map(m => <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 12, color: 'var(--ink-2)' }}><span>{m.nombre}</span><span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>{m.stock}</span></div>)}
@@ -2773,7 +2845,7 @@ function FabricacionPage({ usuario, onVolver }) {
 
         {/* ---- PUBLICAR RELOJ ---- */}
         {tab === 'publicar' && (
-          <form onSubmit={publicar} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 26, alignItems: 'start' }}>
+          <form onSubmit={publicar} className="col2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 26, alignItems: 'start' }}>
             {/* Datos del reloj */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '24px 26px' }}>
               <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>Nuevo reloj (a venta)</div>
@@ -2823,6 +2895,135 @@ function FabricacionPage({ usuario, onVolver }) {
 }
 
 /* ══════════════════════════════════════════════════
+   SOPORTE — tickets con hilo de mensajes (cliente <-> soporte)
+══════════════════════════════════════════════════ */
+const estadoTicketColor = (e) => e === 'Resuelto' ? '#2D6A4F' : e === 'Cerrado' ? 'var(--ink-4)' : e === 'En progreso' ? '#1B3461' : 'var(--gold)';
+
+// Modal de hilo: lo usan tanto el cliente como el soporte (props para el rol)
+function HiloTicket({ ticketId, autor, esSoporte, permiteEstado, onClose, onCambio }) {
+  const [ticket, setTicket]   = React.useState(null);
+  const [texto, setTexto]     = React.useState('');
+  const [imagenUrl, setImg]   = React.useState('');
+  const [prev, setPrev]       = React.useState(null);
+  const estados = ['Abierto', 'En progreso', 'Resuelto', 'Cerrado'];
+
+  const cargar = () => fetch(`${API}/api/ticket/${ticketId}`).then(r => r.json()).then(setTicket).catch(() => {});
+  React.useEffect(() => { cargar(); }, []);
+
+  const subir = async (file) => { const fd = new FormData(); fd.append('archivo', file); const r = await fetch(`${API}/api/upload`, { method: 'POST', body: fd }); if (!r.ok) throw new Error(); return (await r.json()).url; };
+
+  const enviar = async (e) => {
+    e.preventDefault(); if (!texto.trim()) return;
+    await fetch(`${API}/api/ticket/${ticketId}/mensaje`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ autor, esSoporte, texto, imagenUrl: imagenUrl || null }) });
+    setTexto(''); setImg(''); setPrev(null); cargar(); onCambio && onCambio();
+  };
+  const cambiarEstado = async (estado) => { await fetch(`${API}/api/ticket/${ticketId}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado }) }); cargar(); onCambio && onCambio(); };
+
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 600, background: 'rgba(17,17,16,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ background: 'var(--white)', borderRadius: 16, width: '100%', maxWidth: 620, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.24)' }}>
+        {!ticket ? <div style={{ padding: 50, textAlign: 'center', color: 'var(--ink-4)' }}>Cargando...</div> : (
+          <div>
+            <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>Ticket #{ticket.id}{ticket.pedidoId ? ` · Pedido #${ticket.pedidoId}` : ''}</div>
+                  <h2 style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>{ticket.asunto}</h2>
+                </div>
+                <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--ink-3)' }}>✕</button>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 11px', borderRadius: 9999, color: 'var(--white)', background: estadoTicketColor(ticket.estado) }}>{ticket.estado}</span>
+                <span style={{ fontSize: 10, color: 'var(--ink-4)' }}>Prioridad: {ticket.prioridad} · {ticket.nombreCliente}</span>
+                {permiteEstado && (
+                  <select value={ticket.estado} onChange={e => cambiarEstado(e.target.value)} style={{ marginLeft: 'auto', padding: '5px 9px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 11, fontFamily: 'var(--sans)' }}>
+                    {estados.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                )}
+              </div>
+            </div>
+
+            {/* Descripcion inicial + imagen */}
+            <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)' }}>
+              <p style={{ fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.7 }}>{ticket.descripcion}</p>
+              {ticket.imagenUrl && <img src={getImageUrl(ticket.imagenUrl)} alt="adjunto" style={{ marginTop: 10, maxHeight: 160, borderRadius: 8, border: '1px solid var(--border)' }} />}
+            </div>
+
+            {/* Hilo de mensajes */}
+            <div style={{ padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {ticket.mensajes.length === 0 && <p style={{ fontSize: 12, color: 'var(--ink-4)', textAlign: 'center' }}>Aun no hay respuestas.</p>}
+              {ticket.mensajes.map(m => (
+                <div key={m.id} style={{ alignSelf: m.esSoporte ? 'flex-start' : 'flex-end', maxWidth: '82%' }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: m.esSoporte ? 'var(--gold)' : 'var(--ink-4)', marginBottom: 4, textAlign: m.esSoporte ? 'left' : 'right' }}>{m.esSoporte ? 'Soporte' : 'Cliente'} · {m.autor}</div>
+                  <div style={{ background: m.esSoporte ? 'var(--gold-bg)' : 'var(--off-white)', border: `1px solid ${m.esSoporte ? 'var(--gold-lt)' : 'var(--border)'}`, borderRadius: 10, padding: '10px 13px', fontSize: 13, color: 'var(--ink)' }}>
+                    {m.texto}
+                    {m.imagenUrl && <img src={getImageUrl(m.imagenUrl)} alt="adjunto" style={{ display: 'block', marginTop: 8, maxHeight: 140, borderRadius: 6 }} />}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Responder */}
+            {ticket.estado !== 'Cerrado' && (
+              <form onSubmit={enviar} style={{ padding: '14px 28px 24px', borderTop: '1px solid var(--border)' }}>
+                <textarea value={texto} onChange={e => setTexto(e.target.value)} placeholder="Escribe una respuesta..." rows={2} style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-dk)', borderRadius: 6, fontSize: 13, fontFamily: 'var(--sans)', boxSizing: 'border-box', resize: 'vertical' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
+                  <label style={{ fontSize: 10, color: 'var(--ink-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input type="file" accept="image/*" onChange={async ev => { const f = ev.target.files[0]; if (f) { try { const url = await subir(f); setImg(url); setPrev(URL.createObjectURL(f)); } catch (e) {} } }} style={{ display: 'none' }} />
+                    {prev ? <img src={prev} style={{ height: 30, borderRadius: 4 }} /> : <span style={{ border: '1px dashed var(--border-dk)', borderRadius: 4, padding: '5px 10px' }}>+ Imagen</span>}
+                  </label>
+                  <button type="submit" style={{ marginLeft: 'auto', padding: '9px 22px', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Enviar</button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Pagina del rol Soporte (y Admin): todos los tickets
+function SoportePage({ usuario, onVolver }) {
+  const [tickets, setTickets] = React.useState([]);
+  const [filtro, setFiltro]   = React.useState('Todos');
+  const [abierto, setAbierto] = React.useState(null);
+  const cargar = () => fetch(`${API}/api/ticket`).then(r => r.json()).then(setTickets).catch(() => {});
+  React.useEffect(() => { cargar(); }, []);
+  const filtrados = filtro === 'Todos' ? tickets : tickets.filter(t => t.estado === filtro);
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--off-white)', fontFamily: 'var(--sans)' }}>
+      <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', padding: '0 48px', height: 66, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Emblem size={30} fg="var(--gold)" />
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 600, color: 'var(--ink)' }}>Soporte al Cliente</div>
+        </div>
+        <button onClick={onVolver} style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: '1px solid var(--border-dk)', borderRadius: 3, padding: '8px 18px', cursor: 'pointer' }}>← Tienda</button>
+      </div>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '30px 48px' }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
+          {['Todos', 'Abierto', 'En progreso', 'Resuelto', 'Cerrado'].map(f => (
+            <button key={f} onClick={() => setFiltro(f)} style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 14px', borderRadius: 9999, cursor: 'pointer', background: filtro === f ? 'var(--ink)' : 'transparent', color: filtro === f ? 'var(--white)' : 'var(--ink-3)', border: filtro === f ? '1px solid var(--ink)' : '1px solid var(--border-dk)' }}>{f}</button>
+          ))}
+        </div>
+        {filtrados.length === 0 ? <div style={{ textAlign: 'center', padding: 50, color: 'var(--ink-4)', fontSize: 13, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12 }}>No hay tickets {filtro !== 'Todos' ? `en estado "${filtro}"` : 'todavia'}.</div>
+          : filtrados.map(t => (
+            <div key={t.id} onClick={() => setAbierto(t.id)} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 18px', marginBottom: 10, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>{t.asunto}</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 2 }}>#{t.id} · {t.nombreCliente}{t.pedidoId ? ` · Pedido #${t.pedidoId}` : ''} · Prioridad {t.prioridad} · {t.mensajes.length} msg</div>
+              </div>
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 11px', borderRadius: 9999, color: 'var(--white)', background: estadoTicketColor(t.estado) }}>{t.estado}</span>
+            </div>
+          ))}
+      </div>
+      {abierto && <HiloTicket ticketId={abierto} autor={usuario.nombre} esSoporte={true} permiteEstado={true} onClose={() => setAbierto(null)} onCambio={cargar} />}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
    RUTEO POR HASH — rutas con URL: #/ , #/admin , #/cuenta , #/carrito , #/producto/:id
 ══════════════════════════════════════════════════ */
 function useHashRoute() {
@@ -2852,7 +3053,8 @@ function App() {
   const mProducto = ruta.match(/^\/producto\/(\d+)/);
   const productoId = mProducto ? parseInt(mProducto[1]) : null;
   const esTaller = usuario && (usuario.rol === 'Fabricante' || usuario.rol === 'Admin');
-  const pedirLogin = (ruta === '/admin' && !usuario?.esAdmin) || (ruta === '/perfil' && !usuario) || (ruta === '/fabricacion' && !esTaller); // ruta protegida sin permiso -> pide login
+  const esSoporte = usuario && (usuario.rol === 'Soporte' || usuario.rol === 'Admin');
+  const pedirLogin = (ruta === '/admin' && !usuario?.esAdmin) || (ruta === '/perfil' && !usuario) || (ruta === '/fabricacion' && !esTaller) || (ruta === '/soporte' && !esSoporte); // ruta protegida sin permiso -> pide login
 
   // Agrega un item al carrito (agrupa por reloj+maquina+pulsera, sin pasar del stock disponible)
   const agregarAlCarrito = (item) => {
@@ -2924,6 +3126,11 @@ function App() {
   // Ruta /fabricacion (taller: solo Fabricante o Admin)
   if (ruta === '/fabricacion' && esTaller) {
     return <FabricacionPage usuario={usuario} onVolver={() => irARuta('/')} />;
+  }
+
+  // Ruta /soporte (solo Soporte o Admin)
+  if (ruta === '/soporte' && esSoporte) {
+    return <SoportePage usuario={usuario} onVolver={() => irARuta('/')} />;
   }
 
   return (

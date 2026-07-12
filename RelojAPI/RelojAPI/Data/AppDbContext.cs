@@ -19,6 +19,8 @@ namespace RelojAPI.Data
         public DbSet<PedidoItem> PedidoItems { get; set; }
         public DbSet<TarjetaGuardada> Tarjetas { get; set; }
         public DbSet<Pieza> Piezas { get; set; }
+        public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<TicketMensaje> TicketMensajes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -117,6 +119,16 @@ namespace RelojAPI.Data
                 entity.HasKey(i => i.Id);
                 entity.Property(i => i.PrecioUnitario).HasColumnType("decimal(18,2)");
                 entity.Property(i => i.Subtotal).HasColumnType("decimal(18,2)");
+            });
+
+            // Tickets de soporte y su hilo de mensajes
+            modelBuilder.Entity<Ticket>(entity =>
+            {
+                entity.HasKey(t => t.Id);
+                entity.HasMany(t => t.Mensajes)
+                      .WithOne(m => m.Ticket)
+                      .HasForeignKey(m => m.TicketId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
