@@ -74,7 +74,7 @@ namespace RelojAPI.Controllers
                 Estado = "Pendiente",
             };
 
-            decimal total = 0;
+            decimal subtotalPedido = 0;
             foreach (var it in dto.Items)
             {
                 var reloj = await _context.Relojes.FindAsync(it.RelojId);
@@ -95,7 +95,7 @@ namespace RelojAPI.Controllers
 
                 decimal precioUnit = reloj.Precio + mov.PrecioExtra + pul.PrecioExtra;
                 decimal subtotal = precioUnit * it.Cantidad;
-                total += subtotal;
+                subtotalPedido += subtotal;
 
                 pedido.Items.Add(new PedidoItem
                 {
@@ -110,7 +110,32 @@ namespace RelojAPI.Controllers
                     Subtotal = subtotal,
                 });
             }
-            pedido.Total = total;
+            // Cupon (validado en el servidor, no se confia en el cliente)
+            decimal descuento = 0;
+            string? cuponCodigo = null;
+            if (!string.IsNullOrWhiteSpace(dto.CuponCodigo))
+            {
+                var cupon = await _context.Cupones.FirstOrDefaultAsync(c => c.Codigo.ToLower() == dto.CuponCodigo.ToLower() && c.Activo);
+                if (cupon != null)
+                {
+                    cuponCodigo = cupon.Codigo;
+                    descuento = cupon.Tipo == "porcentaje" ? subtotalPedido * cupon.Valor / 100m : Math.Min(cupon.Valor, subtotalPedido);
+                }
+            }
+
+            // Envio: RD$200 dentro del Distrito Nacional / Santo Domingo; fuera se cotiza aparte (0)
+            var prov = (dto.Provincia ?? "").Trim().ToLower();
+            decimal envio = (prov == "distrito nacional" || prov == "santo domingo") ? 200m : 0m;
+
+            decimal baseGravable = subtotalPedido - descuento;
+            decimal itbis = Math.Round(baseGravable * 0.18m, 2);
+
+            pedido.Subtotal = subtotalPedido;
+            pedido.Descuento = descuento;
+            pedido.CuponCodigo = cuponCodigo;
+            pedido.Envio = envio;
+            pedido.Itbis = itbis;
+            pedido.Total = baseGravable + itbis + envio;
 
             _context.Pedidos.Add(pedido);
             await _context.SaveChangesAsync();
@@ -133,6 +158,7 @@ namespace RelojAPI.Controllers
         public string CodigoPostal { get; set; } = string.Empty;
         public string Referencia { get; set; } = string.Empty;
         public string MetodoPago { get; set; } = string.Empty;
+        public string? CuponCodigo { get; set; }
         public int? UsuarioId { get; set; }
         public List<CrearPedidoItemDto> Items { get; set; } = new();
     }

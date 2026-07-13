@@ -21,6 +21,8 @@ namespace RelojAPI.Data
         public DbSet<Pieza> Piezas { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<TicketMensaje> TicketMensajes { get; set; }
+        public DbSet<Cupon> Cupones { get; set; }
+        public DbSet<Resena> Resenas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -105,10 +107,29 @@ namespace RelojAPI.Data
                 .UsingEntity(j => j.ToTable("RelojTipoPulsera"));
 
             // Pedidos (ordenes de compra) y sus lineas
+            modelBuilder.Entity<Cupon>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Valor).HasColumnType("decimal(18,2)");
+            });
+
+            modelBuilder.Entity<Resena>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+                entity.HasOne(r => r.Reloj)
+                      .WithMany(x => x.Resenas)
+                      .HasForeignKey(r => r.RelojId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<Pedido>(entity =>
             {
                 entity.HasKey(p => p.Id);
                 entity.Property(p => p.Total).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.Subtotal).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.Descuento).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.Itbis).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.Envio).HasColumnType("decimal(18,2)");
                 entity.HasMany(p => p.Items)
                       .WithOne(i => i.Pedido)
                       .HasForeignKey(i => i.PedidoId)

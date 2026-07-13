@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RelojAPI.Data;
 
@@ -11,9 +12,11 @@ using RelojAPI.Data;
 namespace RelojAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260713144654_AgregarCuponesYDesglose")]
+    partial class AgregarCuponesYDesglose
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -337,41 +340,6 @@ namespace RelojAPI.Migrations
                     b.ToTable("Relojes");
                 });
 
-            modelBuilder.Entity("RelojAPI.Models.Resena", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Calificacion")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Comentario")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NombreCliente")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RelojId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RelojId");
-
-                    b.ToTable("Resenas");
-                });
-
             modelBuilder.Entity("RelojAPI.Models.SiteConfig", b =>
                 {
                     b.Property<int>("Id")
@@ -672,17 +640,6 @@ namespace RelojAPI.Migrations
                     b.Navigation("Marca");
                 });
 
-            modelBuilder.Entity("RelojAPI.Models.Resena", b =>
-                {
-                    b.HasOne("RelojAPI.Models.Reloj", "Reloj")
-                        .WithMany("Resenas")
-                        .HasForeignKey("RelojId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Reloj");
-                });
-
             modelBuilder.Entity("RelojAPI.Models.TicketMensaje", b =>
                 {
                     b.HasOne("RelojAPI.Models.Ticket", "Ticket")
@@ -717,11 +674,6 @@ namespace RelojAPI.Migrations
             modelBuilder.Entity("RelojAPI.Models.Pedido", b =>
                 {
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("RelojAPI.Models.Reloj", b =>
-                {
-                    b.Navigation("Resenas");
                 });
 
             modelBuilder.Entity("RelojAPI.Models.Ticket", b =>

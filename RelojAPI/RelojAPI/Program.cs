@@ -160,6 +160,16 @@ using (var scope = app.Services.CreateScope())
         );
         db.SaveChanges();
     }
+
+    // ===== SEED: cupones demo =====
+    if (!db.Cupones.Any())
+    {
+        db.Cupones.AddRange(
+            new RelojAPI.Models.Cupon { Codigo = "BIENVENIDO10", Tipo = "porcentaje", Valor = 10,  Activo = true },
+            new RelojAPI.Models.Cupon { Codigo = "DWM500",       Tipo = "monto",      Valor = 500, Activo = true }
+        );
+        db.SaveChanges();
+    }
 }
 
 // ===== CONFIGURACION DEL PIPELINE HTTP =====

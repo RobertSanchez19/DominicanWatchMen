@@ -333,12 +333,15 @@ function getImageUrl(imagenUrl) {
   return `${window.location.origin}/${imagenUrl}`;
 }
 
-function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerrarDetalle }) {
+function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerrarDetalle, usuario }) {
   const [active, setActive]   = React.useState('Todos');
   const [hov, setHov]         = React.useState(null);
   const [relojes, setRelojes] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError]     = React.useState(null);
+  const [busqueda, setBusqueda]   = React.useState('');
+  const [orden, setOrden]         = React.useState('relevancia');
+  const [precioMax, setPrecioMax] = React.useState('');
   // El reloj a configurar viene de la ruta /producto/:id
   const detalle = productoId ? relojes.find(r => r.id === productoId) : null;
 
@@ -353,8 +356,23 @@ function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerr
       .catch(() => { setError('No se pudo conectar con la API. Verifica que el servidor esté corriendo.'); setLoading(false); });
   }, [refreshKey]);
 
-  const marcas   = ['Todos', ...[...new Set(relojes.map(r => r.marca?.nombre || 'Sin Marca'))]];
-  const filtered = active === 'Todos' ? relojes : relojes.filter(r => (r.marca?.nombre || 'Sin Marca') === active);
+  // Precio "desde" = base + los extras mas baratos (para filtrar y ordenar)
+  const precioDesde = (r) => {
+    const maq = r.movimientosCompatibles || [], pul = r.pulserasCompatibles || [];
+    return (r.precio || 0) + (maq.length ? Math.min(...maq.map(m => m.precioExtra)) : 0) + (pul.length ? Math.min(...pul.map(p => p.precioExtra)) : 0);
+  };
+  const marcas = ['Todos', ...[...new Set(relojes.map(r => r.marca?.nombre || 'Sin Marca'))]];
+  let filtered = relojes.filter(r => {
+    const q = busqueda.trim().toLowerCase();
+    const coincide = !q || `${r.nombre} ${r.modelo || ''} ${r.marca?.nombre || ''}`.toLowerCase().includes(q);
+    const marcaOk = active === 'Todos' || (r.marca?.nombre || 'Sin Marca') === active;
+    const precioOk = !precioMax || precioDesde(r) <= parseFloat(precioMax);
+    return coincide && marcaOk && precioOk;
+  });
+  if (orden === 'precio-asc') filtered = [...filtered].sort((a, b) => precioDesde(a) - precioDesde(b));
+  else if (orden === 'precio-desc') filtered = [...filtered].sort((a, b) => precioDesde(b) - precioDesde(a));
+  else if (orden === 'nombre') filtered = [...filtered].sort((a, b) => a.nombre.localeCompare(b.nombre));
+  else if (orden === 'nuevos') filtered = [...filtered].sort((a, b) => b.id - a.id);
 
   return (
     <section id="colecciones" style={{ padding: '96px 56px', background: 'var(--white)', scrollMarginTop: 80 }}>
@@ -377,7 +395,7 @@ function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerr
             )}
             {!loading && !error && (
               <span style={{ fontSize: 9, color: 'var(--gold)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                {relojes.length} modelos disponibles ✦
+                {filtered.length} modelos disponibles ✦
               </span>
             )}
           </div>
@@ -390,6 +408,21 @@ function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerr
             padding: '16px 20px', marginBottom: 32, color: '#dc2626', fontSize: 13,
           }}>
             {error}
+          </div>
+        )}
+
+        {/* Buscador, orden y precio */}
+        {!loading && !error && (
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 20 }}>
+            <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar por nombre, marca o modelo..." style={{ flex: 1, minWidth: 220, padding: '10px 14px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 13, fontFamily: 'var(--sans)', outline: 'none', background: 'var(--white)' }} />
+            <select value={orden} onChange={e => setOrden(e.target.value)} style={{ padding: '10px 12px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 12, fontFamily: 'var(--sans)', background: 'var(--white)', color: 'var(--ink)' }}>
+              <option value="relevancia">Ordenar: relevancia</option>
+              <option value="precio-asc">Precio: menor a mayor</option>
+              <option value="precio-desc">Precio: mayor a menor</option>
+              <option value="nombre">Nombre (A-Z)</option>
+              <option value="nuevos">Mas nuevos</option>
+            </select>
+            <input type="number" min="0" value={precioMax} onChange={e => setPrecioMax(e.target.value)} placeholder="Precio max RD$" style={{ width: 150, padding: '10px 12px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 12, fontFamily: 'var(--sans)', outline: 'none', background: 'var(--white)' }} />
           </div>
         )}
 
@@ -432,15 +465,21 @@ function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerr
           </div>
         )}
 
+        {!loading && !error && filtered.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--ink-4)', fontSize: 13 }}>No se encontraron relojes con esos filtros.</div>
+        )}
+
         {/* Grid de relojes */}
-        {!loading && !error && (
+        {!loading && !error && filtered.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 20 }}>
             {filtered.map((w, i) => {
               // Modelo BOM: precio "desde" = base + extras mas baratos; disponible = min(base, mejor maquina, mejor pulsera)
               const maq = w.movimientosCompatibles || [];
               const pul = w.pulserasCompatibles || [];
-              const desde = (w.precio || 0) + (maq.length ? Math.min(...maq.map(m => m.precioExtra)) : 0) + (pul.length ? Math.min(...pul.map(p => p.precioExtra)) : 0);
+              const desde = precioDesde(w);
               const stockTotal = (maq.length && pul.length) ? Math.min(w.stock || 0, Math.max(...maq.map(m => m.stock)), Math.max(...pul.map(p => p.stock))) : (w.stock || 0);
+              const rese = w.resenas || [];
+              const rprom = rese.length ? rese.reduce((s, r) => s + r.calificacion, 0) / rese.length : 0;
               return (
               <div key={w.id}
                 onClick={() => onAbrir(w.id)}
@@ -499,6 +538,12 @@ function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerr
                   <div style={{ fontSize: 9, color: 'var(--ink-4)', letterSpacing: '0.05em', marginBottom: 6 }}>
                     {w.modelo}
                   </div>
+                  {rese.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                      <Estrellas valor={rprom} tam={11} />
+                      <span style={{ fontSize: 9.5, color: 'var(--ink-4)' }}>({rese.length})</span>
+                    </div>
+                  )}
                   <div style={{ fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 600, color: 'var(--ink-2)', marginBottom: 14 }}>
                     Desde RD$ {desde.toLocaleString('es-DO')}
                   </div>
@@ -518,7 +563,7 @@ function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerr
           </div>
         )}
       </div>
-      {detalle && <ConfiguradorReloj reloj={detalle} onClose={onCerrarDetalle} onAgregar={onAgregar} />}
+      {detalle && <ConfiguradorReloj reloj={detalle} onClose={onCerrarDetalle} onAgregar={onAgregar} usuario={usuario} />}
     </section>
   );
 }
@@ -1759,7 +1804,62 @@ function Contador({ precio = 0, max = Infinity, onCantidad }) {
    CONFIGURADOR POR-RELOJ — se abre al seleccionar un reloj
    Elige maquina + pulsera -> muestra precio y stock de esa variante
 ══════════════════════════════════════════════════ */
-function ConfiguradorReloj({ reloj, onClose, onAgregar }) {
+// Estrellas de calificacion (solo lectura o clicables si se pasa onClick)
+function Estrellas({ valor = 0, tam = 13, onClick }) {
+  return <span style={{ display: 'inline-flex', gap: 1 }}>
+    {[1, 2, 3, 4, 5].map(n => (
+      <span key={n} onClick={onClick ? () => onClick(n) : undefined}
+        style={{ fontSize: tam, lineHeight: 1, color: n <= Math.round(valor) ? 'var(--gold)' : 'var(--border-dk)', cursor: onClick ? 'pointer' : 'default' }}>★</span>
+    ))}
+  </span>;
+}
+
+// Seccion de reseñas de un reloj (promedio, lista y formulario)
+function ResenasReloj({ reloj, usuario }) {
+  const [resenas, setResenas]     = React.useState(reloj.resenas || []);
+  const [calif, setCalif]         = React.useState(5);
+  const [comentario, setComentario] = React.useState('');
+  const [msg, setMsg]             = React.useState(null);
+  const cargar = () => fetch(`${API}/api/resena?relojId=${reloj.id}`).then(r => r.json()).then(setResenas).catch(() => {});
+  React.useEffect(() => { cargar(); }, []);
+  const promedio = resenas.length ? resenas.reduce((s, r) => s + r.calificacion, 0) / resenas.length : 0;
+  const enviar = async (e) => {
+    e.preventDefault(); setMsg(null);
+    try {
+      const r = await fetch(`${API}/api/resena`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ relojId: reloj.id, usuarioId: usuario.id, nombreCliente: `${usuario.nombre} ${usuario.apellido || ''}`.trim(), calificacion: calif, comentario }) });
+      if (!r.ok) throw new Error();
+      setComentario(''); setMsg({ ok: true, texto: 'Gracias por tu reseña' }); cargar();
+    } catch (err) { setMsg({ ok: false, texto: 'Error al enviar' }); }
+  };
+  return (
+    <div style={{ padding: '20px 34px 28px', borderTop: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+        <div style={{ fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 600, color: 'var(--ink)' }}>Reseñas</div>
+        {resenas.length > 0 && <><Estrellas valor={promedio} /><span style={{ fontSize: 12, color: 'var(--ink-4)' }}>{promedio.toFixed(1)} · {resenas.length} reseña{resenas.length !== 1 ? 's' : ''}</span></>}
+      </div>
+      {resenas.length === 0 ? <p style={{ fontSize: 12, color: 'var(--ink-4)', marginBottom: 14 }}>Aun no hay reseñas. ¡Se el primero!</p>
+        : <div style={{ marginBottom: 16 }}>{resenas.map(r => (
+            <div key={r.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Estrellas valor={r.calificacion} tam={11} /><span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink)' }}>{r.nombreCliente}</span></div>
+              <p style={{ fontSize: 12.5, color: 'var(--ink-2)', marginTop: 4 }}>{r.comentario}</p>
+            </div>
+          ))}</div>}
+      {usuario ? (
+        <form onSubmit={enviar} style={{ background: 'var(--off-white)', borderRadius: 8, padding: '14px 16px' }}>
+          {msg && <div style={{ fontSize: 11, marginBottom: 8, color: msg.ok ? '#2D6A4F' : 'var(--rose)' }}>{msg.texto}</div>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Tu calificacion:</span>
+            <Estrellas valor={calif} tam={18} onClick={setCalif} />
+          </div>
+          <textarea value={comentario} onChange={e => setComentario(e.target.value)} required rows={2} placeholder="Escribe tu opinion..." style={{ width: '100%', padding: '9px 11px', border: '1px solid var(--border-dk)', borderRadius: 6, fontSize: 12.5, fontFamily: 'var(--sans)', boxSizing: 'border-box', resize: 'vertical' }} />
+          <button type="submit" style={{ marginTop: 8, padding: '9px 20px', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Enviar reseña</button>
+        </form>
+      ) : <p style={{ fontSize: 12, color: 'var(--ink-4)' }}>Inicia sesion para dejar tu reseña.</p>}
+    </div>
+  );
+}
+
+function ConfiguradorReloj({ reloj, onClose, onAgregar, usuario }) {
   // Componentes INDEPENDIENTES compatibles con este reloj (modelo BOM)
   const maquinas = reloj.movimientosCompatibles || [];
   const pulseras = reloj.pulserasCompatibles || [];
@@ -1880,6 +1980,7 @@ function ConfiguradorReloj({ reloj, onClose, onAgregar }) {
             )}
           </div>
         </div>
+        <ResenasReloj reloj={reloj} usuario={usuario} />
       </div>
     </div>
   );
@@ -2010,9 +2111,12 @@ function formatearVence(valor) {
    CHECKOUT — pasos de la compra (datos, envio, pago, resumen)
 ══════════════════════════════════════════════════ */
 function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
-  const total = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
+  const subtotal = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
   const unidades = items.reduce((s, i) => s + i.cantidad, 0);
   const [paso, setPaso]         = React.useState(1);
+  const [cupon, setCupon]       = React.useState(null);
+  const [cuponInput, setCuponInput] = React.useState('');
+  const [cuponMsg, setCuponMsg] = React.useState(null);
   const [enviando, setEnviando] = React.useState(false);
   const [error, setError]       = React.useState(null);
   const [form, setForm] = React.useState({
@@ -2027,6 +2131,24 @@ function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
   const marcaT = detectarMarca(form.tarjetaNumero);
   const digitosTar = form.tarjetaNumero.replace(/\D/g, '');
   const numCompleto = marcaT && digitosTar.length === marcaT.largo;
+
+  // Totales: cupon, ITBIS 18%, envio (RD$200 en DN/SD; fuera se cotiza aparte)
+  const descuento = cupon ? (cupon.tipo === 'porcentaje' ? subtotal * cupon.valor / 100 : Math.min(cupon.valor, subtotal)) : 0;
+  const provinciaDN = ['distrito nacional', 'santo domingo'].includes((form.provincia || '').trim().toLowerCase());
+  const envio = provinciaDN ? 200 : 0;
+  const cotizarEnvio = form.provincia && !provinciaDN;
+  const baseGravable = subtotal - descuento;
+  const itbis = Math.round(baseGravable * 0.18 * 100) / 100;
+  const totalFinal = baseGravable + itbis + envio;
+  const aplicarCupon = async () => {
+    setCuponMsg(null);
+    if (!cuponInput.trim()) return;
+    try {
+      const r = await fetch(`${API}/api/cupon/validar/${encodeURIComponent(cuponInput.trim())}`);
+      if (!r.ok) throw new Error();
+      const c = await r.json(); setCupon(c); setCuponMsg({ ok: true, texto: `Cupon "${c.codigo}" aplicado` });
+    } catch (e) { setCupon(null); setCuponMsg({ ok: false, texto: 'Cupon invalido o expirado' }); }
+  };
 
   const pasos = ['Datos', 'Envio', 'Pago', 'Resumen'];
   const validar = () => {
@@ -2044,7 +2166,7 @@ function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
       const payload = {
         nombreCliente: form.nombreCliente, apellidoCliente: form.apellidoCliente, email: form.email, telefono: form.telefono,
         direccion: form.direccion, ciudad: form.ciudad, provincia: form.provincia, codigoPostal: form.codigoPostal, referencia: form.referencia,
-        metodoPago: form.metodoPago, usuarioId: usuario?.id || null,
+        metodoPago: form.metodoPago, cuponCodigo: cupon ? cupon.codigo : null, usuarioId: usuario?.id || null,
         items: items.map(i => ({ relojId: i.relojId, movimientoId: i.movimientoId, tipoPulseraId: i.tipoPulseraId, cantidad: i.cantidad })),
       };
       const r = await fetch(`${API}/api/pedido`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -2114,7 +2236,18 @@ function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
                 {field('Direccion', <input value={form.direccion} onChange={e => set('direccion', e.target.value)} placeholder="Av. Winston Churchill 45" style={inp} />)}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   {field('Ciudad', <input value={form.ciudad} onChange={e => set('ciudad', e.target.value)} placeholder="Santo Domingo" style={inp} />)}
-                  {field('Provincia', <input value={form.provincia} onChange={e => set('provincia', e.target.value)} placeholder="Distrito Nacional" style={inp} />)}
+                  {field('Provincia', <select value={form.provincia} onChange={e => set('provincia', e.target.value)} required style={inp}>
+                    <option value="">Selecciona</option>
+                    <option>Distrito Nacional</option>
+                    <option>Santo Domingo</option>
+                    <option>Santiago</option>
+                    <option>La Vega</option>
+                    <option>Puerto Plata</option>
+                    <option>San Cristobal</option>
+                    <option>La Altagracia</option>
+                    <option>San Pedro de Macoris</option>
+                    <option>Otra</option>
+                  </select>)}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
                   {field('Codigo postal', <input value={form.codigoPostal} onChange={e => set('codigoPostal', e.target.value)} placeholder="10101" style={inp} />)}
@@ -2206,10 +2339,25 @@ function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
                 <div style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap' }}>RD$ {(i.precio * i.cantidad).toLocaleString('es-DO')}</div>
               </div>
             ))}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Total</span>
-              <span style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 600, color: 'var(--ink)' }}>RD$ {total.toLocaleString('es-DO')}</span>
+            {/* Cupon */}
+            <div style={{ display: 'flex', gap: 8, margin: '16px 0 6px' }}>
+              <input value={cuponInput} onChange={e => setCuponInput(e.target.value)} placeholder="Cupon de descuento" style={{ flex: 1, padding: '9px 11px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 12, fontFamily: 'var(--mono)', textTransform: 'uppercase', outline: 'none' }} />
+              <button type="button" onClick={aplicarCupon} style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, padding: '0 14px', cursor: 'pointer' }}>Aplicar</button>
             </div>
+            {cuponMsg && <div style={{ fontSize: 10, marginBottom: 8, color: cuponMsg.ok ? '#2D6A4F' : 'var(--rose)' }}>{cuponMsg.texto}</div>}
+
+            {/* Desglose */}
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 6, fontSize: 12.5, color: 'var(--ink-2)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}><span>Subtotal</span><span style={{ fontFamily: 'var(--mono)' }}>RD$ {subtotal.toLocaleString('es-DO')}</span></div>
+              {descuento > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', color: '#2D6A4F' }}><span>Descuento ({cupon.codigo})</span><span style={{ fontFamily: 'var(--mono)' }}>− RD$ {descuento.toLocaleString('es-DO')}</span></div>}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}><span>ITBIS (18%)</span><span style={{ fontFamily: 'var(--mono)' }}>RD$ {itbis.toLocaleString('es-DO')}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}><span>Envio</span><span style={{ fontFamily: 'var(--mono)' }}>{cotizarEnvio ? 'A cotizar' : `RD$ ${envio.toLocaleString('es-DO')}`}</span></div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Total</span>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 600, color: 'var(--ink)' }}>RD$ {totalFinal.toLocaleString('es-DO')}</span>
+            </div>
+            {cotizarEnvio && <div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 6 }}>* El envio fuera del Distrito Nacional / Santo Domingo se cotiza aparte.</div>}
           </div>
         </div>
       )}
@@ -2243,6 +2391,12 @@ function ConfirmacionPage({ pedido, onVolver }) {
                 <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--ink)' }}>RD$ {i.subtotal.toLocaleString('es-DO')}</span>
               </div>
             ))}
+            <div style={{ borderTop: '1px solid var(--border)', marginTop: 8, paddingTop: 10, fontSize: 12, color: 'var(--ink-3)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}><span>Subtotal</span><span style={{ fontFamily: 'var(--mono)' }}>RD$ {pedido.subtotal.toLocaleString('es-DO')}</span></div>
+              {pedido.descuento > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', color: '#2D6A4F' }}><span>Descuento{pedido.cuponCodigo ? ` (${pedido.cuponCodigo})` : ''}</span><span style={{ fontFamily: 'var(--mono)' }}>− RD$ {pedido.descuento.toLocaleString('es-DO')}</span></div>}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}><span>ITBIS (18%)</span><span style={{ fontFamily: 'var(--mono)' }}>RD$ {pedido.itbis.toLocaleString('es-DO')}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}><span>Envio</span><span style={{ fontFamily: 'var(--mono)' }}>{pedido.envio > 0 ? `RD$ ${pedido.envio.toLocaleString('es-DO')}` : 'A cotizar'}</span></div>
+            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', marginTop: 8, paddingTop: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Total</span>
               <span style={{ fontFamily: 'var(--mono)', fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>RD$ {pedido.total.toLocaleString('es-DO')}</span>
@@ -3152,6 +3306,7 @@ function App() {
         productoId={productoId}
         onAbrir={(id) => irARuta('/producto/' + id)}
         onCerrarDetalle={() => irARuta('/')}
+        usuario={usuario}
       />
       <Editorial />
       <Specs />

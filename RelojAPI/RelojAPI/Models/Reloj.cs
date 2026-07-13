@@ -23,5 +23,8 @@ namespace RelojAPI.Models
         // El inventario NO vive aqui: cada componente (maquina/pulsera) tiene su propio Stock.
         public ICollection<Movimiento> MovimientosCompatibles { get; set; } = new List<Movimiento>();
         public ICollection<TipoPulsera> PulserasCompatibles { get; set; } = new List<TipoPulsera>();
+
+        // Reseñas / valoraciones de clientes
+        public ICollection<Resena> Resenas { get; set; } = new List<Resena>();
     }
 }

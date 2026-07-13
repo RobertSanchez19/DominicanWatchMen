@@ -20,7 +20,15 @@ namespace RelojAPI.Models
         public string Referencia { get; set; } = string.Empty;
 
         public string MetodoPago { get; set; } = string.Empty;
+
+        // Desglose del total
+        public decimal Subtotal { get; set; }
+        public decimal Descuento { get; set; }
+        public string? CuponCodigo { get; set; }
+        public decimal Itbis { get; set; }
+        public decimal Envio { get; set; }
         public decimal Total { get; set; }
+
         public string Estado { get; set; } = "Pendiente";
 
         // Usuario que compro (opcional; null si fue como invitado)

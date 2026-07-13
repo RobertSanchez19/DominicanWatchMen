@@ -21,6 +21,7 @@ namespace RelojAPI.Services
                 .Include(r => r.Marca)
                 .Include(r => r.MovimientosCompatibles)
                 .Include(r => r.PulserasCompatibles)
+                .Include(r => r.Resenas)
                 .ToListAsync();
         }
 
@@ -30,6 +31,7 @@ namespace RelojAPI.Services
                 .Include(r => r.Marca)
                 .Include(r => r.MovimientosCompatibles)
                 .Include(r => r.PulserasCompatibles)
+                .Include(r => r.Resenas)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
@@ -39,6 +41,7 @@ namespace RelojAPI.Services
             var reloj = await _context.Relojes
                 .Include(r => r.MovimientosCompatibles)
                 .Include(r => r.PulserasCompatibles)
+                .Include(r => r.Resenas)
                 .FirstOrDefaultAsync(r => r.Id == id);
             if (reloj == null) return null;
 
