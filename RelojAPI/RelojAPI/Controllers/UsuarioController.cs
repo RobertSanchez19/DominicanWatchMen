@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RelojAPI.Data;
 using RelojAPI.Models;
+using RelojAPI.Services;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -13,12 +14,16 @@ namespace RelojAPI.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ILogger<UsuarioController> _logger;
+        private readonly IEmailService _email;
 
-        public UsuarioController(AppDbContext context, ILogger<UsuarioController> logger)
+        public UsuarioController(AppDbContext context, ILogger<UsuarioController> logger, IEmailService email)
         {
             _context = context;
             _logger = logger;
+            _email = email;
         }
+
+        private static string GenerarCodigo() => Random.Shared.Next(100000, 999999).ToString();
 
         // POST: api/usuario (admin: crea usuario con rol personalizable)
         [HttpPost]
@@ -122,6 +127,7 @@ namespace RelojAPI.Controllers
             usuario.Apellido  = dto.Apellido;
             usuario.Telefono  = dto.Telefono;
             usuario.Direccion = dto.Direccion;
+            usuario.DobleFactor = dto.DobleFactor;
             if (!string.IsNullOrWhiteSpace(dto.Password))
             {
                 // Para cambiar la contrasena se exige la actual correcta
@@ -146,8 +152,66 @@ namespace RelojAPI.Controllers
             if (usuario == null || usuario.PasswordHash != HashPassword(dto.Password))
                 return Unauthorized(new { mensaje = "Correo o contraseña incorrectos" });
 
+            // Si tiene 2FA, genera y envia un codigo; el login se completa con /verificar-2fa
+            if (usuario.DobleFactor)
+            {
+                var codigo = GenerarCodigo();
+                usuario.Codigo = codigo;
+                usuario.CodigoExpira = DateTime.UtcNow.AddMinutes(10);
+                await _context.SaveChangesAsync();
+                var enviado = await _email.EnviarAsync(usuario.Email, "Tu codigo de acceso - Dominican Watch Men",
+                    $"Tu codigo de verificacion es: {codigo}. Valido por 10 minutos.");
+                return Ok(new { requiere2FA = true, usuarioId = usuario.Id, demo = !enviado, codigoDemo = enviado ? null : codigo });
+            }
+
             _logger.LogInformation("Login exitoso para usuario Id {Id}", usuario.Id);
             return Ok(new UsuarioDto(usuario));
+        }
+
+        // POST: api/usuario/verificar-2fa  (completa el login con el codigo)
+        [HttpPost("verificar-2fa")]
+        public async Task<ActionResult> Verificar2FA([FromBody] Verificar2FADto dto)
+        {
+            var usuario = await _context.Usuarios.FindAsync(dto.UsuarioId);
+            if (usuario == null) return NotFound(new { mensaje = "Usuario no encontrado" });
+            if (usuario.Codigo != dto.Codigo || usuario.CodigoExpira < DateTime.UtcNow)
+                return BadRequest(new { mensaje = "Codigo invalido o expirado" });
+            usuario.Codigo = null; usuario.CodigoExpira = null;
+            await _context.SaveChangesAsync();
+            return Ok(new UsuarioDto(usuario));
+        }
+
+        // POST: api/usuario/recuperar  (envia un codigo para restablecer la contraseña)
+        [HttpPost("recuperar")]
+        public async Task<ActionResult> Recuperar([FromBody] RecuperarDto dto)
+        {
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == dto.Email && u.Activo);
+            if (usuario == null)
+                return Ok(new { enviado = false, demo = true, mensaje = "Si el correo existe, se envio un codigo." });
+
+            var codigo = GenerarCodigo();
+            usuario.Codigo = codigo;
+            usuario.CodigoExpira = DateTime.UtcNow.AddMinutes(15);
+            await _context.SaveChangesAsync();
+            var enviado = await _email.EnviarAsync(usuario.Email, "Recuperar contraseña - Dominican Watch Men",
+                $"Tu codigo para restablecer la contraseña es: {codigo}. Valido por 15 minutos.");
+            return Ok(new { enviado, demo = !enviado, codigoDemo = enviado ? null : codigo });
+        }
+
+        // POST: api/usuario/restablecer  (con el codigo, define la nueva contraseña)
+        [HttpPost("restablecer")]
+        public async Task<ActionResult> Restablecer([FromBody] RestablecerDto dto)
+        {
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (usuario == null || usuario.Codigo != dto.Codigo || usuario.CodigoExpira < DateTime.UtcNow)
+                return BadRequest(new { mensaje = "Codigo invalido o expirado" });
+            if (string.IsNullOrWhiteSpace(dto.NuevaPassword) || dto.NuevaPassword.Length < 4)
+                return BadRequest(new { mensaje = "La contraseña es muy corta" });
+
+            usuario.PasswordHash = HashPassword(dto.NuevaPassword);
+            usuario.Codigo = null; usuario.CodigoExpira = null;
+            await _context.SaveChangesAsync();
+            return Ok(new { mensaje = "Contraseña restablecida correctamente" });
         }
 
         private static string HashPassword(string password)
@@ -164,12 +228,15 @@ namespace RelojAPI.Controllers
 
     public record LoginDto(string Email, string Password);
 
-    public record UsuarioDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin, string? Telefono, string? Direccion, string Rol)
+    public record UsuarioDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin, string? Telefono, string? Direccion, string Rol, bool DobleFactor)
     {
-        public UsuarioDto(Usuario u) : this(u.Id, u.Nombre, u.Apellido, u.Email, u.EsAdmin, u.Telefono, u.Direccion, u.Rol) { }
+        public UsuarioDto(Usuario u) : this(u.Id, u.Nombre, u.Apellido, u.Email, u.EsAdmin, u.Telefono, u.Direccion, u.Rol, u.DobleFactor) { }
     }
 
-    public record ActualizarPerfilDto(string Nombre, string Apellido, string? Telefono, string? Direccion, string? Password, string? PasswordActual);
+    public record ActualizarPerfilDto(string Nombre, string Apellido, string? Telefono, string? Direccion, string? Password, string? PasswordActual, bool DobleFactor);
+    public record Verificar2FADto(int UsuarioId, string Codigo);
+    public record RecuperarDto(string Email);
+    public record RestablecerDto(string Email, string Codigo, string NuevaPassword);
 
     public record UsuarioAdminDto(int Id, string Nombre, string Apellido, string Email, bool EsAdmin, bool Activo, DateTime FechaRegistro, string Rol);
 

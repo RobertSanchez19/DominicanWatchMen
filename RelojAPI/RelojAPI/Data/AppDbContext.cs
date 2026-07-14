@@ -23,6 +23,7 @@ namespace RelojAPI.Data
         public DbSet<TicketMensaje> TicketMensajes { get; set; }
         public DbSet<Cupon> Cupones { get; set; }
         public DbSet<Resena> Resenas { get; set; }
+        public DbSet<Favorito> Favoritos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

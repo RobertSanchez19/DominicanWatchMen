@@ -342,8 +342,20 @@ function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerr
   const [busqueda, setBusqueda]   = React.useState('');
   const [orden, setOrden]         = React.useState('relevancia');
   const [precioMax, setPrecioMax] = React.useState('');
+  const [favIds, setFavIds]       = React.useState(new Set());
   // El reloj a configurar viene de la ruta /producto/:id
   const detalle = productoId ? relojes.find(r => r.id === productoId) : null;
+
+  React.useEffect(() => {
+    if (usuario) fetch(`${API}/api/favorito?usuarioId=${usuario.id}`).then(r => r.json()).then(list => setFavIds(new Set(list.map(x => x.id)))).catch(() => {});
+    else setFavIds(new Set());
+  }, [usuario, refreshKey]);
+  const toggleFav = async (relojId) => {
+    const has = favIds.has(relojId);
+    const next = new Set(favIds); has ? next.delete(relojId) : next.add(relojId); setFavIds(next);
+    if (has) await fetch(`${API}/api/favorito?usuarioId=${usuario.id}&relojId=${relojId}`, { method: 'DELETE' });
+    else await fetch(`${API}/api/favorito`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuarioId: usuario.id, relojId }) });
+  };
 
   React.useEffect(() => {
     setLoading(true);
@@ -524,6 +536,9 @@ function CollectionGrid({ refreshKey = 0, onAgregar, productoId, onAbrir, onCerr
                       fontSize: 7.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase',
                       background: 'var(--ink-3)', color: 'var(--white)', padding: '4px 9px', borderRadius: 2,
                     }}>Agotado</span>
+                  )}
+                  {usuario && (
+                    <button onClick={e => { e.stopPropagation(); toggleFav(w.id); }} title="Favorito" style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', background: 'rgba(255,255,255,0.92)', cursor: 'pointer', fontSize: 15, lineHeight: 1, color: favIds.has(w.id) ? 'var(--rose)' : 'var(--ink-4)' }}>{favIds.has(w.id) ? '♥' : '♡'}</button>
                   )}
                 </div>
 
@@ -916,6 +931,10 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
 
   const [loginForm, setLoginForm]     = React.useState({ email: '', password: '' });
   const [regForm, setRegForm]         = React.useState({ nombre: '', apellido: '', email: '', password: '', telefono: '', direccion: '' });
+  const [dosFA, setDosFA]             = React.useState(null);   // { usuarioId, demo, codigoDemo } cuando el login pide 2FA
+  const [codigo2FA, setCodigo2FA]     = React.useState('');
+  const [recPaso, setRecPaso]         = React.useState(null);   // null | 'email' | 'codigo' — flujo de recuperar contraseña
+  const [recForm, setRecForm]         = React.useState({ email: '', codigo: '', nuevaPassword: '' });
   const [relojForm, setRelojForm]     = React.useState({ nombre: '', modelo: '', precio: '', stock: '', marcaId: '' });
 
   React.useEffect(() => {
@@ -932,7 +951,62 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.mensaje || 'Error al iniciar sesión');
+      if (d.requiere2FA) {
+        setDosFA({ usuarioId: d.usuarioId, demo: d.demo, codigoDemo: d.codigoDemo });
+        setMsg(d.demo
+          ? { ok: true, texto: `Modo demo: tu código de acceso es ${d.codigoDemo}` }
+          : { ok: true, texto: 'Te enviamos un código de acceso a tu correo.' });
+        return;
+      }
       onLogin(d);
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+    finally { setLoading(false); }
+  };
+
+  const handleVerificar2FA = async (e) => {
+    e.preventDefault(); setLoading(true); setMsg(null);
+    try {
+      const r = await fetch(`${API}/api/usuario/verificar-2fa`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuarioId: dosFA.usuarioId, codigo: codigo2FA }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'Código inválido');
+      setDosFA(null); setCodigo2FA('');
+      onLogin(d);
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+    finally { setLoading(false); }
+  };
+
+  const handleRecuperar = async (e) => {
+    e.preventDefault(); setLoading(true); setMsg(null);
+    try {
+      const r = await fetch(`${API}/api/usuario/recuperar`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: recForm.email }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'Error al enviar el código');
+      setRecPaso('codigo');
+      setMsg(d.demo
+        ? { ok: true, texto: `Modo demo: tu código es ${d.codigoDemo}` }
+        : { ok: true, texto: 'Si el correo existe, te enviamos un código.' });
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+    finally { setLoading(false); }
+  };
+
+  const handleRestablecer = async (e) => {
+    e.preventDefault(); setLoading(true); setMsg(null);
+    try {
+      const r = await fetch(`${API}/api/usuario/restablecer`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: recForm.email, codigo: recForm.codigo, nuevaPassword: recForm.nuevaPassword }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'Código inválido o expirado');
+      setRecPaso(null); setRecForm({ email: '', codigo: '', nuevaPassword: '' });
+      setTab('login');
+      setMsg({ ok: true, texto: 'Contraseña restablecida. Ya puedes iniciar sesión.' });
     } catch (err) { setMsg({ ok: false, texto: err.message }); }
     finally { setLoading(false); }
   };
@@ -1075,6 +1149,46 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
           {/* ── NO LOGUEADO ── */}
           {!usuario && (
             <>
+              {msg && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 16, fontSize: 12, background: msg.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msg.ok ? '#bbf7d0' : '#fecaca'}`, color: msg.ok ? '#166534' : '#dc2626' }}>{msg.texto}</div>}
+
+              {/* ── Verificación en dos pasos (segundo paso del login) ── */}
+              {dosFA && (
+                <form onSubmit={handleVerificar2FA}>
+                  <div style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>Verificación en dos pasos</div>
+                  <p style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 18, lineHeight: 1.6 }}>Ingresa el código de 6 dígitos que enviamos a tu correo.</p>
+                  {field(<><label style={lbl}>Código de acceso</label><input value={codigo2FA} onChange={e => setCodigo2FA(e.target.value)} required placeholder="000000" maxLength={6} style={{ ...inp, letterSpacing: '0.3em', textAlign: 'center', fontSize: 18 }} /></>)}
+                  <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
+                    {loading ? 'Verificando...' : 'Verificar y Entrar'}
+                  </button>
+                  <button type="button" onClick={() => { setDosFA(null); setCodigo2FA(''); setMsg(null); }} style={{ width: '100%', padding: '10px', marginTop: 10, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: 'none', cursor: 'pointer' }}>Cancelar</button>
+                </form>
+              )}
+
+              {/* ── Recuperar contraseña ── */}
+              {!dosFA && recPaso && (
+                <form onSubmit={recPaso === 'email' ? handleRecuperar : handleRestablecer}>
+                  <div style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>Recuperar contraseña</div>
+                  {recPaso === 'email' ? (
+                    <>
+                      <p style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 18, lineHeight: 1.6 }}>Ingresa tu correo y te enviaremos un código para restablecerla.</p>
+                      {field(<><label style={lbl}>Correo Electrónico</label><input type="email" value={recForm.email} onChange={e => setRecForm({ ...recForm, email: e.target.value })} required placeholder="correo@email.com" style={inp} /></>)}
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 18, lineHeight: 1.6 }}>Ingresa el código que recibiste y tu nueva contraseña.</p>
+                      {field(<><label style={lbl}>Código</label><input value={recForm.codigo} onChange={e => setRecForm({ ...recForm, codigo: e.target.value })} required placeholder="000000" maxLength={6} style={{ ...inp, letterSpacing: '0.2em', textAlign: 'center' }} /></>)}
+                      {field(<><label style={lbl}>Nueva Contraseña</label><input type="password" value={recForm.nuevaPassword} onChange={e => setRecForm({ ...recForm, nuevaPassword: e.target.value })} required placeholder="••••••••" style={inp} /></>)}
+                    </>
+                  )}
+                  <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
+                    {loading ? 'Procesando...' : (recPaso === 'email' ? 'Enviar Código' : 'Restablecer Contraseña')}
+                  </button>
+                  <button type="button" onClick={() => { setRecPaso(null); setRecForm({ email: '', codigo: '', nuevaPassword: '' }); setMsg(null); }} style={{ width: '100%', padding: '10px', marginTop: 10, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: 'none', cursor: 'pointer' }}>Volver a Iniciar Sesión</button>
+                </form>
+              )}
+
+              {/* ── Login / Registro ── */}
+              {!dosFA && !recPaso && (<>
               {/* Tabs */}
               <div style={{ display: 'flex', gap: 0, marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
                 {[['login', 'Iniciar Sesión'], ['registro', 'Crear Cuenta']].map(([key, label]) => (
@@ -1088,8 +1202,6 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
                 ))}
               </div>
 
-              {msg && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 16, fontSize: 12, background: msg.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msg.ok ? '#bbf7d0' : '#fecaca'}`, color: msg.ok ? '#166534' : '#dc2626' }}>{msg.texto}</div>}
-
               {/* Login */}
               {tab === 'login' && (
                 <form onSubmit={handleLogin}>
@@ -1098,6 +1210,7 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
                   <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
                     {loading ? 'Verificando...' : 'Iniciar Sesión'}
                   </button>
+                  <button type="button" onClick={() => { setRecPaso('email'); setRecForm({ email: loginForm.email, codigo: '', nuevaPassword: '' }); setMsg(null); }} style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: 14, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--ink-3)', textDecoration: 'underline' }}>¿Olvidaste tu contraseña?</button>
                 </form>
               )}
 
@@ -1117,6 +1230,7 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
                   </button>
                 </form>
               )}
+              </>)}
             </>
           )}
         </div>
@@ -1523,6 +1637,78 @@ function UsuariosModal({ onClose }) {
   );
 }
 
+/* ══════════════════════════════════════════════════
+   DASHBOARD ADMIN — metricas y alertas de stock bajo
+══════════════════════════════════════════════════ */
+function DashboardAdmin() {
+  const [data, setData] = React.useState(null);
+  React.useEffect(() => {
+    Promise.all([
+      fetch(`${API}/api/pedido`).then(r => r.json()),
+      fetch(`${API}/api/reloj`).then(r => r.json()),
+      fetch(`${API}/api/movimiento`).then(r => r.json()),
+      fetch(`${API}/api/tipopulsera`).then(r => r.json()),
+      fetch(`${API}/api/pieza`).then(r => r.json()),
+    ]).then(([pedidos, relojes, maq, pul, piezas]) => setData({ pedidos, relojes, maq, pul, piezas })).catch(() => {});
+  }, []);
+  if (!data) return null;
+  const { pedidos, relojes, maq, pul, piezas } = data;
+  const ventas = pedidos.reduce((s, p) => s + p.total, 0);
+  const unidades = pedidos.reduce((s, p) => s + (p.items || []).reduce((a, i) => a + i.cantidad, 0), 0);
+  const porEstado = {};
+  pedidos.forEach(p => { porEstado[p.estado] = (porEstado[p.estado] || 0) + 1; });
+  const conteo = {};
+  pedidos.forEach(p => (p.items || []).forEach(i => { conteo[i.relojNombre] = (conteo[i.relojNombre] || 0) + i.cantidad; }));
+  const top = Object.entries(conteo).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const UMBRAL = 5;
+  const bajo = [];
+  relojes.forEach(r => { if ((r.stock || 0) <= UMBRAL) bajo.push({ t: 'Reloj (base)', n: r.nombre, s: r.stock }); });
+  maq.forEach(m => { if (m.stock <= UMBRAL) bajo.push({ t: 'Maquina', n: m.nombre, s: m.stock }); });
+  pul.forEach(p => { if (p.stock <= UMBRAL) bajo.push({ t: 'Pulsera', n: p.nombre, s: p.stock }); });
+  piezas.forEach(p => { if (p.stock <= UMBRAL) bajo.push({ t: 'Pieza', n: p.nombre, s: p.stock }); });
+
+  const card = (label, val, color) => (
+    <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 20px' }}>
+      <div style={{ fontFamily: 'var(--serif)', fontSize: 26, fontWeight: 600, color: color || 'var(--ink)' }}>{val}</div>
+      <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-4)', marginTop: 4 }}>{label}</div>
+    </div>
+  );
+
+  return (
+    <div style={{ marginBottom: 30 }}>
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 12 }}>Resumen</div>
+      <div className="col2" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
+        {card('Ventas', 'RD$ ' + ventas.toLocaleString('es-DO'))}
+        {card('Pedidos', pedidos.length)}
+        {card('Unidades vendidas', unidades)}
+        {card('Alertas stock bajo', bajo.length, bajo.length ? 'var(--rose)' : 'var(--ink)')}
+      </div>
+      <div className="col2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 18px' }}>
+          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}>Mas vendidos</div>
+          {top.length === 0 ? <p style={{ fontSize: 12, color: 'var(--ink-4)' }}>Sin ventas aun.</p> : top.map(([n, c]) => (
+            <div key={n} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: 12.5, color: 'var(--ink-2)' }}><span>{n}</span><span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>{c}</span></div>
+          ))}
+        </div>
+        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 18px' }}>
+          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}>Stock bajo (5 o menos)</div>
+          {bajo.length === 0 ? <p style={{ fontSize: 12, color: '#2D6A4F' }}>Todo con buen stock.</p> : (
+            <div style={{ maxHeight: 200, overflowY: 'auto' }}>{bajo.map((b, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: 12, color: 'var(--ink-2)' }}>
+                <span><span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', color: 'var(--gold)', marginRight: 6 }}>{b.t}</span>{b.n}</span>
+                <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: b.s === 0 ? 'var(--rose)' : 'var(--ink)' }}>{b.s}</span>
+              </div>
+            ))}</div>
+          )}
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+        {Object.entries(porEstado).map(([e, c]) => (<span key={e} style={{ fontSize: 10, fontWeight: 600, color: 'var(--ink-3)', border: '1px solid var(--border)', borderRadius: 9999, padding: '5px 12px' }}>{e}: {c}</span>))}
+      </div>
+    </div>
+  );
+}
+
 function AdminPage({ usuario, onVolver, onCambio }) {
   const [relojes, setRelojes]         = React.useState([]);
   const [marcas, setMarcas]           = React.useState([]);
@@ -1603,6 +1789,9 @@ function AdminPage({ usuario, onVolver, onCambio }) {
       </div>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '36px 48px' }}>
+
+        {/* Dashboard: metricas y stock bajo */}
+        <DashboardAdmin />
 
         {/* Título y stats */}
         <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -2428,13 +2617,13 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
   const field = (label, node) => <div style={{ marginBottom: 14 }}><label style={lbl}>{label}</label>{node}</div>;
 
   // ---- Mis datos ----
-  const [form, setForm] = React.useState({ nombre: usuario.nombre || '', apellido: usuario.apellido || '', telefono: usuario.telefono || '', direccion: usuario.direccion || '' });
+  const [form, setForm] = React.useState({ nombre: usuario.nombre || '', apellido: usuario.apellido || '', telefono: usuario.telefono || '', direccion: usuario.direccion || '', dobleFactor: usuario.dobleFactor || false });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const [msgDatos, setMsgDatos] = React.useState(null);
   const guardarDatos = async (e) => {
     e.preventDefault(); setMsgDatos(null);
     try {
-      const r = await fetch(`${API}/api/usuario/${usuario.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: form.nombre, apellido: form.apellido, telefono: form.telefono, direccion: form.direccion }) });
+      const r = await fetch(`${API}/api/usuario/${usuario.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: form.nombre, apellido: form.apellido, telefono: form.telefono, direccion: form.direccion, dobleFactor: form.dobleFactor }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.mensaje || 'Error al guardar');
       onActualizar(d);
@@ -2451,7 +2640,7 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
     if (pwForm.nueva.length < 4) { setMsgPw({ ok: false, texto: 'La nueva contrasena es muy corta' }); return; }
     if (pwForm.nueva !== pwForm.repetir) { setMsgPw({ ok: false, texto: 'Las contrasenas no coinciden' }); return; }
     try {
-      const r = await fetch(`${API}/api/usuario/${usuario.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: form.nombre, apellido: form.apellido, telefono: form.telefono, direccion: form.direccion, password: pwForm.nueva, passwordActual: pwForm.actual }) });
+      const r = await fetch(`${API}/api/usuario/${usuario.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: form.nombre, apellido: form.apellido, telefono: form.telefono, direccion: form.direccion, dobleFactor: form.dobleFactor, password: pwForm.nueva, passwordActual: pwForm.actual }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.mensaje || 'Error al cambiar la contrasena');
       onActualizar(d); setPwForm({ actual: '', nueva: '', repetir: '' });
@@ -2510,6 +2699,12 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
     } catch (err) { setMsgTicket({ ok: false, texto: err.message }); }
   };
 
+  // ---- Favoritos ----
+  const [favoritos, setFavoritos] = React.useState([]);
+  const cargarFavoritos = () => fetch(`${API}/api/favorito?usuarioId=${usuario.id}`).then(r => r.json()).then(setFavoritos).catch(() => {});
+  React.useEffect(() => { if (tab === 'favoritos') cargarFavoritos(); }, [tab]);
+  const quitarFavorito = async (relojId) => { await fetch(`${API}/api/favorito?usuarioId=${usuario.id}&relojId=${relojId}`, { method: 'DELETE' }); cargarFavoritos(); };
+
   const tabBtn = (id, label) => (
     <button onClick={() => setTab(id)} style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', padding: '12px 4px', color: tab === id ? 'var(--ink)' : 'var(--ink-4)', borderBottom: tab === id ? '2px solid var(--gold)' : '2px solid transparent', marginBottom: -1 }}>{label}</button>
   );
@@ -2538,6 +2733,7 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
           {tabBtn('datos', 'Mis datos')}
           {tabBtn('pedidos', 'Mis pedidos')}
           {tabBtn('tarjetas', 'Mis tarjetas')}
+          {tabBtn('favoritos', 'Favoritos')}
           {tabBtn('soporte', 'Soporte')}
         </div>
 
@@ -2555,6 +2751,10 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
               {field('Correo (no editable)', <input value={usuario.email} disabled style={{ ...inp, background: 'var(--off-white)', color: 'var(--ink-4)' }} />)}
               {field('Telefono', <input value={form.telefono} onChange={e => set('telefono', e.target.value)} placeholder="809-555-0101" style={inp} />)}
               {field('Direccion', <input value={form.direccion} onChange={e => set('direccion', e.target.value)} placeholder="Av. Winston Churchill, SD" style={inp} />)}
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 16px', cursor: 'pointer' }}>
+                <input type="checkbox" checked={form.dobleFactor} onChange={e => set('dobleFactor', e.target.checked)} />
+                <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>Verificacion en dos pasos (2FA) al iniciar sesion</span>
+              </label>
               <button type="submit" style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer', marginTop: 6 }}>Guardar cambios</button>
             </form>
 
@@ -2681,6 +2881,36 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
               </label>)}
               <button type="submit" style={{ width: '100%', padding: '12px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Enviar ticket</button>
             </form>
+          </div>
+        )}
+
+        {/* ---- Favoritos ---- */}
+        {tab === 'favoritos' && (
+          <div>
+            {favoritos.length === 0 ? <p style={{ fontSize: 13, color: 'var(--ink-4)' }}>No tienes favoritos. Marca relojes con el ♥ en el catalogo.</p>
+              : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 14 }}>
+                  {favoritos.map(r => {
+                    const rese = r.resenas || [];
+                    const rprom = rese.length ? rese.reduce((s, x) => s + x.calificacion, 0) / rese.length : 0;
+                    return (
+                      <div key={r.id} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+                        <div style={{ height: 130, background: 'var(--off-white)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {getImageUrl(r.imagenUrl) ? <img src={getImageUrl(r.imagenUrl)} alt={r.nombre} style={{ maxHeight: 120, maxWidth: '85%', objectFit: 'contain' }} /> : <Emblem size={40} fg="var(--border-dk)" />}
+                        </div>
+                        <div style={{ padding: '12px 14px' }}>
+                          <div style={{ fontSize: 7.5, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)' }}>{r.marca?.nombre || ''}</div>
+                          <div style={{ fontFamily: 'var(--serif)', fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: '2px 0 4px' }}>{r.nombre}</div>
+                          {rese.length > 0 && <div style={{ marginBottom: 4 }}><Estrellas valor={rprom} tam={11} /></div>}
+                          <div style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--ink-2)', marginBottom: 8 }}>RD$ {r.precio.toLocaleString('es-DO')}</div>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => { window.location.hash = '#/producto/' + r.id; }} style={{ flex: 1, fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, padding: '8px', cursor: 'pointer' }}>Ver</button>
+                            <button onClick={() => quitarFavorito(r.id)} style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'transparent', color: 'var(--rose)', border: '1px solid rgba(176,112,85,0.35)', borderRadius: 3, padding: '8px 10px', cursor: 'pointer' }}>Quitar</button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>}
           </div>
         )}
       </div>

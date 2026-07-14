@@ -15,5 +15,10 @@ namespace RelojAPI.Models
 
         // Rol del usuario: Cliente, Admin, Fabricante, Soporte
         public string Rol { get; set; } = "Cliente";
+
+        // Verificacion en dos pasos y codigos temporales (2FA / recuperar contraseña)
+        public bool DobleFactor { get; set; } = false;
+        public string? Codigo { get; set; }
+        public DateTime? CodigoExpira { get; set; }
     }
 }

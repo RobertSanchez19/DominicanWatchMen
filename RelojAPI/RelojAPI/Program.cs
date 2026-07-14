@@ -43,6 +43,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Registro de interface propia (DI) - Scoped: una instancia por solicitud HTTP
 builder.Services.AddScoped<IRelojService, RelojService>();
+builder.Services.AddScoped<RelojAPI.Services.IEmailService, RelojAPI.Services.EmailService>();
 
 // ILogger e IConfiguration son registrados automaticamente por el framework ASP.NET Core
 
