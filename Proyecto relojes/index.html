@@ -930,11 +930,12 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
   const [adminLoading, setAdminLoading] = React.useState(false);
 
   const [loginForm, setLoginForm]     = React.useState({ email: '', password: '' });
-  const [regForm, setRegForm]         = React.useState({ nombre: '', apellido: '', email: '', password: '', telefono: '', direccion: '' });
+  const [regForm, setRegForm]         = React.useState({ nombre: '', apellido: '', email: '', password: '', confirmar: '', telefono: '', direccion: '' });
   const [dosFA, setDosFA]             = React.useState(null);   // { usuarioId, demo, codigoDemo } cuando el login pide 2FA
   const [codigo2FA, setCodigo2FA]     = React.useState('');
-  const [recPaso, setRecPaso]         = React.useState(null);   // null | 'email' | 'codigo' — flujo de recuperar contraseña
-  const [recForm, setRecForm]         = React.useState({ email: '', codigo: '', nuevaPassword: '' });
+  const [recPaso, setRecPaso]         = React.useState(null);   // null | 'email' | 'enviado' — flujo de recuperar contraseña
+  const [recForm, setRecForm]         = React.useState({ email: '' });
+  const [recEnlaceDemo, setRecEnlaceDemo] = React.useState(null); // enlace mostrado solo en modo demo (sin correo real)
   const [relojForm, setRelojForm]     = React.useState({ nombre: '', modelo: '', precio: '', stock: '', marcaId: '' });
 
   React.useEffect(() => {
@@ -986,37 +987,25 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
         body: JSON.stringify({ email: recForm.email }),
       });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.mensaje || 'Error al enviar el código');
-      setRecPaso('codigo');
-      setMsg(d.demo
-        ? { ok: true, texto: `Modo demo: tu código es ${d.codigoDemo}` }
-        : { ok: true, texto: 'Si el correo existe, te enviamos un código.' });
-    } catch (err) { setMsg({ ok: false, texto: err.message }); }
-    finally { setLoading(false); }
-  };
-
-  const handleRestablecer = async (e) => {
-    e.preventDefault(); setLoading(true); setMsg(null);
-    try {
-      const r = await fetch(`${API}/api/usuario/restablecer`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: recForm.email, codigo: recForm.codigo, nuevaPassword: recForm.nuevaPassword }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.mensaje || 'Código inválido o expirado');
-      setRecPaso(null); setRecForm({ email: '', codigo: '', nuevaPassword: '' });
-      setTab('login');
-      setMsg({ ok: true, texto: 'Contraseña restablecida. Ya puedes iniciar sesión.' });
+      if (!r.ok) throw new Error(d.mensaje || 'Error al enviar el enlace');
+      setRecPaso('enviado');
+      setRecEnlaceDemo(d.demo ? d.enlaceDemo : null);
+      setMsg({ ok: true, texto: 'Si el correo existe, te enviamos un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada (y la carpeta de spam).' });
     } catch (err) { setMsg({ ok: false, texto: err.message }); }
     finally { setLoading(false); }
   };
 
   const handleRegistro = async (e) => {
-    e.preventDefault(); setLoading(true); setMsg(null);
+    e.preventDefault(); setMsg(null);
+    const errPwd = validarPassword(regForm.password);
+    if (errPwd) { setMsg({ ok: false, texto: errPwd }); return; }
+    if (regForm.password !== regForm.confirmar) { setMsg({ ok: false, texto: 'Las contraseñas no coinciden' }); return; }
+    setLoading(true);
     try {
+      const { confirmar, ...payload } = regForm;
       const r = await fetch(`${API}/api/usuario/registro`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(regForm),
+        body: JSON.stringify(payload),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.mensaje || 'Error al registrarse');
@@ -1164,27 +1153,26 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
                 </form>
               )}
 
-              {/* ── Recuperar contraseña ── */}
+              {/* ── Recuperar contraseña (envia un enlace al correo) ── */}
               {!dosFA && recPaso && (
-                <form onSubmit={recPaso === 'email' ? handleRecuperar : handleRestablecer}>
+                <div>
                   <div style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>Recuperar contraseña</div>
                   {recPaso === 'email' ? (
-                    <>
-                      <p style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 18, lineHeight: 1.6 }}>Ingresa tu correo y te enviaremos un código para restablecerla.</p>
-                      {field(<><label style={lbl}>Correo Electrónico</label><input type="email" value={recForm.email} onChange={e => setRecForm({ ...recForm, email: e.target.value })} required placeholder="correo@email.com" style={inp} /></>)}
-                    </>
+                    <form onSubmit={handleRecuperar}>
+                      <p style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 18, lineHeight: 1.6 }}>Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.</p>
+                      {field(<><label style={lbl}>Correo Electrónico</label><input type="email" value={recForm.email} onChange={e => setRecForm({ email: e.target.value })} required placeholder="correo@email.com" style={inp} /></>)}
+                      <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
+                        {loading ? 'Enviando...' : 'Enviar Enlace'}
+                      </button>
+                    </form>
                   ) : (
                     <>
-                      <p style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 18, lineHeight: 1.6 }}>Ingresa el código que recibiste y tu nueva contraseña.</p>
-                      {field(<><label style={lbl}>Código</label><input value={recForm.codigo} onChange={e => setRecForm({ ...recForm, codigo: e.target.value })} required placeholder="000000" maxLength={6} style={{ ...inp, letterSpacing: '0.2em', textAlign: 'center' }} /></>)}
-                      {field(<><label style={lbl}>Nueva Contraseña</label><input type="password" value={recForm.nuevaPassword} onChange={e => setRecForm({ ...recForm, nuevaPassword: e.target.value })} required placeholder="••••••••" style={inp} /></>)}
+                      <p style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 14, lineHeight: 1.6 }}>Haz clic en el enlace del correo para crear tu nueva contraseña. El enlace vence en 30 minutos.</p>
+                      {recEnlaceDemo && <div style={{ padding: '12px 14px', borderRadius: 6, marginBottom: 14, fontSize: 12, background: 'var(--off-white)', border: '1px solid var(--border)', color: 'var(--ink-2)', wordBreak: 'break-all' }}>Modo demo (sin correo real): <a href={recEnlaceDemo} style={{ color: 'var(--gold)' }}>abrir enlace de restablecimiento</a></div>}
                     </>
                   )}
-                  <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
-                    {loading ? 'Procesando...' : (recPaso === 'email' ? 'Enviar Código' : 'Restablecer Contraseña')}
-                  </button>
-                  <button type="button" onClick={() => { setRecPaso(null); setRecForm({ email: '', codigo: '', nuevaPassword: '' }); setMsg(null); }} style={{ width: '100%', padding: '10px', marginTop: 10, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: 'none', cursor: 'pointer' }}>Volver a Iniciar Sesión</button>
-                </form>
+                  <button type="button" onClick={() => { setRecPaso(null); setRecForm({ email: '' }); setRecEnlaceDemo(null); setMsg(null); }} style={{ width: '100%', padding: '10px', marginTop: 10, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: 'none', cursor: 'pointer' }}>Volver a Iniciar Sesión</button>
+                </div>
               )}
 
               {/* ── Login / Registro ── */}
@@ -1210,7 +1198,7 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
                   <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
                     {loading ? 'Verificando...' : 'Iniciar Sesión'}
                   </button>
-                  <button type="button" onClick={() => { setRecPaso('email'); setRecForm({ email: loginForm.email, codigo: '', nuevaPassword: '' }); setMsg(null); }} style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: 14, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--ink-3)', textDecoration: 'underline' }}>¿Olvidaste tu contraseña?</button>
+                  <button type="button" onClick={() => { setRecPaso('email'); setRecForm({ email: loginForm.email }); setRecEnlaceDemo(null); setMsg(null); }} style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: 14, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--ink-3)', textDecoration: 'underline' }}>¿Olvidaste tu contraseña?</button>
                 </form>
               )}
 
@@ -1222,7 +1210,8 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
                     <div><label style={lbl}>Apellido</label><input value={regForm.apellido} onChange={e => setRegForm({...regForm, apellido: e.target.value})} required placeholder="Martínez" style={inp} /></div>
                   </div>
                   {field(<><label style={lbl}>Correo Electrónico</label><input type="email" value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})} required placeholder="correo@email.com" style={inp} /></>)}
-                  {field(<><label style={lbl}>Contraseña</label><input type="password" value={regForm.password} onChange={e => setRegForm({...regForm, password: e.target.value})} required placeholder="••••••••" style={inp} /></>)}
+                  {field(<><label style={lbl}>Contraseña</label><input type="password" value={regForm.password} onChange={e => setRegForm({...regForm, password: e.target.value})} required placeholder="••••••••" style={inp} /><div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 5 }}>{REQ_PASSWORD}</div></>)}
+                  {field(<><label style={lbl}>Confirmar Contraseña</label><input type="password" value={regForm.confirmar} onChange={e => setRegForm({...regForm, confirmar: e.target.value})} required placeholder="••••••••" style={{ ...inp, ...(regForm.confirmar && regForm.password !== regForm.confirmar ? { borderColor: 'var(--rose)' } : {}) }} />{regForm.confirmar && regForm.password !== regForm.confirmar && <div style={{ fontSize: 10, color: 'var(--rose)', marginTop: 5 }}>Las contraseñas no coinciden</div>}</>)}
                   {field(<><label style={lbl}>Teléfono</label><input value={regForm.telefono} onChange={e => setRegForm({...regForm, telefono: e.target.value})} placeholder="809-555-0101" style={inp} /></>)}
                   {field(<><label style={lbl}>Dirección</label><input value={regForm.direccion} onChange={e => setRegForm({...regForm, direccion: e.target.value})} placeholder="Av. Winston Churchill, SD" style={inp} /></>)}
                   <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
@@ -2637,7 +2626,8 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
   const [msgPw, setMsgPw] = React.useState(null);
   const cambiarPassword = async (e) => {
     e.preventDefault(); setMsgPw(null);
-    if (pwForm.nueva.length < 4) { setMsgPw({ ok: false, texto: 'La nueva contrasena es muy corta' }); return; }
+    const errPwd = validarPassword(pwForm.nueva);
+    if (errPwd) { setMsgPw({ ok: false, texto: errPwd }); return; }
     if (pwForm.nueva !== pwForm.repetir) { setMsgPw({ ok: false, texto: 'Las contrasenas no coinciden' }); return; }
     try {
       const r = await fetch(`${API}/api/usuario/${usuario.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: form.nombre, apellido: form.apellido, telefono: form.telefono, direccion: form.direccion, dobleFactor: form.dobleFactor, password: pwForm.nueva, passwordActual: pwForm.actual }) });
@@ -2751,10 +2741,10 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
               {field('Correo (no editable)', <input value={usuario.email} disabled style={{ ...inp, background: 'var(--off-white)', color: 'var(--ink-4)' }} />)}
               {field('Telefono', <input value={form.telefono} onChange={e => set('telefono', e.target.value)} placeholder="809-555-0101" style={inp} />)}
               {field('Direccion', <input value={form.direccion} onChange={e => set('direccion', e.target.value)} placeholder="Av. Winston Churchill, SD" style={inp} />)}
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 16px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={form.dobleFactor} onChange={e => set('dobleFactor', e.target.checked)} />
-                <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>Verificacion en dos pasos (2FA) al iniciar sesion</span>
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 16px', fontSize: 12, color: 'var(--ink-3)', background: 'var(--off-white)', border: '1px solid var(--border)', borderRadius: 8, padding: '11px 13px' }}>
+                <span style={{ color: 'var(--gold)', fontWeight: 700 }}>&#10003;</span>
+                <span>La <strong>verificacion en dos pasos</strong> esta activa para todas las cuentas: al iniciar sesion te enviamos un codigo a tu correo.</span>
+              </div>
               <button type="submit" style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer', marginTop: 6 }}>Guardar cambios</button>
             </form>
 
@@ -2766,7 +2756,7 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
               {field('Nueva contrasena', <input type="password" value={pwForm.nueva} onChange={e => pwset('nueva', e.target.value)} required style={inp} />)}
               {field('Repetir contrasena', <input type="password" value={pwForm.repetir} onChange={e => pwset('repetir', e.target.value)} required style={inp} />)}
               <div style={{ fontSize: 11, color: 'var(--ink-3)', lineHeight: 1.6, background: 'var(--off-white)', borderRadius: 8, padding: '11px 13px', marginBottom: 14 }}>
-                <strong style={{ color: 'var(--ink)' }}>Recomendacion de seguridad:</strong> usa al menos 8 caracteres, combinando letras <strong>mayusculas</strong> y minusculas, <strong>numeros</strong> y <strong>caracteres especiales</strong> (! @ # $ % &amp;). Evita datos personales o contrasenas repetidas. Aunque por ahora no es obligatorio, es muy recomendable para proteger tu cuenta.
+                <strong style={{ color: 'var(--ink)' }}>Requisitos:</strong> la contrasena debe tener al menos <strong>8 caracteres</strong>, con una letra <strong>mayuscula</strong>, una <strong>minuscula</strong> y un <strong>numero</strong>. Evita datos personales o contrasenas repetidas.
               </div>
               <button type="submit" style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Actualizar contrasena</button>
             </form>
@@ -3421,6 +3411,73 @@ function useHashRoute() {
 }
 function irARuta(r) { window.location.hash = r; }
 
+// Requisitos minimos de contraseña (mismo criterio que el backend): 8+, mayuscula, minuscula y numero
+function validarPassword(p) {
+  if (!p || p.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+  if (!/[A-Z]/.test(p)) return 'Debe incluir al menos una letra mayúscula';
+  if (!/[a-z]/.test(p)) return 'Debe incluir al menos una letra minúscula';
+  if (!/[0-9]/.test(p)) return 'Debe incluir al menos un número';
+  return null;
+}
+const REQ_PASSWORD = 'Mínimo 8 caracteres, con mayúscula, minúscula y número.';
+
+/* ══════════════════════════════════════════════════
+   PAGINA RESTABLECER CONTRASEÑA (abierta desde el enlace del correo)
+══════════════════════════════════════════════════ */
+function RestablecerPage({ token, onListo }) {
+  const [nueva, setNueva]     = React.useState('');
+  const [repetir, setRepetir] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [msg, setMsg]         = React.useState(null);
+  const [done, setDone]       = React.useState(false);
+
+  const inp = { width: '100%', padding: '12px 14px', border: '1px solid var(--border-dk)', borderRadius: 4, fontSize: 14, color: 'var(--ink)', fontFamily: 'var(--sans)', boxSizing: 'border-box', outline: 'none', background: 'var(--white)' };
+  const lbl = { display: 'block', fontSize: 8.5, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 6 };
+
+  const enviar = async (e) => {
+    e.preventDefault(); setMsg(null);
+    const errPwd = validarPassword(nueva);
+    if (errPwd) { setMsg({ ok: false, texto: errPwd }); return; }
+    if (nueva !== repetir) { setMsg({ ok: false, texto: 'Las contraseñas no coinciden' }); return; }
+    setLoading(true);
+    try {
+      const r = await fetch(`${API}/api/usuario/restablecer`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, nuevaPassword: nueva }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'No se pudo restablecer la contraseña');
+      setDone(true);
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--off-white)', padding: 24 }}>
+      <div style={{ width: '100%', maxWidth: 420, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '40px 36px', boxShadow: '0 20px 50px rgba(0,0,0,0.08)' }}>
+        <div style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 6 }}>Dominican Watch Men</div>
+        <div style={{ fontFamily: 'var(--serif)', fontSize: 24, fontWeight: 600, color: 'var(--ink)', marginBottom: 20 }}>Nueva contraseña</div>
+
+        {msg && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 16, fontSize: 12, background: msg.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msg.ok ? '#bbf7d0' : '#fecaca'}`, color: msg.ok ? '#166534' : '#dc2626' }}>{msg.texto}</div>}
+
+        {done ? (
+          <>
+            <div style={{ padding: '12px 14px', borderRadius: 6, marginBottom: 20, fontSize: 13, background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534' }}>Tu contraseña fue restablecida correctamente. Ya puedes iniciar sesión con la nueva.</div>
+            <button onClick={onListo} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Ir a Iniciar Sesión</button>
+          </>
+        ) : (
+          <form onSubmit={enviar}>
+            <div style={{ marginBottom: 14 }}><label style={lbl}>Nueva Contraseña</label><input type="password" value={nueva} onChange={e => setNueva(e.target.value)} required placeholder="••••••••" style={inp} /><div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 5 }}>{REQ_PASSWORD}</div></div>
+            <div style={{ marginBottom: 18 }}><label style={lbl}>Confirmar Contraseña</label><input type="password" value={repetir} onChange={e => setRepetir(e.target.value)} required placeholder="••••••••" style={{ ...inp, ...(repetir && nueva !== repetir ? { borderColor: 'var(--rose)' } : {}) }} />{repetir && nueva !== repetir && <div style={{ fontSize: 10, color: 'var(--rose)', marginTop: 5 }}>Las contraseñas no coinciden</div>}</div>
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer' }}>{loading ? 'Guardando...' : 'Restablecer Contraseña'}</button>
+            <button type="button" onClick={onListo} style={{ width: '100%', padding: '10px', marginTop: 10, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: 'none', cursor: 'pointer' }}>Cancelar</button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════════════════
    APP ROOT
 ══════════════════════════════════════════════════ */
@@ -3436,6 +3493,7 @@ function App() {
   const ruta = hash.replace(/^#/, '') || '/';
   const mProducto = ruta.match(/^\/producto\/(\d+)/);
   const productoId = mProducto ? parseInt(mProducto[1]) : null;
+  const mReset = ruta.match(/^\/restablecer\/(.+)/);
   const esTaller = usuario && (usuario.rol === 'Fabricante' || usuario.rol === 'Admin');
   const esSoporte = usuario && (usuario.rol === 'Soporte' || usuario.rol === 'Admin');
   const pedirLogin = (ruta === '/admin' && !usuario?.esAdmin) || (ruta === '/perfil' && !usuario) || (ruta === '/fabricacion' && !esTaller) || (ruta === '/soporte' && !esSoporte); // ruta protegida sin permiso -> pide login
@@ -3461,6 +3519,11 @@ function App() {
 
   // Al cambiar de ruta, sube al tope
   React.useEffect(() => { window.scrollTo(0, 0); }, [ruta]);
+
+  // Ruta /restablecer/{token} (pagina publica abierta desde el enlace del correo)
+  if (mReset) {
+    return <RestablecerPage token={mReset[1]} onListo={() => irARuta('/cuenta')} />;
+  }
 
   // Ruta /admin (solo administradores)
   if (ruta === '/admin' && usuario?.esAdmin) {

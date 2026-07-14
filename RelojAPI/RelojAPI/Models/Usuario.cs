@@ -20,5 +20,9 @@ namespace RelojAPI.Models
         public bool DobleFactor { get; set; } = false;
         public string? Codigo { get; set; }
         public DateTime? CodigoExpira { get; set; }
+
+        // Enlace de recuperacion de contraseña (token unico enviado por correo)
+        public string? ResetToken { get; set; }
+        public DateTime? ResetTokenExpira { get; set; }
     }
 }

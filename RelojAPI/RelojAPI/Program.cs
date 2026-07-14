@@ -65,7 +65,7 @@ using (var scope = app.Services.CreateScope())
         {
             Nombre       = "Admin",
             Apellido     = "DWM",
-            Email        = "admin@dwm.com",
+            Email        = "DominicanWatchMen@gmail.com",
             PasswordHash = Convert.ToHexString(
                 System.Security.Cryptography.SHA256.HashData(
                     System.Text.Encoding.UTF8.GetBytes("Admin123"))).ToLower(),
