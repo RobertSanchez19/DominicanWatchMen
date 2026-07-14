@@ -27,12 +27,31 @@ namespace RelojAPI.Controllers
             return Ok(await query.OrderByDescending(r => r.Fecha).ToListAsync());
         }
 
+        // Comprueba si un usuario compro un reloj (pedido no cancelado que contenga ese reloj)
+        private async Task<bool> ComproReloj(int usuarioId, int relojId) =>
+            usuarioId > 0 && await _context.Pedidos.AnyAsync(p =>
+                p.UsuarioId == usuarioId &&
+                p.Estado != "Cancelado" &&
+                p.Items.Any(i => i.RelojId == relojId));
+
+        // GET: api/resena/puede-resenar?usuarioId=2&relojId=5
+        // Indica si el usuario puede reseñar ese reloj (solo si lo compro)
+        [HttpGet("puede-resenar")]
+        public async Task<ActionResult> PuedeResenar([FromQuery] int usuarioId, [FromQuery] int relojId)
+        {
+            return Ok(new { puede = await ComproReloj(usuarioId, relojId) });
+        }
+
         // POST: api/resena  (un cliente valora un reloj; una resena por usuario/reloj)
         [HttpPost]
         public async Task<ActionResult<Resena>> Create([FromBody] Resena resena)
         {
             if (resena.Calificacion < 1 || resena.Calificacion > 5)
                 return BadRequest(new { mensaje = "La calificacion debe ser de 1 a 5" });
+
+            // Solo quien compro el reloj puede reseñarlo
+            if (!await ComproReloj(resena.UsuarioId, resena.RelojId))
+                return BadRequest(new { mensaje = "Solo puedes reseñar productos que hayas comprado" });
 
             var existente = await _context.Resenas.FirstOrDefaultAsync(r => r.RelojId == resena.RelojId && r.UsuarioId == resena.UsuarioId);
             if (existente != null)
