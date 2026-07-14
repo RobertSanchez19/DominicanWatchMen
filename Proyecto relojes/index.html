@@ -2028,9 +2028,7 @@ function ResenasReloj({ reloj, usuario }) {
               <p style={{ fontSize: 12.5, color: 'var(--ink-2)', marginTop: 4 }}>{r.comentario}</p>
             </div>
           ))}</div>}
-      {!usuario ? (
-        <p style={{ fontSize: 12, color: 'var(--ink-4)' }}>Inicia sesion para dejar tu reseña.</p>
-      ) : puede ? (
+      {usuario && puede && (
         <form onSubmit={enviar} style={{ background: 'var(--off-white)', borderRadius: 8, padding: '14px 16px' }}>
           {msg && <div style={{ fontSize: 11, marginBottom: 8, color: msg.ok ? '#2D6A4F' : 'var(--rose)' }}>{msg.texto}</div>}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -2040,8 +2038,53 @@ function ResenasReloj({ reloj, usuario }) {
           <textarea value={comentario} onChange={e => setComentario(e.target.value)} required rows={2} placeholder="Escribe tu opinion..." style={{ width: '100%', padding: '9px 11px', border: '1px solid var(--border-dk)', borderRadius: 6, fontSize: 12.5, fontFamily: 'var(--sans)', boxSizing: 'border-box', resize: 'vertical' }} />
           <button type="submit" style={{ marginTop: 8, padding: '9px 20px', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Enviar reseña</button>
         </form>
+      )}
+    </div>
+  );
+}
+
+// Linea de un pedido con opcion de dejar/actualizar la reseña de ese reloj
+function PedidoItemResena({ item, usuario }) {
+  const [open, setOpen]           = React.useState(false);
+  const [calif, setCalif]         = React.useState(5);
+  const [comentario, setComentario] = React.useState('');
+  const [msg, setMsg]             = React.useState(null);
+  const [enviada, setEnviada]     = React.useState(false);
+
+  const enviar = async (e) => {
+    e.preventDefault(); setMsg(null);
+    try {
+      const r = await fetch(`${API}/api/resena`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ relojId: item.relojId, usuarioId: usuario.id, nombreCliente: `${usuario.nombre} ${usuario.apellido || ''}`.trim(), calificacion: calif, comentario }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.mensaje || 'Error al enviar la reseña');
+      setEnviada(true); setOpen(false);
+    } catch (err) { setMsg({ ok: false, texto: err.message }); }
+  };
+
+  return (
+    <div style={{ padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>{item.relojNombre} <span style={{ color: 'var(--ink-4)' }}>({item.maquinaNombre} · {item.pulseraNombre}) x{item.cantidad}</span></span>
+        <span style={{ fontFamily: 'var(--mono)' }}>RD$ {item.subtotal.toLocaleString('es-DO')}</span>
+      </div>
+      {enviada ? (
+        <div style={{ fontSize: 11, color: '#2D6A4F', marginTop: 4 }}>Reseña enviada. ¡Gracias!</div>
+      ) : open ? (
+        <form onSubmit={enviar} style={{ background: 'var(--off-white)', borderRadius: 8, padding: '10px 12px', marginTop: 6 }}>
+          {msg && <div style={{ fontSize: 11, marginBottom: 6, color: 'var(--rose)' }}>{msg.texto}</div>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <span style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Calificacion:</span>
+            <Estrellas valor={calif} tam={16} onClick={setCalif} />
+          </div>
+          <textarea value={comentario} onChange={e => setComentario(e.target.value)} required rows={2} placeholder="Escribe tu opinion sobre este reloj..." style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--border-dk)', borderRadius: 6, fontSize: 12, fontFamily: 'var(--sans)', boxSizing: 'border-box', resize: 'vertical' }} />
+          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+            <button type="submit" style={{ padding: '7px 16px', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer' }}>Enviar reseña</button>
+            <button type="button" onClick={() => setOpen(false)} style={{ padding: '7px 16px', fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: 'none', cursor: 'pointer' }}>Cancelar</button>
+          </div>
+        </form>
       ) : (
-        <p style={{ fontSize: 12, color: 'var(--ink-4)', background: 'var(--off-white)', borderRadius: 8, padding: '12px 14px' }}>Solo los clientes que compraron este reloj pueden dejar una reseña.</p>
+        <button type="button" onClick={() => setOpen(true)} style={{ marginTop: 4, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 10.5, fontWeight: 600, letterSpacing: '0.06em', color: 'var(--gold)', textDecoration: 'underline' }}>Dejar reseña</button>
       )}
     </div>
   );
@@ -2797,12 +2840,7 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
                   </div>
                   {abierto === p.id && (
                     <div style={{ padding: '0 18px 16px', fontSize: 12, color: 'var(--ink-2)' }}>
-                      {p.items.map(i => (
-                        <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                          <span>{i.relojNombre} <span style={{ color: 'var(--ink-4)' }}>({i.maquinaNombre} · {i.pulseraNombre}) x{i.cantidad}</span></span>
-                          <span style={{ fontFamily: 'var(--mono)' }}>RD$ {i.subtotal.toLocaleString('es-DO')}</span>
-                        </div>
-                      ))}
+                      {p.items.map(i => <PedidoItemResena key={i.id} item={i} usuario={usuario} />)}
                       <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--ink-4)' }}>Envio: {p.direccion}, {p.ciudad}, {p.provincia} · Pago: {p.metodoPago}</div>
                     </div>
                   )}
