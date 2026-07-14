@@ -1194,7 +1194,7 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
               {tab === 'login' && (
                 <form onSubmit={handleLogin}>
                   {field(<><label style={lbl}>Correo Electrónico</label><input type="email" value={loginForm.email} onChange={e => setLoginForm({...loginForm, email: e.target.value})} required placeholder="correo@email.com" style={inp} /></>)}
-                  {field(<><label style={lbl}>Contraseña</label><input type="password" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} required placeholder="••••••••" style={inp} /></>)}
+                  {field(<><label style={lbl}>Contraseña</label><PasswordInput value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} required style={inp} /></>)}
                   <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
                     {loading ? 'Verificando...' : 'Iniciar Sesión'}
                   </button>
@@ -1210,8 +1210,8 @@ function PanelCuenta({ open, onClose, usuario, onLogin, onLogout, onRelojCreado 
                     <div><label style={lbl}>Apellido</label><input value={regForm.apellido} onChange={e => setRegForm({...regForm, apellido: e.target.value})} required placeholder="Martínez" style={inp} /></div>
                   </div>
                   {field(<><label style={lbl}>Correo Electrónico</label><input type="email" value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})} required placeholder="correo@email.com" style={inp} /></>)}
-                  {field(<><label style={lbl}>Contraseña</label><input type="password" value={regForm.password} onChange={e => setRegForm({...regForm, password: e.target.value})} required placeholder="••••••••" style={inp} /><div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 5 }}>{REQ_PASSWORD}</div></>)}
-                  {field(<><label style={lbl}>Confirmar Contraseña</label><input type="password" value={regForm.confirmar} onChange={e => setRegForm({...regForm, confirmar: e.target.value})} required placeholder="••••••••" style={{ ...inp, ...(regForm.confirmar && regForm.password !== regForm.confirmar ? { borderColor: 'var(--rose)' } : {}) }} />{regForm.confirmar && regForm.password !== regForm.confirmar && <div style={{ fontSize: 10, color: 'var(--rose)', marginTop: 5 }}>Las contraseñas no coinciden</div>}</>)}
+                  {field(<><label style={lbl}>Contraseña</label><PasswordInput value={regForm.password} onChange={e => setRegForm({...regForm, password: e.target.value})} required style={inp} /><div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 5 }}>{REQ_PASSWORD}</div></>)}
+                  {field(<><label style={lbl}>Confirmar Contraseña</label><PasswordInput value={regForm.confirmar} onChange={e => setRegForm({...regForm, confirmar: e.target.value})} required style={{ ...inp, ...(regForm.confirmar && regForm.password !== regForm.confirmar ? { borderColor: 'var(--rose)' } : {}) }} />{regForm.confirmar && regForm.password !== regForm.confirmar && <div style={{ fontSize: 10, color: 'var(--rose)', marginTop: 5 }}>Las contraseñas no coinciden</div>}</>)}
                   {field(<><label style={lbl}>Teléfono</label><input value={regForm.telefono} onChange={e => setRegForm({...regForm, telefono: e.target.value})} placeholder="809-555-0101" style={inp} /></>)}
                   {field(<><label style={lbl}>Dirección</label><input value={regForm.direccion} onChange={e => setRegForm({...regForm, direccion: e.target.value})} placeholder="Av. Winston Churchill, SD" style={inp} /></>)}
                   <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8 }}>
@@ -2752,9 +2752,9 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
             <form onSubmit={cambiarPassword} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '28px 30px' }}>
               <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 14 }}>Cambiar contrasena</div>
               {msgPw && <div style={{ padding: '10px 14px', borderRadius: 6, marginBottom: 16, fontSize: 12, background: msgPw.ok ? '#f0fdf4' : '#fff5f5', border: `1px solid ${msgPw.ok ? '#bbf7d0' : '#fecaca'}`, color: msgPw.ok ? '#166534' : '#dc2626' }}>{msgPw.texto}</div>}
-              {field('Contrasena actual', <input type="password" value={pwForm.actual} onChange={e => pwset('actual', e.target.value)} required style={inp} />)}
-              {field('Nueva contrasena', <input type="password" value={pwForm.nueva} onChange={e => pwset('nueva', e.target.value)} required style={inp} />)}
-              {field('Repetir contrasena', <input type="password" value={pwForm.repetir} onChange={e => pwset('repetir', e.target.value)} required style={inp} />)}
+              {field('Contrasena actual', <PasswordInput value={pwForm.actual} onChange={e => pwset('actual', e.target.value)} required style={inp} />)}
+              {field('Nueva contrasena', <PasswordInput value={pwForm.nueva} onChange={e => pwset('nueva', e.target.value)} required style={inp} />)}
+              {field('Repetir contrasena', <PasswordInput value={pwForm.repetir} onChange={e => pwset('repetir', e.target.value)} required style={inp} />)}
               <div style={{ fontSize: 11, color: 'var(--ink-3)', lineHeight: 1.6, background: 'var(--off-white)', borderRadius: 8, padding: '11px 13px', marginBottom: 14 }}>
                 <strong style={{ color: 'var(--ink)' }}>Requisitos:</strong> la contrasena debe tener al menos <strong>8 caracteres</strong>, con una letra <strong>mayuscula</strong>, una <strong>minuscula</strong> y un <strong>numero</strong>. Evita datos personales o contrasenas repetidas.
               </div>
@@ -3421,6 +3421,21 @@ function validarPassword(p) {
 }
 const REQ_PASSWORD = 'Mínimo 8 caracteres, con mayúscula, minúscula y número.';
 
+// Campo de contraseña con boton "Ver/Ocultar" para revisar lo que se escribe
+function PasswordInput({ value, onChange, placeholder = '••••••••', style, required }) {
+  const [ver, setVer] = React.useState(false);
+  return (
+    <div style={{ position: 'relative' }}>
+      <input type={ver ? 'text' : 'password'} value={value} onChange={onChange} required={required} placeholder={placeholder}
+        style={{ ...style, paddingRight: 62 }} />
+      <button type="button" tabIndex={-1} onClick={() => setVer(v => !v)}
+        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-3)', padding: 4 }}>
+        {ver ? 'Ocultar' : 'Ver'}
+      </button>
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════════════════
    PAGINA RESTABLECER CONTRASEÑA (abierta desde el enlace del correo)
 ══════════════════════════════════════════════════ */
@@ -3467,8 +3482,8 @@ function RestablecerPage({ token, onListo }) {
           </>
         ) : (
           <form onSubmit={enviar}>
-            <div style={{ marginBottom: 14 }}><label style={lbl}>Nueva Contraseña</label><input type="password" value={nueva} onChange={e => setNueva(e.target.value)} required placeholder="••••••••" style={inp} /><div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 5 }}>{REQ_PASSWORD}</div></div>
-            <div style={{ marginBottom: 18 }}><label style={lbl}>Confirmar Contraseña</label><input type="password" value={repetir} onChange={e => setRepetir(e.target.value)} required placeholder="••••••••" style={{ ...inp, ...(repetir && nueva !== repetir ? { borderColor: 'var(--rose)' } : {}) }} />{repetir && nueva !== repetir && <div style={{ fontSize: 10, color: 'var(--rose)', marginTop: 5 }}>Las contraseñas no coinciden</div>}</div>
+            <div style={{ marginBottom: 14 }}><label style={lbl}>Nueva Contraseña</label><PasswordInput value={nueva} onChange={e => setNueva(e.target.value)} required style={inp} /><div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 5 }}>{REQ_PASSWORD}</div></div>
+            <div style={{ marginBottom: 18 }}><label style={lbl}>Confirmar Contraseña</label><PasswordInput value={repetir} onChange={e => setRepetir(e.target.value)} required style={{ ...inp, ...(repetir && nueva !== repetir ? { borderColor: 'var(--rose)' } : {}) }} />{repetir && nueva !== repetir && <div style={{ fontSize: 10, color: 'var(--rose)', marginTop: 5 }}>Las contraseñas no coinciden</div>}</div>
             <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: loading ? 'var(--ink-3)' : 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer' }}>{loading ? 'Guardando...' : 'Restablecer Contraseña'}</button>
             <button type="button" onClick={onListo} style={{ width: '100%', padding: '10px', marginTop: 10, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'transparent', color: 'var(--ink-3)', border: 'none', cursor: 'pointer' }}>Cancelar</button>
           </form>
