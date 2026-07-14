@@ -71,7 +71,8 @@ using (var scope = app.Services.CreateScope())
                     System.Text.Encoding.UTF8.GetBytes("Admin123"))).ToLower(),
             EsAdmin      = true,
             Rol          = "Admin",
-            Activo       = true
+            Activo       = true,
+            DobleFactor  = false
         });
         db.SaveChanges();
     }

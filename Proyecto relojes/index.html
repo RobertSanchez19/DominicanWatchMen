@@ -2794,10 +2794,10 @@ function PerfilPage({ usuario, onActualizar, onVolver, onLogout }) {
               {field('Correo (no editable)', <input value={usuario.email} disabled style={{ ...inp, background: 'var(--off-white)', color: 'var(--ink-4)' }} />)}
               {field('Telefono', <input value={form.telefono} onChange={e => set('telefono', e.target.value)} placeholder="809-555-0101" style={inp} />)}
               {field('Direccion', <input value={form.direccion} onChange={e => set('direccion', e.target.value)} placeholder="Av. Winston Churchill, SD" style={inp} />)}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 16px', fontSize: 12, color: 'var(--ink-3)', background: 'var(--off-white)', border: '1px solid var(--border)', borderRadius: 8, padding: '11px 13px' }}>
-                <span style={{ color: 'var(--gold)', fontWeight: 700 }}>&#10003;</span>
-                <span>La <strong>verificacion en dos pasos</strong> esta activa para todas las cuentas: al iniciar sesion te enviamos un codigo a tu correo.</span>
-              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 16px', cursor: 'pointer' }}>
+                <input type="checkbox" checked={form.dobleFactor} onChange={e => set('dobleFactor', e.target.checked)} />
+                <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>Verificacion en dos pasos (2FA): recibir un codigo al iniciar sesion</span>
+              </label>
               <button type="submit" style={{ width: '100%', padding: '13px', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--white)', border: 'none', borderRadius: 3, cursor: 'pointer', marginTop: 6 }}>Guardar cambios</button>
             </form>
 

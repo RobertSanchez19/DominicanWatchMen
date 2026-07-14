@@ -17,7 +17,8 @@ namespace RelojAPI.Models
         public string Rol { get; set; } = "Cliente";
 
         // Verificacion en dos pasos y codigos temporales (2FA / recuperar contraseña)
-        public bool DobleFactor { get; set; } = false;
+        // Activada por defecto para cuentas nuevas; se puede apagar por usuario
+        public bool DobleFactor { get; set; } = true;
         public string? Codigo { get; set; }
         public DateTime? CodigoExpira { get; set; }
 

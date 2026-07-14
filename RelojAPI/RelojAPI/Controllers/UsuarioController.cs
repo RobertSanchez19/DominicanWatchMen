@@ -173,16 +173,21 @@ namespace RelojAPI.Controllers
             if (usuario == null || usuario.PasswordHash != HashPassword(dto.Password))
                 return Unauthorized(new { mensaje = "Correo o contraseña incorrectos" });
 
-            // Verificacion en dos pasos obligatoria: siempre se envia un codigo y el
-            // login se completa con /verificar-2fa
-            var codigo = GenerarCodigo();
-            usuario.Codigo = codigo;
-            usuario.CodigoExpira = DateTime.UtcNow.AddMinutes(10);
-            await _context.SaveChangesAsync();
-            var enviado = await _email.EnviarAsync(usuario.Email, "Tu codigo de acceso - Dominican Watch Men",
-                $"Tu codigo de verificacion es: {codigo}. Valido por 10 minutos.");
-            _logger.LogInformation("Login paso 1 (2FA) para usuario Id {Id}", usuario.Id);
-            return Ok(new { requiere2FA = true, usuarioId = usuario.Id, demo = !enviado, codigoDemo = enviado ? null : codigo });
+            // Verificacion en dos pasos: solo si el usuario la tiene activada
+            if (usuario.DobleFactor)
+            {
+                var codigo = GenerarCodigo();
+                usuario.Codigo = codigo;
+                usuario.CodigoExpira = DateTime.UtcNow.AddMinutes(10);
+                await _context.SaveChangesAsync();
+                var enviado = await _email.EnviarAsync(usuario.Email, "Tu codigo de acceso - Dominican Watch Men",
+                    $"Tu codigo de verificacion es: {codigo}. Valido por 10 minutos.");
+                _logger.LogInformation("Login paso 1 (2FA) para usuario Id {Id}", usuario.Id);
+                return Ok(new { requiere2FA = true, usuarioId = usuario.Id, demo = !enviado, codigoDemo = enviado ? null : codigo });
+            }
+
+            _logger.LogInformation("Login exitoso para usuario Id {Id}", usuario.Id);
+            return Ok(new UsuarioDto(usuario));
         }
 
         // POST: api/usuario/verificar-2fa  (completa el login con el codigo)
