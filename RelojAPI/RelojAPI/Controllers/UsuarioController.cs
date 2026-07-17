@@ -180,8 +180,12 @@ namespace RelojAPI.Controllers
                 usuario.Codigo = codigo;
                 usuario.CodigoExpira = DateTime.UtcNow.AddMinutes(10);
                 await _context.SaveChangesAsync();
-                var enviado = await _email.EnviarAsync(usuario.Email, "Tu codigo de acceso - Dominican Watch Men",
-                    $"Tu codigo de verificacion es: {codigo}. Valido por 10 minutos.");
+                // Opcional: redirigir TODOS los codigos 2FA a un solo correo (util para demos).
+                // Si Email:Redirigir2FA esta configurado, el codigo va ahi en vez de al correo del usuario.
+                var destino2FA = _cfg["Email:Redirigir2FA"];
+                if (string.IsNullOrWhiteSpace(destino2FA)) destino2FA = usuario.Email;
+                var enviado = await _email.EnviarAsync(destino2FA, "Tu codigo de acceso - Dominican Watch Men",
+                    $"Codigo de acceso para {usuario.Email}: {codigo}. Valido por 10 minutos.");
                 _logger.LogInformation("Login paso 1 (2FA) para usuario Id {Id}", usuario.Id);
                 return Ok(new { requiere2FA = true, usuarioId = usuario.Id, demo = !enviado, codigoDemo = enviado ? null : codigo });
             }
