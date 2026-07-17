@@ -51,7 +51,7 @@
                             <td>@r.Stock</td>
                             <td class="admin-td-actions">
                                 <button class="admin-btn-edit" @onclick="() => OnEditar.InvokeAsync(r)">✏️</button>
-                                <button class="admin-btn-del" @onclick="() => ConfirmarEliminar(r)">🗑️</button>
+                                <button class="admin-btn-del" @onclick="() => EliminarConConfirmacion(r)">🗑️</button>
                             </td>
                         </tr>
                     }
@@ -60,18 +60,6 @@
         </div>
     }
 
-    @if (relojAEliminar != null)
-    {
-        <div class="admin-confirm-overlay">
-            <div class="admin-confirm-box">
-                <p>¿Eliminar <strong>@relojAEliminar.Nombre</strong>? Esta acción no se puede deshacer.</p>
-                <div class="admin-confirm-btns">
-                    <button class="btn-danger" @onclick="EjecutarEliminar">Eliminar</button>
-                    <button class="btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
-                </div>
-            </div>
-        </div>
-    }
 </div>
 
 @code {
@@ -79,22 +67,21 @@
     [Parameter] public EventCallback<Reloj> OnEditar { get; set; }
     [Parameter] public EventCallback<int> OnEliminar { get; set; }
 
-    private Reloj? relojAEliminar;
-
     private void NuevoReloj() => OnEditar.InvokeAsync(new Reloj());
 
-    private void ConfirmarEliminar(Reloj r) => relojAEliminar = r;
-    private void CancelarEliminar() => relojAEliminar = null;
-
-    private async Task EjecutarEliminar()
+    private async Task EliminarConConfirmacion(Reloj r)
     {
-        if (relojAEliminar != null)
+        // Interop C# -> JS que DEVUELVE un valor: pedimos confirmacion al navegador
+        // y recibimos true/false de vuelta desde JavaScript.
+        var confirmado = await JS.InvokeAsync<bool>("dwm.confirmar",
+            $"¿Eliminar \"{r.Nombre}\"? Esta acción no se puede deshacer.");
+        if (!confirmado)
         {
-            var nombre = relojAEliminar.Nombre;
-            await OnEliminar.InvokeAsync(relojAEliminar.Id);
-            relojAEliminar = null;
-            // Llamada a una funcion JavaScript propia (interop C# -> JS)
-            await JS.InvokeVoidAsync("dwm.notificar", $"Reloj \"{nombre}\" eliminado correctamente.");
+            return;
         }
+
+        await OnEliminar.InvokeAsync(r.Id);
+        // Interop C# -> JS (sin retorno): avisamos al usuario.
+        await JS.InvokeVoidAsync("dwm.notificar", $"Reloj \"{r.Nombre}\" eliminado correctamente.");
     }
 }
