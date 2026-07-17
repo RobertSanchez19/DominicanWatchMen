@@ -1,3 +1,4 @@
+@inject IJSRuntime JS
 <div class="admin-list">
     <div class="admin-list-header">
         <h3 class="admin-list-title">Productos (@Relojes.Count())</h3>
@@ -89,8 +90,11 @@
     {
         if (relojAEliminar != null)
         {
+            var nombre = relojAEliminar.Nombre;
             await OnEliminar.InvokeAsync(relojAEliminar.Id);
             relojAEliminar = null;
+            // Llamada a una funcion JavaScript propia (interop C# -> JS)
+            await JS.InvokeVoidAsync("dwm.notificar", $"Reloj \"{nombre}\" eliminado correctamente.");
         }
     }
 }

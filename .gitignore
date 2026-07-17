@@ -51,3 +51,9 @@ New folder/
 Iniciar DWM.bat
 Detener DWM.bat
 *.rar
+
+## Guion / material de exposicion (NO subir) ##
+*.docx
+GUION_*
+Guion_*
+gen_guion*.py
