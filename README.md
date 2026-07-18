@@ -102,6 +102,12 @@ entorno según el entorno de ejecución.
 `src/config/api.js` la lee con `import.meta.env.VITE_API_URL`. Solo van ahí
 valores **no secretos** (una URL); los secretos reales viven en el backend.
 
+> **Nota para evaluación:** normalmente el archivo `.env` **no se sube** al repo
+> (está en `.gitignore`); se conservan versionados `.env.development`,
+> `.env.production` y `.env.example`. Para esta entrega se subió también el
+> `.env` local **únicamente con fines de evaluación**, para que se pueda revisar
+> la configuración. Solo contiene la URL del API, sin secretos.
+
 ---
 
 ## Integrantes
