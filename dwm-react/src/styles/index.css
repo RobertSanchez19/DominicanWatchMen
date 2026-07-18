@@ -1,0 +1,41 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --white:     #FFFFFF;
+  --off-white: #F8F6F2;
+  --warm-grey: #F0EDE8;
+  --border:    #E2DDD7;
+  --border-dk: #C8C3BB;
+
+  --ink:       #111110;
+  --ink-2:     #3A3835;
+  --ink-3:     #6B6762;
+  --ink-4:     #9C9892;
+
+  --gold:      #B8922A;
+  --gold-lt:   #C9A84C;
+  --gold-pale: #F5ECD5;
+  --gold-bg:   rgba(184,146,42,0.07);
+
+  --navy:      #1B3461;
+  --rose:      #B07055;
+
+  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --serif: 'Cormorant Garamond', Garamond, Georgia, serif;
+  --sans:  'Jost', 'Helvetica Neue', sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+}
+html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body { background: var(--white); color: var(--ink); font-family: var(--sans); }
+button { font-family: var(--sans); cursor: pointer; border: none; }
+a { text-decoration: none; color: inherit; }
+
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-33.33%); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ===== Responsive: apila columnas y ajusta paddings en pantallas chicas ===== */
+@media (max-width: 760px) {
+  .col2 { grid-template-columns: 1fr !important; }
+  .col3 { grid-template-columns: 1fr !important; gap: 12px !important; }
+  nav { padding: 0 20px !important; height: auto !important; flex-wrap: wrap !important; gap: 10px !important; }
+  .page-pad { padding-left: 20px !important; padding-right: 20px !important; }
+}

@@ -1,0 +1,8 @@
+node_modules
+dist
+.vite
+
+# El .env local (con posibles overrides) NO se sube.
+# Los .env.development / .env.production / .env.example SI se suben (no tienen secretos).
+.env
+.env.local
