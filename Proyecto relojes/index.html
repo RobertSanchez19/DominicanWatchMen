@@ -2517,22 +2517,6 @@ function CheckoutPage({ items, usuario, onVolver, onConfirmado }) {
                       {field('Vence (MM/AA)', <input value={form.tarjetaVence} onChange={e => set('tarjetaVence', formatearVence(e.target.value))} placeholder="MM/AA" maxLength={5} style={inp} />)}
                       {field(`CVV (${marcaT ? marcaT.cvv : 3} dig.)`, <input value={form.tarjetaCvv} onChange={e => set('tarjetaCvv', e.target.value.replace(/\D/g, '').slice(0, marcaT ? marcaT.cvv : 4))} placeholder={marcaT && marcaT.cvv === 4 ? '1234' : '123'} style={inp} />)}
                     </div>
-                    {/* Tabla de indicadores de marca (deteccion por prefijo/BIN) */}
-                    <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: 6 }}>
-                      <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-3)', padding: '8px 12px', background: 'var(--off-white)' }}>Tarjetas aceptadas · indicador (prefijo)</div>
-                      {TARJETAS.map(t => {
-                        const activa = marcaT && marcaT.marca === t.marca;
-                        return (
-                          <div key={t.marca} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderTop: '1px solid var(--border)', background: activa ? 'var(--gold-bg)' : 'transparent' }}>
-                            <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: 'var(--white)', background: t.color, padding: '3px 7px', borderRadius: 4, minWidth: 76, textAlign: 'center' }}>{t.marca}</span>
-                            <span style={{ fontSize: 11, color: 'var(--ink-2)' }}>Empieza con <strong>{t.indicador}</strong></span>
-                            <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--ink-4)' }}>demo: {t.demo}</span>
-                            {activa && <span style={{ marginLeft: 6, fontSize: 8, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gold)' }}>Detectada</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <p style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 8 }}>* Deteccion local por prefijo (BIN), sin API externa. Datos solo de demostracion; no se guardan ni se envian.</p>
                   </div>
                 )}
               </>)}
