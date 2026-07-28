@@ -1,0 +1,36 @@
+@page
+@model MarcasModel
+@{
+    ViewData["Title"] = "Marcas";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Marcas</h1>
+    <p class="page-sub">Casas relojeras que ensamblamos, servidas por el Web API.</p>
+</div>
+
+@if (Model.Error is not null)
+{
+    <div class="error-msg">@Model.Error</div>
+}
+else if (Model.Marcas.Count == 0)
+{
+    <div class="empty-msg">Aún no hay marcas registradas.</div>
+}
+else
+{
+    <div class="marcas-grid">
+        @foreach (var marca in Model.Marcas)
+        {
+            <div class="marca-card">
+                <div class="marca-inicial">@(string.IsNullOrEmpty(marca.Nombre) ? "?" : marca.Nombre[..1])</div>
+                <div class="marca-info">
+                    <h3 class="marca-nombre">@marca.Nombre</h3>
+                    <p class="marca-pais">@marca.PaisOrigen</p>
+                    <span class="marca-count">@marca.Relojes.Count modelo(s)</span>
+                </div>
+                <span class="marca-arrow">→</span>
+            </div>
+        }
+    </div>
+}

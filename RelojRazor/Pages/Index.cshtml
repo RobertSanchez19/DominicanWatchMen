@@ -1,0 +1,133 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<!-- ===== HERO / PORTADA ===== (propiedades pasadas desde el PageModel) -->
+<section class="hero-banner">
+    <div class="hero-content">
+        <div class="hero-eyebrow">Alta Relojería · Seiko Mods</div>
+        <h1 class="hero-title">@Model.Config.HeroTitulo</h1>
+        <p class="hero-sub">@Model.Config.HeroSubtitulo</p>
+        <div class="hero-btns">
+            <a href="/Catalogo" class="btn-primary">Ver Catálogo</a>
+            <a href="/Marcas" class="btn-outline">Ver Marcas</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="hero-stat-num">20+</span>
+                <span class="hero-stat-lbl">Modelos únicos</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">100%</span>
+                <span class="hero-stat-lbl">Seiko original</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">316L</span>
+                <span class="hero-stat-lbl">Acero quirúrgico</span>
+            </div>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="hero-circle hero-circle-lg"></div>
+        <div class="hero-circle hero-circle-md"></div>
+        @if (Model.RelojPortada is not null)
+        {
+            <div class="hero-featured">
+                @if (!string.IsNullOrEmpty(Model.RelojPortada.ImagenUrl))
+                {
+                    <img src="@Model.RelojPortada.ImagenUrl" alt="@Model.RelojPortada.Nombre" class="hero-featured-img" />
+                }
+                else
+                {
+                    <div class="hero-watch-placeholder"><span class="hero-watch-emoji">⌚</span></div>
+                }
+                <div class="hero-featured-info">
+                    <span class="hero-featured-marca">@(Model.RelojPortada.Marca?.Nombre ?? "Dominican Watch Men")</span>
+                    <span class="hero-featured-nombre">@Model.RelojPortada.Nombre</span>
+                    <span class="hero-featured-precio">RD$ @Model.RelojPortada.Precio.ToString("N2")</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="hero-watch-placeholder"><span class="hero-watch-emoji">⌚</span></div>
+            <div class="hero-badge">DOMINICAN WATCH MEN · NH35A</div>
+        }
+    </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="features-section">
+    <div class="features-header">
+        <h2 class="section-title">¿Por qué elegirnos?</h2>
+        <p class="section-sub">Cada reloj Dominican Watch Men es una obra de ingeniería artesanal.</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">⌚</div>
+            <h3 class="feature-title">Seiko Original</h3>
+            <p class="feature-desc">Usamos exclusivamente movimientos Seiko NH35, NH38 y NH34. Sin imitaciones.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔩</div>
+            <h3 class="feature-title">Acero 316L</h3>
+            <p class="feature-desc">Cajas de acero quirúrgico grado 316L. Resistentes, duraderas, antialérgicas.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💎</div>
+            <h3 class="feature-title">Cristal Zafiro</h3>
+            <p class="feature-desc">Dureza Mohs 9. Antirreflejo ambas caras para máxima legibilidad.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🛠️</div>
+            <h3 class="feature-title">Ensamblado a Mano</h3>
+            <p class="feature-desc">Cada pieza ensamblada artesanalmente. Tolerancias de precisión milimétrica.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== PROCESO ===== -->
+<section class="proceso-section">
+    <div class="proceso-header">
+        <div class="section-eyebrow">El Arte del Modding</div>
+        <h2 class="section-title">El Proceso DWM</h2>
+    </div>
+    <div class="proceso-grid">
+        <div class="proceso-step">
+            <div class="proceso-num">01</div>
+            <div class="proceso-divider"></div>
+            <h4 class="proceso-title">Selección del Calibre</h4>
+            <p class="proceso-desc">Elegimos el movimiento Seiko ideal — NH35, NH38 o NH34 — según la complicación de cada pieza.</p>
+        </div>
+        <div class="proceso-step">
+            <div class="proceso-num">02</div>
+            <div class="proceso-divider"></div>
+            <h4 class="proceso-title">Componentes Quirúrgicos</h4>
+            <p class="proceso-desc">Cajas 316L, cristales de zafiro AR, bezels, coronas y sellos con precisión milimétrica.</p>
+        </div>
+        <div class="proceso-step">
+            <div class="proceso-num">03</div>
+            <div class="proceso-divider"></div>
+            <h4 class="proceso-title">Ensamblaje Artesanal</h4>
+            <p class="proceso-desc">Cada pieza es montada a mano, paso a paso. Cada tornillo y junta, en su posición exacta.</p>
+        </div>
+        <div class="proceso-step">
+            <div class="proceso-num">04</div>
+            <div class="proceso-divider"></div>
+            <h4 class="proceso-title">Control de Calidad</h4>
+            <p class="proceso-desc">Test de hermeticidad, regulación del movimiento y revisión visual. Solo sale lo que pasa el estándar DWM.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section">
+    <div class="cta-inner">
+        <h2 class="cta-title">¿Listo para tu pieza única?</h2>
+        <p class="cta-sub">Explora nuestra colección completa y encuentra el reloj que refleja tu estilo.</p>
+        <a href="/Catalogo" class="btn-primary">Explorar Colección</a>
+        <a href="/Marcas" class="btn-secondary">Ver Marcas</a>
+    </div>
+</section>

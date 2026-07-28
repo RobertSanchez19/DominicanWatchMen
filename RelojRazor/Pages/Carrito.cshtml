@@ -1,0 +1,79 @@
+@page
+@model CarritoModel
+@{
+    ViewData["Title"] = "Carrito";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Tu carrito</h1>
+    <p class="page-sub">Relojes configurados listos para tu pedido.</p>
+</div>
+
+@if (Model.Items.Count == 0)
+{
+    <div class="empty-msg">
+        Tu carrito está vacío.
+        <div style="margin-top:16px"><a class="btn-primary" href="/Catalogo">Explorar catálogo</a></div>
+    </div>
+}
+else
+{
+    <div class="carrito-wrap">
+        <table class="dwm-table carrito-tabla">
+            <thead>
+                <tr>
+                    <th>Reloj</th>
+                    <th>Configuración</th>
+                    <th>Precio</th>
+                    <th>Cant.</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <div class="carrito-reloj">
+                                @if (!string.IsNullOrEmpty(item.ImagenUrl))
+                                {
+                                    <img src="@item.ImagenUrl" alt="@item.RelojNombre" class="dwm-mini-thumb" />
+                                }
+                                else
+                                {
+                                    <span class="carrito-emoji">⌚</span>
+                                }
+                                <span class="carrito-nombre">@item.RelojNombre</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="carrito-chip">@item.Maquina</span>
+                            <span class="carrito-chip">@item.Pulsera</span>
+                        </td>
+                        <td>RD$ @item.PrecioUnitario.ToString("N2")</td>
+                        <td>@item.Cantidad</td>
+                        <td class="carrito-subtotal">RD$ @item.Subtotal.ToString("N2")</td>
+                        <td>
+                            <form method="post" asp-page-handler="Quitar" asp-route-clave="@item.Clave" style="display:inline">
+                                <button type="submit" class="carrito-quitar"
+                                        onclick="return confirm('¿Quitar este reloj del carrito?');">Quitar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="carrito-pie">
+            <form method="post" asp-page-handler="Vaciar">
+                <button type="submit" class="btn-secondary"
+                        onclick="return confirm('¿Vaciar todo el carrito?');">Vaciar carrito</button>
+            </form>
+            <div class="carrito-total">
+                <span class="carrito-total-lbl">Total</span>
+                <span class="carrito-total-num">RD$ @Model.Total.ToString("N2")</span>
+            </div>
+        </div>
+    </div>
+}

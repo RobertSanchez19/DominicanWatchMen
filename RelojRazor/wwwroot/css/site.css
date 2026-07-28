@@ -1,0 +1,252 @@
+/* ============================================================
+   Estilos propios del frente Razor (complementan a dwm.css)
+   ============================================================ */
+
+/* Formularios del panel de administracion y contacto */
+.dwm-form {
+    max-width: 620px;
+    margin: 32px auto 60px;
+    padding: 0 60px;
+}
+
+.dwm-field {
+    margin-bottom: 18px;
+}
+
+.dwm-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+}
+
+.dwm-field input,
+.dwm-field select,
+.dwm-field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border-dk);
+    border-radius: 8px;
+    background: var(--white);
+    font-size: 14px;
+    font-family: var(--sans);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.dwm-field input:focus,
+.dwm-field select:focus,
+.dwm-field textarea:focus {
+    border-color: var(--gold);
+}
+
+.dwm-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dwm-check input { width: auto; }
+
+.field-error {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
+.dwm-alert {
+    margin: 0 60px 20px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.dwm-alert-ok {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+.dwm-alert-err {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+/* Tabla de administracion de relojes */
+.dwm-table {
+    width: calc(100% - 120px);
+    margin: 24px 60px 40px;
+    border-collapse: collapse;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.dwm-table th,
+.dwm-table td {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+}
+
+.dwm-table th {
+    background: var(--off-white);
+    font-size: 10px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+}
+
+.dwm-table tr:last-child td { border-bottom: none; }
+
+.dwm-table-actions a {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gold);
+    margin-right: 12px;
+}
+
+.dwm-table-actions a.danger { color: #dc2626; }
+
+.dwm-mini-thumb {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    background: var(--off-white);
+    border-radius: 6px;
+}
+
+/* Contacto: caja de resultado calculado por JS */
+.js-box {
+    margin: 24px 0;
+    padding: 20px 24px;
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.js-box .resultado {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+/* ============================================================
+   HERO — reloj destacado en la portada (adaptado al tema claro)
+   ============================================================ */
+.hero-featured {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    animation: hero-fade 0.6s ease;
+}
+
+.hero-featured-img {
+    width: min(360px, 70%);
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-height: 52vh;
+    object-fit: contain;
+    border-radius: 20px;
+    filter: drop-shadow(0 22px 50px rgba(0, 0, 0, 0.20));
+}
+
+.hero-featured-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.hero-featured-marca {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+}
+
+.hero-featured-nombre {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.hero-featured-precio {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: monospace;
+    color: var(--ink-2);
+}
+
+@keyframes hero-fade {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   AREA DE SESION (header) + BADGES DE ROL
+   ============================================================ */
+.dwm-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: 16px;
+    padding-left: 16px;
+    border-left: 1px solid rgba(255,255,255,0.10);
+}
+
+.dwm-user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.dwm-user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.02em;
+}
+
+.rol-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: var(--white);
+    background: var(--ink-3);
+    white-space: nowrap;
+}
+
+.rol-badge.rol-admin      { background: var(--gold); color: var(--ink); }
+.rol-badge.rol-fabricante { background: #2f6f4f; }
+.rol-badge.rol-soporte    { background: #2f5a8f; }
+.rol-badge.rol-cliente    { background: var(--ink-3); }
+
+/* En vistas claras (Mi cuenta / Usuarios) el badge conserva su color */
+.detalle-table .rol-badge,
+.dwm-table .rol-badge { display: inline-block; }

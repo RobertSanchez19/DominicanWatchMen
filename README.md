@@ -12,6 +12,7 @@ Tienda y administración de relojes: un **Web API** en ASP.NET Core que alimenta
 | **dwm-react** | React 18 + Vite | Front-end en React **organizado por carpetas** (componentes, páginas, hooks, utils y capa de servicios). Consume el API. **Frente principal.** |
 | **Proyecto relojes** | React 18 + Babel (CDN) | Versión anterior del mismo front en un **único `index.html`** (sin build). Se conserva como referencia. |
 | **RelojBlazor** | Blazor Server (Razor) | Otro front que consume el mismo API. Catálogo, marcas, login y panel de administración. |
+| **RelojRazor** | ASP.NET Core **Razor Pages** | Front en Razor Pages (sin React ni Blazor). Landing page + catálogo, marcas, administración y contacto. Consume el mismo API mediante una clase de servicios inyectada. |
 
 > Todos los frentes consumen **el mismo `RelojAPI`** y muestran la misma
 > información porque comparten backend y base de datos.
@@ -61,6 +62,51 @@ Desde `RelojBlazor`:
 ```bash
 dotnet run      # http://localhost:5126
 ```
+
+### 5) Front-end Razor Pages (RelojRazor)
+
+Desde `RelojRazor` (requiere el `RelojAPI` corriendo en `http://localhost:5157`):
+
+```bash
+dotnet run      # http://localhost:5173
+```
+
+Estructura y cumplimiento de requisitos (asignación Razor Pages):
+
+- **Landing page** (`Pages/Index.cshtml`) + páginas adicionales: `Catalogo`, `Marcas`,
+  `Detalle`, `Carrito`, `Admin` y `Contacto`.
+- **Sintaxis Razor** en todos los `.cshtml`; propiedades del `.cshtml.cs` → `.cshtml`
+  (p. ej. `Model.Destacados`) y del `.cshtml` → `.cshtml.cs` (formularios con
+  `[BindProperty]` en `Admin`, `Contacto` y `Detalle`, búsqueda en `Catalogo`).
+- **Header, footer y barra de navegación** personalizados en `Pages/Shared/_Layout.cshtml`
+  (incluye el enlace al carrito con contador de artículos).
+- **Elementos estáticos** en `wwwroot/` (CSS `dwm.css`/`site.css`, JS `site.js`, imágenes).
+- **JavaScript**: la página `Contacto` invoca funciones de `wwwroot/js/site.js`
+  (cotizador, contador de caracteres y validación); la página `Detalle` usa
+  `dwmConfigurar()` para recalcular precio y disponibilidad **en vivo** al elegir
+  máquina/pulsera.
+- **`Program.cs` y `appsettings.json`** configurados; la URL del API se lee de
+  `ApiSettings:BaseUrl`.
+- **Conexión al Web API** mediante la **clase de servicios** `Services/RelojService.cs`
+  (interfaz `IRelojService`), registrada por **inyección de dependencias**.
+- **Visualización** de datos del API en `Catalogo`, `Marcas` y `Detalle`; **modificación**
+  del modelo `Reloj` (crear/editar/eliminar) en `Admin`.
+
+**Detalle del reloj + carrito (configurador ensamble-a-pedido).** Al hacer clic en un reloj
+del catálogo se abre `Pages/Detalle.cshtml` (`/Detalle?id=X`), que consume del API los
+componentes compatibles de ese reloj (`MovimientosCompatibles` y `PulserasCompatibles`) y
+permite elegir **máquina** y **tipo de pulsera** (cada uno con su precio extra y stock),
+la cantidad, y **añadir al carrito**.
+
+- El **precio** (base + extra de máquina + extra de pulsera) y la **disponibilidad**
+  (mínimo entre el stock de la base, la máquina y la pulsera) se **recalculan siempre en el
+  servidor** en el POST; el navegador solo los muestra en vivo por comodidad (no se confía en
+  el valor enviado por el cliente).
+- El **carrito** vive en la **sesión** del usuario (`ICarritoService`/`Services/CarritoService.cs`,
+  con `AddSession`/`UseSession` en `Program.cs`), por ser una selección temporal previa al
+  pedido. `Pages/Carrito.cshtml` lista las líneas con subtotal/total y permite **quitar** o
+  **vaciar**. El botón **Editar** de las tarjetas del catálogo sigue visible solo para el rol
+  `Admin`.
 
 ---
 

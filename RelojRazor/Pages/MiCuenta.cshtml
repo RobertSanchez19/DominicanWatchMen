@@ -1,0 +1,32 @@
+@page
+@model MiCuentaModel
+@{
+    ViewData["Title"] = "Mi cuenta";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Mi cuenta</h1>
+    <p class="page-sub">Datos de tu sesión y nivel de acceso.</p>
+</div>
+
+<div class="dwm-form">
+    <table class="detalle-table">
+        <tr><th>Nombre</th><td>@Model.Nombre</td></tr>
+        <tr><th>Correo</th><td>@Model.Email</td></tr>
+        <tr><th>Rol</th><td><span class="rol-badge rol-@Model.Rol.ToLower()">@Model.Rol</span></td></tr>
+    </table>
+
+    <div style="margin-top:20px">
+        <p style="font-size:13px;color:var(--ink-3)">Tu rol determina a qué secciones puedes entrar:</p>
+        <ul style="font-size:13px;color:var(--ink-3);line-height:1.9">
+            <li><strong>Cliente</strong> — catálogo, marcas, contacto y tu cuenta.</li>
+            <li><strong>Fabricante</strong> — además, el taller de fabricación.</li>
+            <li><strong>Soporte</strong> — además, la atención de tickets.</li>
+            <li><strong>Admin</strong> — acceso total: administración de relojes y usuarios.</li>
+        </ul>
+    </div>
+
+    <div class="form-actions">
+        <a href="/Logout" class="btn-secondary">Cerrar sesión</a>
+    </div>
+</div>

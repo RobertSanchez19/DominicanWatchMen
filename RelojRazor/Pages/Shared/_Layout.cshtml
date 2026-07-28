@@ -1,0 +1,103 @@
+@using RelojRazor.Interfaces
+@inject ISiteConfigService Site
+@inject ICarritoService Carrito
+@{
+    // Carga la configuracion del sitio (branding/footer) desde el Web API.
+    var cfg = await Site.GetConfigAsync();
+
+    // Detecta la pagina activa para resaltar el enlace de navegacion.
+    var pagina = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+    string Activo(string ruta) => pagina.Equals(ruta, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Dominican Watch Men</title>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
+    <link rel="alternate icon" href="~/favicon.ico" />
+    <link rel="stylesheet" href="~/css/dwm.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <!-- ===== HEADER PERSONALIZADO ===== -->
+    <header class="dwm-header">
+        <div class="dwm-header-inner">
+            <a class="dwm-logo" href="/">
+                <img src="~/favicon.svg" alt="DWM" class="dwm-logo-icon" width="30" height="30" />
+                <span>
+                    <span class="dwm-logo-name">@cfg.SitioNombre</span>
+                    <span class="dwm-logo-sub" style="display:block">@cfg.SitioSubtitulo</span>
+                </span>
+            </a>
+            @{
+                var logueado = User.Identity?.IsAuthenticated == true;
+                var esAdmin = User.IsInRole("Admin");
+                var nombre = User.FindFirst("Nombre")?.Value ?? User.Identity?.Name ?? "";
+                var rol = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Cliente";
+                var itemsCarrito = Carrito.CantidadTotal();
+            }
+            <!-- ===== BARRA DE NAVEGACION ===== -->
+            <nav class="dwm-nav">
+                <a class="dwm-nav-link @Activo("/Index")" href="/">Inicio</a>
+                <a class="dwm-nav-link @Activo("/Catalogo")" href="/Catalogo">Catálogo</a>
+                <a class="dwm-nav-link @Activo("/Marcas")" href="/Marcas">Marcas</a>
+                <a class="dwm-nav-link @Activo("/Contacto")" href="/Contacto">Contacto</a>
+                @if (esAdmin)
+                {
+                    <a class="dwm-nav-link @Activo("/Admin")" href="/Admin">Administración</a>
+                    <a class="dwm-nav-link @Activo("/Usuarios")" href="/Usuarios">Usuarios</a>
+                }
+            </nav>
+
+            <!-- ===== AREA DE SESION ===== -->
+            <div class="dwm-user">
+                <a href="/Carrito" class="dwm-cart @Activo("/Carrito")" title="Carrito">
+                    🛒 Carrito
+                    @if (itemsCarrito > 0)
+                    {
+                        <span class="dwm-cart-badge">@itemsCarrito</span>
+                    }
+                </a>
+                @if (logueado)
+                {
+                    <a href="/MiCuenta" class="dwm-user-info">
+                        <span class="dwm-user-name">@nombre</span>
+                        <span class="rol-badge rol-@rol.ToLower()">@rol</span>
+                    </a>
+                    <a href="/Logout" class="dwm-nav-link">Salir</a>
+                }
+                else
+                {
+                    <a href="/Login" class="dwm-nav-link @Activo("/Login")">Iniciar sesión</a>
+                }
+            </div>
+        </div>
+    </header>
+
+    <main class="dwm-main">
+        @RenderBody()
+    </main>
+
+    <!-- ===== FOOTER PERSONALIZADO ===== -->
+    <footer class="dwm-footer">
+        <div class="dwm-footer-inner">
+            <div class="dwm-footer-brand">
+                <span class="dwm-footer-name">@cfg.SitioNombre</span>
+                <span class="dwm-footer-tagline">@cfg.FooterTagline</span>
+            </div>
+            <div class="dwm-footer-links">
+                <a class="dwm-footer-link" href="/">Inicio</a>
+                <a class="dwm-footer-link" href="/Catalogo">Catálogo</a>
+                <a class="dwm-footer-link" href="/Marcas">Marcas</a>
+                <a class="dwm-footer-link" href="/Contacto">Contacto</a>
+            </div>
+            <div class="dwm-footer-copy">© @DateTime.Now.Year · @cfg.FooterCopyright</div>
+        </div>
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

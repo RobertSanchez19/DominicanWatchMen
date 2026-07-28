@@ -48,6 +48,7 @@ Desktop.ini
 .claude/
 node_modules/
 New folder/
+__pycache__/
 Iniciar DWM.bat
 Detener DWM.bat
 *.rar

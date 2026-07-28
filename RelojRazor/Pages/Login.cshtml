@@ -1,0 +1,67 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Iniciar sesión";
+}
+
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="login-logo">
+            <img src="~/favicon.svg" alt="DWM" class="login-logo-icon" width="46" height="46" />
+            <div class="login-logo-name">Dominican Watch Men</div>
+            <div class="login-logo-sub">@(Model.PasoDosFactor ? "Verificación en dos pasos" : "Acceso a tu cuenta")</div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Error))
+        {
+            <div class="login-error">@Model.Error</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.AvisoDemo))
+        {
+            <div class="dwm-alert dwm-alert-ok" style="margin:0 0 16px">@Model.AvisoDemo</div>
+        }
+
+        @if (!Model.PasoDosFactor)
+        {
+            <!-- PASO 1: credenciales -->
+            <form method="post" asp-page-handler="Credenciales" class="login-form">
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div class="form-group">
+                    <label class="form-label">Correo electrónico</label>
+                    <input type="email" asp-for="Email" class="form-input" placeholder="tucorreo@ejemplo.com" autofocus />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" asp-for="Password" class="form-input" placeholder="••••••••" />
+                </div>
+                <div class="dwm-check" style="margin-bottom:16px">
+                    <input type="checkbox" asp-for="Recordar" id="Recordar" />
+                    <label for="Recordar" style="margin:0;font-size:12px;color:var(--ink-3)">Mantener sesión iniciada</label>
+                </div>
+                <button type="submit" class="btn-primary login-btn">Ingresar</button>
+            </form>
+        }
+        else
+        {
+            <!-- PASO 2: codigo 2FA -->
+            <form method="post" asp-page-handler="Codigo" class="login-form">
+                <input type="hidden" asp-for="UsuarioId" />
+                <input type="hidden" asp-for="ReturnUrl" />
+                <input type="hidden" asp-for="Recordar" />
+                <div class="form-group">
+                    <label class="form-label">Código de verificación</label>
+                    <input type="text" asp-for="Codigo" class="form-input" placeholder="6 dígitos"
+                           inputmode="numeric" maxlength="6" autocomplete="one-time-code" autofocus />
+                </div>
+                <button type="submit" class="btn-primary login-btn">Verificar e ingresar</button>
+            </form>
+        }
+
+        <div class="login-back">
+            <span style="font-size:12px;color:var(--ink-4)">¿No tienes cuenta? </span>
+            <a href="/Registro" class="login-back-link">Regístrate</a>
+            <span style="margin:0 6px;color:var(--ink-4)">·</span>
+            <a href="/" class="login-back-link">← Volver al sitio</a>
+        </div>
+    </div>
+</div>

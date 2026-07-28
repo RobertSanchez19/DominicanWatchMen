@@ -1,0 +1,77 @@
+@page
+@model UsuariosModel
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Usuarios y accesos</h1>
+    <p class="page-sub">Asigna el rol de cada usuario. El rol define a qué secciones puede entrar.</p>
+</div>
+
+@if (Model.Mensaje is not null)
+{
+    <div class="dwm-alert dwm-alert-ok">@Model.Mensaje</div>
+}
+@if (Model.Error is not null)
+{
+    <div class="dwm-alert dwm-alert-err">@Model.Error</div>
+}
+
+@if (Model.Usuarios.Count == 0)
+{
+    <div class="empty-msg">No hay usuarios registrados.</div>
+}
+else
+{
+    <table class="dwm-table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol actual</th>
+                <th>Estado</th>
+                <th>Cambiar rol</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in Model.Usuarios)
+            {
+                <tr>
+                    <td>@u.Nombre @u.Apellido</td>
+                    <td>@u.Email</td>
+                    <td><span class="rol-badge rol-@u.Rol.ToLower()">@u.Rol</span></td>
+                    <td>@(u.Activo ? "Activo" : "Inactivo")</td>
+                    <td>
+                        <form method="post" asp-page-handler="Rol" style="display:flex;gap:6px;align-items:center">
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <select name="rol" class="form-input" style="padding:6px 10px;width:auto">
+                                @foreach (var r in UsuariosModel.Roles)
+                                {
+                                    if (r == u.Rol)
+                                    {
+                                        <option value="@r" selected>@r</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@r">@r</option>
+                                    }
+                                }
+                            </select>
+                            <button type="submit" class="btn-secondary" style="padding:6px 14px">Guardar</button>
+                        </form>
+                    </td>
+                    <td class="dwm-table-actions">
+                        <form method="post" asp-page-handler="Desactivar" style="display:inline">
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <button type="submit" class="danger"
+                                    style="background:none;border:none;cursor:pointer;color:#dc2626;font-weight:600;font-size:11px"
+                                    onclick="return confirm('¿Desactivar este usuario?');">Desactivar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

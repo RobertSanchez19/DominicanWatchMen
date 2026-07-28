@@ -1,0 +1,81 @@
+@page
+@model CatalogoModel
+@{
+    ViewData["Title"] = "Catálogo";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Catálogo</h1>
+    <p class="page-sub">Relojes cargados en vivo desde el Web API (RelojAPI).</p>
+</div>
+
+<!-- Formulario de busqueda: el valor viaja del .cshtml al .cshtml.cs (propiedad Busqueda) -->
+<div class="filtro-panel">
+    <form method="get" class="filtro-inner">
+        <span class="filtro-icon">🔎</span>
+        <input type="text" name="Busqueda" value="@Model.Busqueda"
+               class="filtro-input" placeholder="Buscar por nombre, modelo o marca…" />
+        @if (!string.IsNullOrWhiteSpace(Model.Busqueda))
+        {
+            <a class="filtro-clear" href="/Catalogo">✕</a>
+        }
+    </form>
+</div>
+
+@if (Model.Error is not null)
+{
+    <div class="error-msg">@Model.Error</div>
+}
+else
+{
+    <div class="resultados-info">@Model.Relojes.Count reloj(es) encontrado(s)</div>
+
+    @if (Model.Relojes.Count == 0)
+    {
+        <div class="empty-msg">No hay relojes que coincidan con la búsqueda.</div>
+    }
+    else
+    {
+        <div class="relojes-grid">
+            @foreach (var reloj in Model.Relojes)
+            {
+                <div class="reloj-card">
+                    <!-- La tarjeta enlaza a la pagina Detalle para configurar y anadir al carrito -->
+                    <a class="reloj-card-link" href="/Detalle?id=@reloj.Id">
+                        <div class="reloj-img-wrapper">
+                            @if (!string.IsNullOrEmpty(reloj.ImagenUrl))
+                            {
+                                <img src="@reloj.ImagenUrl" alt="@reloj.Nombre" class="reloj-img" />
+                            }
+                            else
+                            {
+                                <div class="reloj-placeholder">⌚</div>
+                            }
+
+                            @if (reloj.Stock == 0)
+                            {
+                                <span class="reloj-badge reloj-badge-agotado">Agotado</span>
+                            }
+                            else if (reloj.Stock <= 3)
+                            {
+                                <span class="reloj-badge reloj-badge-pocas">Últimas @reloj.Stock</span>
+                            }
+                        </div>
+                        <div class="reloj-info">
+                            <span class="reloj-marca-tag">@(reloj.Marca?.Nombre ?? "Sin Marca")</span>
+                            <h3 class="reloj-nombre">@reloj.Nombre</h3>
+                            <p class="reloj-modelo">@reloj.Modelo</p>
+                            <p class="reloj-precio">RD$ @reloj.Precio.ToString("N2")</p>
+                            <span class="reloj-cta">Ver y configurar →</span>
+                        </div>
+                    </a>
+                    @* El boton Editar solo se muestra al rol Admin; un visitante no lo ve (mismo criterio que el menu Administracion en _Layout) *@
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a class="btn-secondary reloj-editar" href="/Admin?editId=@reloj.Id">Editar</a>
+                    }
+                </div>
+            }
+        </div>
+    }
+}

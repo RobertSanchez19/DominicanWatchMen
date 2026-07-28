@@ -1,0 +1,67 @@
+@page
+@model ContactoModel
+@{
+    ViewData["Title"] = "Contacto";
+    const int MaxMensaje = 300;
+}
+
+<div class="page-header">
+    <h1 class="page-title">Contacto</h1>
+    <p class="page-sub">Escríbenos o calcula una cotización rápida. Esta página usa funciones JavaScript.</p>
+</div>
+
+@if (Model.Enviado)
+{
+    <div class="dwm-alert dwm-alert-ok">¡Gracias! Tu mensaje fue enviado correctamente.</div>
+}
+
+<div class="dwm-form">
+    <!-- ===== COTIZADOR (100% JavaScript, sin recargar) ===== -->
+    <div class="js-box">
+        <h2 class="section-title" style="font-size:22px">Cotización rápida</h2>
+        <div class="dwm-field">
+            <label for="cotCantidad">Cantidad de relojes</label>
+            <input type="number" id="cotCantidad" min="0" value="1" oninput="calcularCotizacion()" />
+        </div>
+        <div class="dwm-field">
+            <label for="cotPrecio">Precio por unidad (RD$)</label>
+            <input type="number" id="cotPrecio" min="0" step="0.01" value="12000" oninput="calcularCotizacion()" />
+        </div>
+        <p>Total estimado: <span class="resultado" id="cotResultado">RD$ 0.00</span></p>
+    </div>
+
+    <!-- ===== FORMULARIO DE CONTACTO (envia al .cshtml.cs) ===== -->
+    <h2 class="section-title" style="font-size:22px">Envíanos un mensaje</h2>
+
+    <!-- onsubmit llama a la funcion JS validarContacto() antes de enviar -->
+    <form method="post" onsubmit="return validarContacto();">
+        <div id="erroresJs" class="dwm-alert dwm-alert-err" style="display:none;margin:0 0 16px"></div>
+
+        <div class="dwm-field">
+            <label asp-for="Contacto.Nombre">Nombre</label>
+            <input asp-for="Contacto.Nombre" placeholder="Tu nombre" />
+            <span asp-validation-for="Contacto.Nombre" class="field-error"></span>
+        </div>
+
+        <div class="dwm-field">
+            <label asp-for="Contacto.Email">Correo</label>
+            <input asp-for="Contacto.Email" placeholder="tucorreo@ejemplo.com" />
+            <span asp-validation-for="Contacto.Email" class="field-error"></span>
+        </div>
+
+        <div class="dwm-field">
+            <label asp-for="Contacto.Mensaje">Mensaje</label>
+            <textarea asp-for="Contacto.Mensaje" rows="5" maxlength="@MaxMensaje"
+                      placeholder="Cuéntanos qué reloj buscas…"
+                      oninput="contarCaracteres(this, 'contadorMsg', @MaxMensaje)"></textarea>
+            <span id="contadorMsg" style="font-size:11px;color:var(--ink-4)">0 / @MaxMensaje caracteres</span>
+            <span asp-validation-for="Contacto.Mensaje" class="field-error"></span>
+        </div>
+
+        <button type="submit" class="btn-primary">Enviar mensaje</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
