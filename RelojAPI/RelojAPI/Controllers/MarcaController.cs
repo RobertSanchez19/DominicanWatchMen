@@ -91,11 +91,18 @@ namespace RelojAPI.Controllers
         {
             _logger.LogInformation("DELETE /api/marca/{Id} - Eliminando marca", id);
 
-            var marca = await _context.Marcas.FindAsync(id);
+            var marca = await _context.Marcas.Include(m => m.Relojes).FirstOrDefaultAsync(m => m.Id == id);
             if (marca == null)
             {
                 _logger.LogWarning("Marca con Id {Id} no encontrada para eliminar", id);
                 return NotFound(new { mensaje = $"Marca con Id {id} no encontrada" });
+            }
+
+            // Proteccion: no permitir borrar una marca con relojes (evita perder los relojes en cascada).
+            if (marca.Relojes.Any())
+            {
+                _logger.LogWarning("Intento de eliminar marca {Id} con {Count} relojes", id, marca.Relojes.Count);
+                return BadRequest(new { mensaje = $"No se puede eliminar «{marca.Nombre}»: tiene {marca.Relojes.Count} reloj(es) asociado(s). Elimina o reasigna esos relojes primero." });
             }
 
             _context.Marcas.Remove(marca);
