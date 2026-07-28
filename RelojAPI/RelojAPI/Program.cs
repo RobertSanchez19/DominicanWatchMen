@@ -19,12 +19,17 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// CORS - permite que el frontend HTML llame a la API
+// CORS - solo origenes locales conocidos (en vez de AllowAnyOrigin, que deja
+// el API abierto a cualquier sitio). El frente Razor consume el API del lado
+// servidor y no depende de CORS; esta lista cubre clientes de navegador locales.
+// Los origenes se pueden ajustar en appsettings.json (Cors:AllowedOrigins).
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173", "https://localhost:5173" };
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(corsOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
