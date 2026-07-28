@@ -26,7 +26,10 @@ else
                 <div class="noticia-img-wrap">
                     @if (!string.IsNullOrEmpty(n.ImagenUrl))
                     {
-                        <img src="@n.ImagenUrl" alt="@n.Titulo" class="noticia-img" loading="lazy" />
+                        <!-- Si la imagen falla (rota/bloqueada), se oculta y aparece el placeholder -->
+                        <img src="@n.ImagenUrl" alt="@n.Titulo" class="noticia-img" loading="lazy"
+                             onerror="this.style.display='none';var s=this.nextElementSibling;if(s){s.style.display='flex';}" />
+                        <div class="noticia-placeholder" style="display:none">📰</div>
                     }
                     else
                     {

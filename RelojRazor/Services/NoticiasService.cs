@@ -29,10 +29,12 @@ namespace RelojRazor.Services
 
             try
             {
-                // Búsqueda enfocada en relojería (marcas + términos), más recientes primero.
-                // Pedimos bastantes y luego filtramos por relevancia para quedarnos con 12 buenas.
-                var q = Uri.EscapeDataString("\"relojes de lujo\" OR relojería OR smartwatch OR Rolex OR Seiko OR Omega");
-                var url = $"v2/everything?q={q}&language=es&sortBy=publishedAt&pageSize=40";
+                // Relojería CLÁSICA / mecánica / de lujo. Se busca en inglés porque ahí están
+                // las publicaciones especializadas (Hodinkee, Fratello...); en español casi no hay.
+                var q = Uri.EscapeDataString(
+                    "\"luxury watch\" OR \"mechanical watch\" OR \"swiss watch\" OR watchmaking OR wristwatch OR " +
+                    "Rolex OR \"Patek Philippe\" OR \"Audemars Piguet\" OR Omega OR \"TAG Heuer\" OR Cartier OR Tudor OR Breitling");
+                var url = $"v2/everything?q={q}&language=en&sortBy=publishedAt&pageSize=100";
 
                 using var req = new HttpRequestMessage(HttpMethod.Get, url);
                 req.Headers.Add("X-Api-Key", apiKey);
@@ -48,12 +50,27 @@ namespace RelojRazor.Services
                 if (!doc.RootElement.TryGetProperty("articles", out var articles))
                     return (Array.Empty<NoticiaReloj>(), null);
 
-                // Palabras que marcan una noticia como "de relojería" (filtro de relevancia).
-                var claves = new[]
+                // Señales fuertes de reloj CLÁSICO: marcas de lujo inequívocas...
+                var marcas = new[]
                 {
-                    "reloj", "watch", "smartwatch", "relojer", "cronógraf", "cronograf", "muñeca",
-                    "rolex", "seiko", "casio", "tissot", "tag heuer", "longines", "garmin",
-                    "hublot", "patek", "audemars", "g-shock"
+                    "rolex", "patek philippe", "audemars piguet", "tag heuer", "cartier",
+                    "tudor", "longines", "jaeger-lecoultre", "breitling", "hublot",
+                    "vacheron", "panerai", "grand seiko", "montblanc", "zenith", "seiko", "hodinkee"
+                };
+                // ...o frases claras de relojería tradicional (inglés y español).
+                var frases = new[]
+                {
+                    "luxury watch", "mechanical watch", "swiss watch", "wristwatch", "watchmaking",
+                    "chronograph", "dive watch", "pocket watch", "gmt watch", "automatic watch", "watch brand",
+                    "reloj de lujo", "reloj mecánico", "alta relojería", "reloj clásico"
+                };
+                // Se descartan smartwatches/digitales y falsos positivos frecuentes.
+                var excluir = new[]
+                {
+                    "smartwatch", "smart watch", "reloj inteligente", "apple watch", "galaxy watch",
+                    "wear os", "garmin", "fitbit", "amazfit", "xiaomi", "g-shock", "wearable",
+                    "omega-3", "omega 3", "coenzima", "kenny omega", "aew", "wwe", "wrestling",
+                    "fanfic", "archive of our own"
                 };
 
                 var lista = new List<NoticiaReloj>();
@@ -64,7 +81,10 @@ namespace RelojRazor.Services
 
                     var descripcion = Texto(a, "description");
                     var texto = (titulo + " " + descripcion).ToLowerInvariant();
-                    if (!claves.Any(k => texto.Contains(k))) continue; // descarta lo que no es de relojería
+                    // Debe tener una marca de lujo o una frase clara de relojería clásica...
+                    if (!marcas.Any(k => texto.Contains(k)) && !frases.Any(k => texto.Contains(k))) continue;
+                    // ...y no ser de relojes digitales/inteligentes ni un falso positivo.
+                    if (excluir.Any(k => texto.Contains(k))) continue;
 
                     lista.Add(new NoticiaReloj
                     {
