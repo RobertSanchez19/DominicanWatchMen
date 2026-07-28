@@ -12,15 +12,6 @@ function contarCaracteres(textarea, idContador, max) {
     contador.style.color = usados > max ? "#dc2626" : "";
 }
 
-// Calcula una cotizacion rapida (cantidad x precio) sin recargar la pagina.
-function calcularCotizacion() {
-    const cantidad = parseInt(document.getElementById("cotCantidad").value) || 0;
-    const precio = parseFloat(document.getElementById("cotPrecio").value) || 0;
-    const total = cantidad * precio;
-    const salida = document.getElementById("cotResultado");
-    salida.textContent = "RD$ " + total.toLocaleString("es-DO", { minimumFractionDigits: 2 });
-}
-
 // ============================================================
 //  Configurador de la pagina Detalle
 //  Recalcula precio y disponibilidad en vivo al cambiar maquina/pulsera.

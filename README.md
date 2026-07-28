@@ -76,7 +76,7 @@ Estructura y cumplimiento de requisitos (asignación Razor Pages):
   (incluye el enlace al carrito con contador de artículos).
 - **Elementos estáticos** en `wwwroot/` (CSS `dwm.css`/`site.css`, JS `site.js`, imágenes).
 - **JavaScript**: la página `Contacto` invoca funciones de `wwwroot/js/site.js`
-  (cotizador, contador de caracteres y validación); la página `Detalle` usa
+  (contador de caracteres y validación); la página `Detalle` usa
   `dwmConfigurar()` para recalcular precio y disponibilidad **en vivo** al elegir
   máquina/pulsera.
 - **`Program.cs` y `appsettings.json`** configurados; la URL del API se lee de
