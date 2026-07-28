@@ -54,6 +54,15 @@ dotnet run                  # levanta el API en http://localhost:5157
 > La cadena de conexión va en `appsettings.json`. Los datos sensibles (p. ej.
 > credenciales de correo para el 2FA) van en **user-secrets**, fuera del repo.
 
+> **Página de Noticias.** `RelojRazor` incluye una página `Noticias` que trae titulares
+> de relojería desde **NewsAPI**. La API key **no se versiona**: va en user-secrets del
+> proyecto `RelojRazor`:
+> ```bash
+> cd RelojRazor
+> dotnet user-secrets set "News:ApiKey" "TU_API_KEY_DE_NEWSAPI"
+> ```
+> Sin la key, la página muestra un aviso en vez de las noticias.
+
 ### 2) Front-end Razor Pages (RelojRazor)
 
 Desde `RelojRazor` (requiere el `RelojAPI` corriendo en `http://localhost:5157`):
@@ -68,7 +77,8 @@ dotnet run      # http://localhost:5173
 Estructura y cumplimiento de requisitos (asignación Razor Pages):
 
 - **Landing page** (`Pages/Index.cshtml`) + páginas adicionales: `Catalogo`, `Marcas`,
-  `Detalle`, `Carrito`, `Admin` y `Contacto`.
+  `Detalle`, `Carrito`, `Noticias`, `Login`/`Registro`/`Recuperar`/`Restablecer`,
+  `MiCuenta`, `Admin`, `Usuarios` y `Contacto`.
 - **Sintaxis Razor** en todos los `.cshtml`; propiedades del `.cshtml.cs` → `.cshtml`
   (p. ej. `Model.Destacados`) y del `.cshtml` → `.cshtml.cs` (formularios con
   `[BindProperty]` en `Admin`, `Contacto` y `Detalle`, búsqueda en `Catalogo`).

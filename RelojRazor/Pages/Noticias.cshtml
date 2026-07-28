@@ -1,0 +1,54 @@
+@page
+@model NoticiasModel
+@{
+    ViewData["Title"] = "Noticias";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Noticias de Relojería</h1>
+    <p class="page-sub">Titulares al día del mundo de los relojes, traídos en vivo desde un servicio externo (NewsAPI).</p>
+</div>
+
+@if (Model.Error is not null)
+{
+    <div class="error-msg">@Model.Error</div>
+}
+else if (Model.Noticias.Count == 0)
+{
+    <div class="empty-msg">No hay noticias disponibles en este momento.</div>
+}
+else
+{
+    <div class="noticias-grid">
+        @foreach (var n in Model.Noticias)
+        {
+            <a class="noticia-card" href="@n.Url" target="_blank" rel="noopener noreferrer">
+                <div class="noticia-img-wrap">
+                    @if (!string.IsNullOrEmpty(n.ImagenUrl))
+                    {
+                        <img src="@n.ImagenUrl" alt="@n.Titulo" class="noticia-img" loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="noticia-placeholder">📰</div>
+                    }
+                </div>
+                <div class="noticia-body">
+                    <div class="noticia-meta">
+                        <span class="noticia-fuente">@(n.Fuente ?? "Fuente")</span>
+                        @if (n.Fecha is not null)
+                        {
+                            <span class="noticia-fecha">@n.Fecha.Value.ToString("dd MMM yyyy")</span>
+                        }
+                    </div>
+                    <h3 class="noticia-titulo">@n.Titulo</h3>
+                    @if (!string.IsNullOrEmpty(n.Descripcion))
+                    {
+                        <p class="noticia-desc">@n.Descripcion</p>
+                    }
+                    <span class="noticia-leer">Leer más →</span>
+                </div>
+            </a>
+        }
+    </div>
+}

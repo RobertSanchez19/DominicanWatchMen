@@ -57,6 +57,15 @@ builder.Services.AddHttpClient("auth-api", client =>
 });
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Servicio de noticias (API externa NewsAPI). La URL base va en appsettings y la
+// API key en user-secrets (News:ApiKey), fuera del repositorio.
+builder.Services.AddHttpClient("news-api", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["News:BaseUrl"] ?? "https://newsapi.org/");
+    client.DefaultRequestHeaders.Add("User-Agent", "DominicanWatchMen/1.0");
+});
+builder.Services.AddScoped<INoticiasService, NoticiasService>();
+
 // Necesario para leer la sesion del usuario en las vistas (_Layout).
 builder.Services.AddHttpContextAccessor();
 

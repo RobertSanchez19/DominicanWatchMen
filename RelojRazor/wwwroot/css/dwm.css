@@ -2064,3 +2064,64 @@ a { text-decoration: none; color: inherit; }
     .carrito-wrap { padding: 16px 20px 40px; }
     .page-header { padding: 40px 24px 24px; }
 }
+
+/* ============================================================
+   NOTICIAS
+   ============================================================ */
+.noticias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    padding: 24px 60px 60px;
+    max-width: 1400px;
+}
+.noticia-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--white);
+    overflow: hidden;
+    color: inherit;
+    transition: all 0.3s var(--ease);
+}
+.noticia-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--border-dk);
+    box-shadow: 0 18px 44px rgba(0,0,0,0.12);
+}
+.noticia-img-wrap {
+    height: 180px;
+    background: var(--off-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.noticia-img { width: 100%; height: 100%; object-fit: cover; }
+.noticia-placeholder { font-size: 54px; opacity: 0.3; }
+.noticia-body { padding: 16px 18px 18px; display: flex; flex-direction: column; flex: 1; }
+.noticia-meta {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.noticia-fuente { color: var(--gold); }
+.noticia-fecha { color: var(--ink-4); }
+.noticia-titulo {
+    font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--ink);
+    margin: 0 0 8px; line-height: 1.35;
+}
+.noticia-desc {
+    font-size: 13px; color: var(--ink-3); line-height: 1.5; margin: 0 0 14px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.noticia-leer {
+    margin-top: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink);
+}
+.noticia-card:hover .noticia-leer { color: var(--gold); }
+
+@media (max-width: 640px) {
+    .noticias-grid { padding: 16px 20px 40px; }
+}
