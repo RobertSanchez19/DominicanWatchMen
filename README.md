@@ -1,47 +1,42 @@
-# Dominican Watch Men — Catálogo de Relojes
+# Dominican Watch Men — Catálogo de Relojes (Razor Pages)
 
 Proyecto de la asignatura **INF-387 Electiva II – Programación Web II** (UNPHU).
-Tienda y administración de relojes: un **Web API** en ASP.NET Core que alimenta
-**varios frentes**.
+Tienda y administración de relojes: un **front-end en ASP.NET Core Razor Pages**
+(`RelojRazor`) que consume un **Web API** REST (`RelojAPI`).
 
-> **⚠️ IMPORTANTE — ESTA ENTREGA ES EL FRENTE EN _RAZOR PAGES_ (`RelojRazor`).**
+> **⚠️ IMPORTANTE — ESTE PROYECTO ES 100% RAZOR PAGES.**
 >
-> **LO DE REACT (`dwm-react`, `Proyecto relojes`) Y BLAZOR (`RelojBlazor`) ES DEL
-> PROYECTO ANTERIOR Y NO TIENE NADA QUE VER CON ESTA ENTREGA NUEVA DE RAZOR. SE
-> CONSERVAN EN EL REPOSITORIO SOLO COMO REFERENCIA / HISTORIAL.**
+> **AQUÍ NO HAY NADA DE REACT NI DE BLAZOR: ESTA ENTREGA SON SOLO EL FRENTE EN
+> RAZOR (`RelojRazor`) Y SU API (`RelojAPI`). LA VERSIÓN ANTERIOR (REACT Y BLAZOR)
+> QUEDÓ GUARDADA APARTE, EN LA RAMA `backup-proyecto-anterior` Y EL TAG
+> `v1-antes-razor`, Y NO FORMA PARTE DE ESTA ENTREGA.**
 
 ## Estructura del repositorio
 
 | Proyecto | Tecnología | Descripción |
 |----------|------------|-------------|
 | **RelojAPI** | ASP.NET Core + EF Core + SQL Server | Web API REST (backend). Expone endpoints de relojes, marcas, usuarios, pedidos, tickets, carga de imágenes, etc. Es la única capa que habla con la base de datos. |
-| **dwm-react** | React 18 + Vite | Front-end en React **organizado por carpetas** (componentes, páginas, hooks, utils y capa de servicios). Consume el API. **Frente principal.** |
-| **Proyecto relojes** | React 18 + Babel (CDN) | Versión anterior del mismo front en un **único `index.html`** (sin build). Se conserva como referencia. |
-| **RelojBlazor** | Blazor Server (Razor) | Otro front que consume el mismo API. Catálogo, marcas, login y panel de administración. |
-| **RelojRazor** | ASP.NET Core **Razor Pages** | Front en Razor Pages (sin React ni Blazor). Landing page + catálogo, marcas, administración y contacto. Consume el mismo API mediante una clase de servicios inyectada. |
-
-> Todos los frentes consumen **el mismo `RelojAPI`** y muestran la misma
-> información porque comparten backend y base de datos.
+| **RelojRazor** | ASP.NET Core **Razor Pages** | Front en Razor Pages. Landing page + catálogo, detalle/configurador, carrito, marcas, administración y contacto. Consume el `RelojAPI` mediante una clase de servicios inyectada. |
 
 ### Versionado y respaldo del proyecto anterior
 
-Antes de incorporar el frente **Razor Pages** (`RelojRazor`) se dejó un respaldo
-inmutable del estado anterior del proyecto, en el **mismo repositorio**:
+Este `main` contiene **solo** el proyecto en Razor Pages (`RelojRazor`) y su API.
+La versión anterior (que incluía frentes en **React** y **Blazor**) se conservó
+congelada en el **mismo repositorio**, para no perder el historial:
 
 | Referencia | Qué contiene |
 |------------|--------------|
-| Rama `main` | Versión **al día** del proyecto (incluye ya el frente `RelojRazor`). |
-| Rama `backup-proyecto-anterior` | Copia congelada del proyecto **antes** de agregar Razor (solo API, React y Blazor). |
-| Etiqueta (tag) `v1-antes-razor` | Foto inmutable del **mismo** estado anterior (visible en *Tags/Releases*). |
+| Rama `main` | Entrega **actual**: solo Razor Pages (`RelojRazor`) + `RelojAPI`. |
+| Rama `backup-proyecto-anterior` | Copia congelada del proyecto anterior (API + React + Blazor). |
+| Etiqueta (tag) `v1-antes-razor` | Foto inmutable del mismo estado anterior (visible en *Tags/Releases*). |
 
-La rama de respaldo y la etiqueta apuntan al mismo commit y **no cambian**: `main`
-avanza con el trabajo nuevo sin afectar el respaldo. Para revisar el proyecto
-anterior basta con `git checkout v1-antes-razor` (o abrir la rama/tag en GitHub).
+La rama de respaldo y la etiqueta **no cambian**. Para revisar el proyecto anterior:
+`git checkout v1-antes-razor` (o abrir la rama/tag en GitHub).
 
 ## Tecnologías
 
-- .NET 9 / ASP.NET Core · Entity Framework Core (migraciones incluidas) · SQL Server
-- React 18 (JSX) · Vite · Blazor Server
+- .NET 9 / ASP.NET Core · **Razor Pages**
+- Entity Framework Core (migraciones incluidas) · SQL Server
 
 ---
 
@@ -59,38 +54,16 @@ dotnet run                  # levanta el API en http://localhost:5157
 > La cadena de conexión va en `appsettings.json`. Los datos sensibles (p. ej.
 > credenciales de correo para el 2FA) van en **user-secrets**, fuera del repo.
 
-### 2) Front-end React (dwm-react) — recomendado
-
-Desde `dwm-react`:
-
-```bash
-npm install     # instala dependencias (crea node_modules; no está en el repo)
-npm run dev     # servidor de desarrollo en http://localhost:8080
-npm run build   # compila a /dist para producción
-```
-
-### 3) Front-end React de un solo archivo (alternativa sin build)
-
-```bash
-python -m http.server 8080 --directory "Proyecto relojes"
-# abrir http://localhost:8080
-```
-
-### 4) Front-end Blazor (alternativa)
-
-Desde `RelojBlazor`:
-
-```bash
-dotnet run      # http://localhost:5126
-```
-
-### 5) Front-end Razor Pages (RelojRazor)
+### 2) Front-end Razor Pages (RelojRazor)
 
 Desde `RelojRazor` (requiere el `RelojAPI` corriendo en `http://localhost:5157`):
 
 ```bash
 dotnet run      # http://localhost:5173
 ```
+
+> También puedes usar los lanzadores `Iniciar DWM Razor.bat` y `Detener DWM Razor.bat`
+> en la raíz del repositorio, que levantan/detienen el API y el front juntos.
 
 Estructura y cumplimiento de requisitos (asignación Razor Pages):
 
@@ -125,55 +98,9 @@ la cantidad, y **añadir al carrito**.
   el valor enviado por el cliente).
 - El **carrito** vive en la **sesión** del usuario (`ICarritoService`/`Services/CarritoService.cs`,
   con `AddSession`/`UseSession` en `Program.cs`), por ser una selección temporal previa al
-  pedido. `Pages/Carrito.cshtml` lista las líneas con subtotal/total y permite **quitar** o
-  **vaciar**. El botón **Editar** de las tarjetas del catálogo sigue visible solo para el rol
-  `Admin`.
-
----
-
-## Estructura del front-end React (`dwm-react`)
-
-```
-dwm-react/
-├── index.html                 # shell mínimo (<div id="root">)
-├── vite.config.js
-├── package.json
-├── .env.development           # VITE_API_URL para desarrollo (localhost:5157)
-├── .env.production            # VITE_API_URL para producción
-├── .env.example              # plantilla
-└── src/
-    ├── main.jsx               # punto de entrada
-    ├── App.jsx                # arma la app + ruteo por hash
-    ├── config/
-    │   └── api.js             # lee la URL del API desde el .env
-    ├── services/
-    │   └── api.js             # TODAS las llamadas al backend (fetch)
-    ├── hooks/
-    │   └── useHashRoute.js
-    ├── utils/                 # getImageUrl, tarjeta, validarPassword, estados
-    ├── components/            # componentes reutilizables (Nav, Hero, Contador…)
-    │   └── admin/             # modales del panel de administración
-    ├── pages/                 # páginas (Checkout, Perfil, Admin, Taller, Soporte…)
-    └── styles/
-        └── index.css
-```
-
-### Configuración de la URL del API (buena práctica)
-
-La URL del API **no está quemada** en el código: se lee de una variable de
-entorno según el entorno de ejecución.
-
-- `.env.development` → `VITE_API_URL=http://localhost:5157` (con `npm run dev`)
-- `.env.production` → URL del servidor real (con `npm run build`)
-
-`src/config/api.js` la lee con `import.meta.env.VITE_API_URL`. Solo van ahí
-valores **no secretos** (una URL); los secretos reales viven en el backend.
-
-> **Nota para evaluación:** normalmente el archivo `.env` **no se sube** al repo
-> (está en `.gitignore`); se conservan versionados `.env.development`,
-> `.env.production` y `.env.example`. Para esta entrega se subió también el
-> `.env` local **únicamente con fines de evaluación**, para que se pueda revisar
-> la configuración. Solo contiene la URL del API, sin secretos.
+  pedido. `Pages/Carrito.cshtml` lista las líneas con **Subtotal + ITBIS (18%) + Total** y
+  permite **quitar** o **vaciar**. El botón **Editar** de las tarjetas del catálogo sigue
+  visible solo para el rol `Admin`.
 
 ---
 
