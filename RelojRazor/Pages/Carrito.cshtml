@@ -70,9 +70,22 @@ else
                 <button type="submit" class="btn-secondary"
                         onclick="return confirm('¿Vaciar todo el carrito?');">Vaciar carrito</button>
             </form>
-            <div class="carrito-total">
-                <span class="carrito-total-lbl">Total</span>
-                <span class="carrito-total-num">RD$ @Model.Total.ToString("N2")</span>
+
+            <!-- Desglose de totales (calculado en el servidor: subtotal + ITBIS 18%) -->
+            <div class="carrito-totales">
+                <div class="carrito-total-row">
+                    <span>Subtotal</span>
+                    <span>RD$ @Model.Subtotal.ToString("N2")</span>
+                </div>
+                <div class="carrito-total-row">
+                    <span>ITBIS (18%)</span>
+                    <span>RD$ @Model.Itbis.ToString("N2")</span>
+                </div>
+                <div class="carrito-total-row carrito-total-final">
+                    <span>Total</span>
+                    <span>RD$ @Model.Total.ToString("N2")</span>
+                </div>
+                <p class="carrito-nota">El costo de envío se calcula al finalizar la compra según la provincia.</p>
             </div>
         </div>
     </div>

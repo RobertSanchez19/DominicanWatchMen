@@ -2,7 +2,13 @@
 
 Proyecto de la asignatura **INF-387 Electiva II – Programación Web II** (UNPHU).
 Tienda y administración de relojes: un **Web API** en ASP.NET Core que alimenta
-**varios frentes** (React y Blazor).
+**varios frentes**.
+
+> **⚠️ IMPORTANTE — ESTA ENTREGA ES EL FRENTE EN _RAZOR PAGES_ (`RelojRazor`).**
+>
+> **LO DE REACT (`dwm-react`, `Proyecto relojes`) Y BLAZOR (`RelojBlazor`) ES DEL
+> PROYECTO ANTERIOR Y NO TIENE NADA QUE VER CON ESTA ENTREGA NUEVA DE RAZOR. SE
+> CONSERVAN EN EL REPOSITORIO SOLO COMO REFERENCIA / HISTORIAL.**
 
 ## Estructura del repositorio
 

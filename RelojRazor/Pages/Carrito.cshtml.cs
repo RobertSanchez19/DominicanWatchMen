@@ -13,8 +13,13 @@ public class CarritoModel : PageModel
 
     public CarritoModel(ICarritoService carrito) => _carrito = carrito;
 
+    // Tasa de ITBIS en Republica Dominicana (18%).
+    public const decimal TasaItbis = 0.18m;
+
     // Datos que pasan del PageModel (.cshtml.cs) a la vista (.cshtml).
     public IReadOnlyList<CarritoItem> Items { get; private set; } = new List<CarritoItem>();
+    public decimal Subtotal { get; private set; }
+    public decimal Itbis { get; private set; }
     public decimal Total { get; private set; }
 
     public void OnGet() => Cargar();
@@ -34,6 +39,9 @@ public class CarritoModel : PageModel
     private void Cargar()
     {
         Items = _carrito.ObtenerItems();
-        Total = _carrito.Total();
+        Subtotal = _carrito.Total();
+        // ITBIS calculado sobre el subtotal, redondeado a 2 decimales.
+        Itbis = Math.Round(Subtotal * TasaItbis, 2, MidpointRounding.AwayFromZero);
+        Total = Subtotal + Itbis;
     }
 }
