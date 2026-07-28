@@ -17,6 +17,21 @@ Tienda y administración de relojes: un **Web API** en ASP.NET Core que alimenta
 > Todos los frentes consumen **el mismo `RelojAPI`** y muestran la misma
 > información porque comparten backend y base de datos.
 
+### Versionado y respaldo del proyecto anterior
+
+Antes de incorporar el frente **Razor Pages** (`RelojRazor`) se dejó un respaldo
+inmutable del estado anterior del proyecto, en el **mismo repositorio**:
+
+| Referencia | Qué contiene |
+|------------|--------------|
+| Rama `main` | Versión **al día** del proyecto (incluye ya el frente `RelojRazor`). |
+| Rama `backup-proyecto-anterior` | Copia congelada del proyecto **antes** de agregar Razor (solo API, React y Blazor). |
+| Etiqueta (tag) `v1-antes-razor` | Foto inmutable del **mismo** estado anterior (visible en *Tags/Releases*). |
+
+La rama de respaldo y la etiqueta apuntan al mismo commit y **no cambian**: `main`
+avanza con el trabajo nuevo sin afectar el respaldo. Para revisar el proyecto
+anterior basta con `git checkout v1-antes-razor` (o abrir la rama/tag en GitHub).
+
 ## Tecnologías
 
 - .NET 9 / ASP.NET Core · Entity Framework Core (migraciones incluidas) · SQL Server
