@@ -1,0 +1,96 @@
+@page
+@model MarcaDetalleModel
+@{
+    ViewData["Title"] = Model.Marca?.Nombre ?? "Marca";
+}
+
+@if (Model.Marca is null)
+{
+    <div class="page-header"><h1 class="page-title">Marca no disponible</h1></div>
+    <div class="error-msg">@Model.Error</div>
+    <div style="padding:0 60px 40px"><a class="btn-secondary" href="/Marcas">← Volver a marcas</a></div>
+}
+else
+{
+    var marca = Model.Marca;
+
+    <div class="detalle-top">
+        <a class="detalle-volver" href="/Marcas">← Volver a marcas</a>
+    </div>
+
+    <!-- ===== CABECERA DE LA MARCA ===== -->
+    <div class="mkdet-head">
+        <div class="mkdet-logo">
+            @if (!string.IsNullOrEmpty(marca.LogoUrl))
+            {
+                <img src="@marca.LogoUrl" alt="@marca.Nombre" />
+            }
+            else
+            {
+                <span class="mkdet-inicial">@(string.IsNullOrEmpty(marca.Nombre) ? "?" : marca.Nombre[..1])</span>
+            }
+        </div>
+        <div class="mkdet-info">
+            <h1 class="mkdet-nombre">@marca.Nombre</h1>
+            @if (!string.IsNullOrEmpty(marca.PaisOrigen))
+            {
+                <span class="mkdet-pais">📍 @marca.PaisOrigen</span>
+            }
+            <span class="mkdet-count">@marca.Relojes.Count modelo(s) en catálogo</span>
+        </div>
+    </div>
+
+    <!-- ===== DESCRIPCIÓN / INFORMACIÓN ===== -->
+    <div class="mkdet-desc-wrap">
+        <h2 class="section-title" style="font-size:20px;margin-bottom:10px">Sobre la marca</h2>
+        @if (!string.IsNullOrWhiteSpace(marca.Descripcion))
+        {
+            <p class="mkdet-desc">@marca.Descripcion</p>
+        }
+        else
+        {
+            <p class="mkdet-desc" style="color:var(--ink-4)">
+                Aún no hay información de esta marca. Un administrador puede autocompletarla
+                desde «Gestión de marcas».
+            </p>
+        }
+    </div>
+
+    <!-- ===== RELOJES DE LA MARCA ===== -->
+    <div class="page-header" style="background:var(--white);border-top:1px solid var(--border)">
+        <h2 class="page-title" style="font-size:24px">Relojes de @marca.Nombre</h2>
+    </div>
+
+    @if (marca.Relojes.Count == 0)
+    {
+        <div class="empty-msg">Esta marca aún no tiene relojes en el catálogo.</div>
+    }
+    else
+    {
+        <div class="relojes-grid">
+            @foreach (var reloj in marca.Relojes)
+            {
+                <div class="reloj-card">
+                    <a class="reloj-card-link" href="/Detalle?id=@reloj.Id">
+                        <div class="reloj-img-wrapper">
+                            @if (!string.IsNullOrEmpty(reloj.ImagenUrl))
+                            {
+                                <img src="@reloj.ImagenUrl" alt="@reloj.Nombre" class="reloj-img" />
+                            }
+                            else
+                            {
+                                <div class="reloj-placeholder">⌚</div>
+                            }
+                        </div>
+                        <div class="reloj-info">
+                            <h3 class="reloj-nombre">@reloj.Nombre</h3>
+                            <p class="reloj-modelo">@reloj.Modelo</p>
+                            <p class="reloj-precio">RD$ @reloj.Precio.ToString("N2")</p>
+                            <span class="reloj-cta">Ver y configurar →</span>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+}

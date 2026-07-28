@@ -79,6 +79,19 @@ namespace RelojRazor.Services
             return result ?? Enumerable.Empty<Marca>();
         }
 
+        public async Task<Marca?> GetMarcaByIdAsync(int id)
+        {
+            _logger.LogInformation("Consultando marca Id {Id}", id);
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<Marca>($"api/marca/{id}");
+            }
+            catch (HttpRequestException)
+            {
+                return null;
+            }
+        }
+
         public async Task<Marca?> CreateMarcaAsync(Marca marca)
         {
             _logger.LogInformation("Creando marca: {Nombre}", marca.Nombre);
