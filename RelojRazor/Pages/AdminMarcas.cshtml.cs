@@ -38,7 +38,10 @@ public class AdminMarcasModel : PageModel
         if (editId is int id && id > 0)
         {
             var marca = await _relojService.GetMarcaByIdAsync(id);
-            if (marca is not null) Input = marca;
+            if (marca is not null)
+                Input = marca;
+            else
+                Error = "La marca que intentas editar ya no existe (pudo ser eliminada). Recarga la lista.";
         }
     }
 
@@ -82,7 +85,7 @@ public class AdminMarcasModel : PageModel
             else
             {
                 var actualizada = await _relojService.UpdateMarcaAsync(Input.Id, Input);
-                if (actualizada is null) Error = "No se pudo actualizar la marca. Verifica que el RelojAPI esté corriendo.";
+                if (actualizada is null) Error = "No se pudo actualizar la marca. Puede que ya no exista (recarga la lista) o que el API no responda.";
                 else { Mensaje = $"Marca «{actualizada.Nombre}» actualizada correctamente."; Input = new Marca(); }
             }
         }
