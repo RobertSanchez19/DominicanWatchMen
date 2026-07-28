@@ -63,7 +63,16 @@ a { text-decoration: none; color: inherit; }
 }
 
 .dwm-logo-icon {
-    font-size: 26px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    /* El favicon trae su propio fondo oscuro; sobre la cabecera (tambien oscura)
+       se perderia. Un chip claro lo hace resaltar con forma definida. */
+    background: var(--gold-pale);
+    padding: 3px;
+    box-sizing: border-box;
+    display: block;
+    flex-shrink: 0;
 }
 
 .dwm-logo-name {
