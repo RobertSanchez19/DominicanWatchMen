@@ -1,0 +1,115 @@
+@page
+@model AdminMarcasModel
+@{
+    ViewData["Title"] = "Gestión de marcas";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Gestión de Marcas</h1>
+    <p class="page-sub">Crea marcas y autocompleta su descripción y logo desde la web (Wikipedia, gratis).</p>
+</div>
+
+@if (Model.Mensaje is not null)
+{
+    <div class="dwm-alert dwm-alert-ok">@Model.Mensaje</div>
+}
+@if (Model.Error is not null)
+{
+    <div class="dwm-alert dwm-alert-err">@Model.Error</div>
+}
+@if (Model.AvisoAuto is not null)
+{
+    <div class="dwm-alert" style="background:var(--warm-grey);color:var(--ink-2)">@Model.AvisoAuto</div>
+}
+
+<!-- ===== FORMULARIO ===== -->
+<form method="post" class="dwm-form">
+    <h2 class="section-title" style="font-size:24px">Nueva marca</h2>
+
+    <div class="dwm-field">
+        <label asp-for="Input.Nombre">Nombre</label>
+        <div style="display:flex;gap:10px">
+            <input asp-for="Input.Nombre" placeholder="Ej. Rolex, Seiko, TAG Heuer" style="flex:1" />
+            <!-- Autocompletar: envía solo el nombre y rellena el resto del formulario -->
+            <button type="submit" asp-page-handler="Autocompletar" class="btn-secondary" style="white-space:nowrap">✨ Autocompletar</button>
+        </div>
+    </div>
+
+    <div class="dwm-field">
+        <label asp-for="Input.PaisOrigen">País de origen</label>
+        <input asp-for="Input.PaisOrigen" placeholder="Ej. Suiza, Japón" />
+    </div>
+
+    <div class="dwm-field">
+        <label asp-for="Input.Descripcion">Descripción</label>
+        <textarea asp-for="Input.Descripcion" rows="4" placeholder="Se autocompleta desde Wikipedia; puedes editarla."></textarea>
+    </div>
+
+    <div class="dwm-field">
+        <label asp-for="Input.LogoUrl">Logo (URL)</label>
+        <input asp-for="Input.LogoUrl" placeholder="Se autocompleta desde Clearbit" />
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Input.LogoUrl))
+    {
+        <div class="dwm-field">
+            <span style="font-size:11px;color:var(--ink-4)">Vista previa del logo:</span><br />
+            <img src="@Model.Input.LogoUrl" alt="Logo" class="admin-logo-preview" />
+        </div>
+    }
+
+    <div class="form-actions">
+        <button type="submit" asp-page-handler="Guardar" class="btn-primary">Crear marca</button>
+    </div>
+</form>
+
+<!-- ===== LISTADO ===== -->
+<div class="page-header" style="background:var(--white);border-top:1px solid var(--border)">
+    <h2 class="page-title" style="font-size:26px">Marcas registradas</h2>
+</div>
+
+@if (Model.Marcas.Count == 0)
+{
+    <div class="empty-msg">No hay marcas registradas.</div>
+}
+else
+{
+    <table class="dwm-table">
+        <thead>
+            <tr>
+                <th>Logo</th>
+                <th>Nombre</th>
+                <th>País</th>
+                <th>Modelos</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var marca in Model.Marcas)
+            {
+                <tr>
+                    <td>
+                        @if (!string.IsNullOrEmpty(marca.LogoUrl))
+                        {
+                            <img src="@marca.LogoUrl" alt="@marca.Nombre" class="dwm-mini-thumb" />
+                        }
+                        else
+                        {
+                            <span>🏷️</span>
+                        }
+                    </td>
+                    <td>@marca.Nombre</td>
+                    <td>@(string.IsNullOrEmpty(marca.PaisOrigen) ? "—" : marca.PaisOrigen)</td>
+                    <td>@marca.Relojes.Count</td>
+                    <td class="dwm-table-actions">
+                        <form method="post" asp-page-handler="Eliminar" asp-route-id="@marca.Id" style="display:inline">
+                            <button type="submit" class="danger"
+                                    style="background:none;border:none;cursor:pointer;color:#dc2626;font-weight:600;font-size:11px"
+                                    onclick="return confirm('¿Eliminar esta marca?');">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

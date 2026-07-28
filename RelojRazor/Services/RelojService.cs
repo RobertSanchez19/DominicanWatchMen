@@ -78,5 +78,20 @@ namespace RelojRazor.Services
             _logger.LogInformation("Se obtuvieron {Count} marcas", result?.Count() ?? 0);
             return result ?? Enumerable.Empty<Marca>();
         }
+
+        public async Task<Marca?> CreateMarcaAsync(Marca marca)
+        {
+            _logger.LogInformation("Creando marca: {Nombre}", marca.Nombre);
+            var response = await _httpClient.PostAsJsonAsync("api/marca", marca);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<Marca>();
+        }
+
+        public async Task<bool> DeleteMarcaAsync(int id)
+        {
+            _logger.LogInformation("Eliminando marca Id {Id}", id);
+            var response = await _httpClient.DeleteAsync($"api/marca/{id}");
+            return response.IsSuccessStatusCode;
+        }
     }
 }

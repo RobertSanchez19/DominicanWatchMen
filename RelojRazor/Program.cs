@@ -11,6 +11,7 @@ builder.Services.AddRazorPages(options =>
 {
     // "Administración" y "Usuarios" solo para el rol Admin.
     options.Conventions.AuthorizePage("/Admin", "SoloAdmin");
+    options.Conventions.AuthorizePage("/AdminMarcas", "SoloAdmin");
     options.Conventions.AuthorizePage("/Usuarios", "SoloAdmin");
     // "Mi cuenta" requiere sesion (cualquier rol).
     options.Conventions.AuthorizePage("/MiCuenta");
@@ -65,6 +66,14 @@ builder.Services.AddHttpClient("news-api", client =>
     client.DefaultRequestHeaders.Add("User-Agent", "DominicanWatchMen/1.0");
 });
 builder.Services.AddScoped<INoticiasService, NoticiasService>();
+
+// Servicio de enriquecimiento de marcas (Wikipedia + Clearbit, gratis y sin key).
+builder.Services.AddHttpClient("marca-web", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(8);
+    client.DefaultRequestHeaders.Add("User-Agent", "DominicanWatchMen/1.0 (proyecto educativo UNPHU)");
+});
+builder.Services.AddScoped<IMarcaWebService, MarcaWebService>();
 
 // Necesario para leer la sesion del usuario en las vistas (_Layout).
 builder.Services.AddHttpContextAccessor();
