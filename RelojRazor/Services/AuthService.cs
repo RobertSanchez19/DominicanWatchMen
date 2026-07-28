@@ -99,6 +99,52 @@ namespace RelojRazor.Services
             }
         }
 
+        public async Task<(bool Enviado, string? EnlaceDemo, string Mensaje)> RecuperarAsync(string email)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/usuario/recuperar", new { email });
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var root = doc.RootElement;
+
+                var enviado = root.TryGetProperty("enviado", out var e) && e.ValueKind == JsonValueKind.True;
+                string? enlaceDemo = root.TryGetProperty("enlaceDemo", out var ed) && ed.ValueKind == JsonValueKind.String
+                    ? ed.GetString() : null;
+
+                // Por seguridad el mensaje es siempre el mismo (no revela si el correo existe).
+                var mensaje = enviado
+                    ? "Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo."
+                    : "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.";
+                return (enviado, enlaceDemo, mensaje);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al solicitar recuperación de contraseña");
+                return (false, null, "No se pudo conectar con el servidor.");
+            }
+        }
+
+        public async Task<(bool Exito, string? Error)> RestablecerAsync(string token, string nuevaPassword)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/usuario/restablecer",
+                    new { token, nuevaPassword });
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var msg = await LeerMensajeError(response);
+                    return (false, msg ?? "El enlace es inválido o ya expiró.");
+                }
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al restablecer contraseña");
+                return (false, "No se pudo conectar con el servidor.");
+            }
+        }
+
         public async Task<IEnumerable<Usuario>> GetUsuariosAsync()
         {
             var result = await _httpClient.GetFromJsonAsync<IEnumerable<Usuario>>("api/usuario", JsonOpts());

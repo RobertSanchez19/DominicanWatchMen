@@ -1,0 +1,47 @@
+@page
+@model RestablecerModel
+@{
+    ViewData["Title"] = "Restablecer contraseña";
+}
+
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="login-logo">
+            <img src="~/favicon.svg" alt="DWM" class="login-logo-icon" width="46" height="46" />
+            <div class="login-logo-name">Dominican Watch Men</div>
+            <div class="login-logo-sub">Nueva contraseña</div>
+        </div>
+
+        @if (Model.Exito)
+        {
+            <div class="dwm-alert dwm-alert-ok" style="margin:0 0 16px">
+                ¡Listo! Tu contraseña fue restablecida. Ya puedes iniciar sesión.
+            </div>
+            <a href="/Login" class="btn-primary login-btn" style="text-align:center">Iniciar sesión</a>
+        }
+        else
+        {
+            @if (!string.IsNullOrEmpty(Model.Error))
+            {
+                <div class="login-error">@Model.Error</div>
+            }
+
+            <form method="post" class="login-form">
+                <input type="hidden" asp-for="Token" />
+                <div class="form-group">
+                    <label class="form-label">Nueva contraseña</label>
+                    <input type="password" asp-for="NuevaPassword" class="form-input" placeholder="Mínimo 8 caracteres" autofocus />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirmar contraseña</label>
+                    <input type="password" asp-for="ConfirmarPassword" class="form-input" placeholder="Repite la contraseña" />
+                </div>
+                <button type="submit" class="btn-primary login-btn">Guardar contraseña</button>
+            </form>
+        }
+
+        <div class="login-back">
+            <a href="/Login" class="login-back-link">← Volver a iniciar sesión</a>
+        </div>
+    </div>
+</div>

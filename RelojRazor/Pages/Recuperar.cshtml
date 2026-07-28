@@ -1,0 +1,47 @@
+@page
+@model RecuperarModel
+@{
+    ViewData["Title"] = "Recuperar contraseña";
+}
+
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="login-logo">
+            <img src="~/favicon.svg" alt="DWM" class="login-logo-icon" width="46" height="46" />
+            <div class="login-logo-name">Dominican Watch Men</div>
+            <div class="login-logo-sub">Recuperar contraseña</div>
+        </div>
+
+        @if (Model.Enviado)
+        {
+            <div class="dwm-alert dwm-alert-ok" style="margin:0 0 16px">@Model.Mensaje</div>
+
+            @* En modo demo (sin correo configurado) el API devuelve el enlace para poder probar. *@
+            @if (!string.IsNullOrEmpty(Model.EnlaceDemo))
+            {
+                <div class="dwm-alert" style="margin:0 0 16px;background:var(--warm-grey);color:var(--ink-2)">
+                    <strong>Modo demo (sin correo configurado).</strong><br />
+                    Usa este enlace para restablecer tu contraseña:<br />
+                    <a href="@Model.EnlaceDemo" class="login-back-link" style="word-break:break-all">@Model.EnlaceDemo</a>
+                </div>
+            }
+        }
+        else
+        {
+            <p style="font-size:13px;color:var(--ink-3);text-align:center;margin:0 0 18px">
+                Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva contraseña.
+            </p>
+            <form method="post" class="login-form">
+                <div class="form-group">
+                    <label class="form-label">Correo electrónico</label>
+                    <input type="email" asp-for="Email" class="form-input" placeholder="tucorreo@ejemplo.com" autofocus />
+                </div>
+                <button type="submit" class="btn-primary login-btn">Enviar enlace</button>
+            </form>
+        }
+
+        <div class="login-back">
+            <a href="/Login" class="login-back-link">← Volver a iniciar sesión</a>
+        </div>
+    </div>
+</div>

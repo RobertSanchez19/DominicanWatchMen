@@ -220,8 +220,8 @@ namespace RelojAPI.Controllers
             usuario.ResetTokenExpira = DateTime.UtcNow.AddMinutes(30);
             await _context.SaveChangesAsync();
 
-            var baseUrl = (_cfg["Frontend:BaseUrl"] ?? "http://localhost:8080").TrimEnd('/');
-            var enlace = $"{baseUrl}/#/restablecer/{token}";
+            var baseUrl = (_cfg["Frontend:BaseUrl"] ?? "http://localhost:5173").TrimEnd('/');
+            var enlace = $"{baseUrl}/Restablecer?token={token}";
             var cuerpo = $"Hola {usuario.Nombre},\n\nRecibimos una solicitud para restablecer tu contraseña. " +
                          $"Haz clic en el siguiente enlace para crear una nueva (valido por 30 minutos):\n\n{enlace}\n\n" +
                          "Si no fuiste tu, ignora este correo.\n\nDominican Watch Men";

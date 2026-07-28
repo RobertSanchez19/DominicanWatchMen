@@ -19,6 +19,11 @@ namespace RelojRazor.Interfaces
         Task<LoginResultado> Verificar2FAAsync(int usuarioId, string codigo);
         Task<(bool Exito, string? Error)> RegistrarAsync(string nombre, string apellido, string email, string password, string? telefono, string? direccion);
 
+        // Recuperacion de contraseña (usa los endpoints recuperar/restablecer del API).
+        // EnlaceDemo trae el enlace listo cuando no hay correo configurado (modo demo).
+        Task<(bool Enviado, string? EnlaceDemo, string Mensaje)> RecuperarAsync(string email);
+        Task<(bool Exito, string? Error)> RestablecerAsync(string token, string nuevaPassword);
+
         // Gestion (solo admin)
         Task<IEnumerable<Usuario>> GetUsuariosAsync();
         Task<bool> CambiarRolAsync(int id, string rol);
