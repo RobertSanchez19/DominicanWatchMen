@@ -24,6 +24,14 @@ namespace RelojRazor.Services
 
         public async Task<Pieza?> CreatePiezaAsync(Pieza pieza)
         {
+            // El binding de Razor deja los campos vacios en null; el API/BD no aceptan
+            // null en estos strings, asi que los normalizamos a cadena vacia.
+            pieza.Categoria ??= string.Empty;
+            pieza.Nombre ??= string.Empty;
+            pieza.Tipo ??= string.Empty;
+            pieza.Color ??= string.Empty;
+            pieza.Material ??= string.Empty;
+
             _logger.LogInformation("Creando pieza: {Categoria} {Nombre}", pieza.Categoria, pieza.Nombre);
             var response = await _http.PostAsJsonAsync("api/pieza", pieza);
             if (!response.IsSuccessStatusCode) return null;

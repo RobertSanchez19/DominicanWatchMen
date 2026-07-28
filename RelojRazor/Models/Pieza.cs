@@ -14,9 +14,10 @@ namespace RelojRazor.Models
         [Required(ErrorMessage = "El nombre es obligatorio")]
         public string Nombre { get; set; } = string.Empty;
 
-        public string Tipo { get; set; } = string.Empty;
-        public string Color { get; set; } = string.Empty;
-        public string Material { get; set; } = string.Empty;
+        // Opcionales: si se dejan vacíos, el servicio los envía como cadena vacía al API.
+        public string? Tipo { get; set; }
+        public string? Color { get; set; }
+        public string? Material { get; set; }
 
         [Range(0, 100000, ErrorMessage = "El stock no puede ser negativo")]
         public int Stock { get; set; }

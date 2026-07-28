@@ -94,9 +94,20 @@ namespace RelojRazor.Services
 
         public async Task<Marca?> CreateMarcaAsync(Marca marca)
         {
+            // El binding de Razor convierte los campos vacios en null; el API/BD no
+            // aceptan null en estos strings, asi que los normalizamos a cadena vacia.
+            marca.Nombre ??= string.Empty;
+            marca.PaisOrigen ??= string.Empty;
+            marca.Descripcion ??= string.Empty;
+
             _logger.LogInformation("Creando marca: {Nombre}", marca.Nombre);
             var response = await _httpClient.PostAsJsonAsync("api/marca", marca);
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("CrearMarca fallo {Status}: {Body}", (int)response.StatusCode, body);
+                return null;
+            }
             return await response.Content.ReadFromJsonAsync<Marca>();
         }
 
