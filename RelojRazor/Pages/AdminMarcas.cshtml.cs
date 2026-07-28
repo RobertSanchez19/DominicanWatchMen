@@ -27,7 +27,20 @@ public class AdminMarcasModel : PageModel
     public string? Error { get; set; }
     public string? AvisoAuto { get; set; }
 
-    public async Task OnGetAsync() => await CargarAsync();
+    // true cuando el formulario esta editando una marca existente (no creando).
+    public bool Editando => Input.Id != 0;
+
+    public async Task OnGetAsync(int? editId)
+    {
+        await CargarAsync();
+
+        // Si viene un editId, precargamos esa marca en el formulario.
+        if (editId is int id && id > 0)
+        {
+            var marca = await _relojService.GetMarcaByIdAsync(id);
+            if (marca is not null) Input = marca;
+        }
+    }
 
     // Autocompletar: busca descripción y logo por el nombre y rellena el formulario.
     public async Task<IActionResult> OnPostAutocompletarAsync()
@@ -60,14 +73,23 @@ public class AdminMarcasModel : PageModel
 
         try
         {
-            var creada = await _relojService.CreateMarcaAsync(Input);
-            if (creada is null) Error = "No se pudo crear la marca. Verifica que el RelojAPI esté corriendo.";
-            else { Mensaje = $"Marca «{creada.Nombre}» creada correctamente."; Input = new Marca(); }
+            if (Input.Id == 0)
+            {
+                var creada = await _relojService.CreateMarcaAsync(Input);
+                if (creada is null) Error = "No se pudo crear la marca. Verifica que el RelojAPI esté corriendo.";
+                else { Mensaje = $"Marca «{creada.Nombre}» creada correctamente."; Input = new Marca(); }
+            }
+            else
+            {
+                var actualizada = await _relojService.UpdateMarcaAsync(Input.Id, Input);
+                if (actualizada is null) Error = "No se pudo actualizar la marca. Verifica que el RelojAPI esté corriendo.";
+                else { Mensaje = $"Marca «{actualizada.Nombre}» actualizada correctamente."; Input = new Marca(); }
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "AdminMarcas: fallo al crear la marca");
-            Error = "No se pudo crear la marca.";
+            _logger.LogError(ex, "AdminMarcas: fallo al guardar la marca");
+            Error = "No se pudo guardar la marca.";
         }
 
         await CargarAsync();

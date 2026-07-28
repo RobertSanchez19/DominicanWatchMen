@@ -24,7 +24,8 @@
 
 <!-- ===== FORMULARIO ===== -->
 <form method="post" class="dwm-form">
-    <h2 class="section-title" style="font-size:24px">Nueva marca</h2>
+    <input type="hidden" asp-for="Input.Id" />
+    <h2 class="section-title" style="font-size:24px">@(Model.Editando ? "Editar marca" : "Nueva marca")</h2>
 
     <div class="dwm-field">
         <label asp-for="Input.Nombre">Nombre</label>
@@ -47,7 +48,7 @@
 
     <div class="dwm-field">
         <label asp-for="Input.LogoUrl">Logo (URL)</label>
-        <input asp-for="Input.LogoUrl" placeholder="Se autocompleta desde Clearbit" />
+        <input asp-for="Input.LogoUrl" placeholder="Se autocompleta desde Wikipedia" />
     </div>
 
     @if (!string.IsNullOrEmpty(Model.Input.LogoUrl))
@@ -59,7 +60,11 @@
     }
 
     <div class="form-actions">
-        <button type="submit" asp-page-handler="Guardar" class="btn-primary">Crear marca</button>
+        <button type="submit" asp-page-handler="Guardar" class="btn-primary">@(Model.Editando ? "Guardar cambios" : "Crear marca")</button>
+        @if (Model.Editando)
+        {
+            <a href="/AdminMarcas" class="btn-secondary">Cancelar</a>
+        }
     </div>
 </form>
 
@@ -102,6 +107,7 @@ else
                     <td>@(string.IsNullOrEmpty(marca.PaisOrigen) ? "—" : marca.PaisOrigen)</td>
                     <td>@marca.Relojes.Count</td>
                     <td class="dwm-table-actions">
+                        <a href="/AdminMarcas?editId=@marca.Id">Editar</a>
                         <form method="post" asp-page-handler="Eliminar" asp-route-id="@marca.Id" style="display:inline">
                             <button type="submit" class="danger"
                                     style="background:none;border:none;cursor:pointer;color:#dc2626;font-weight:600;font-size:11px"

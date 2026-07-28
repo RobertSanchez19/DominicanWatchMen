@@ -111,6 +111,25 @@ namespace RelojRazor.Services
             return await response.Content.ReadFromJsonAsync<Marca>();
         }
 
+        public async Task<Marca?> UpdateMarcaAsync(int id, Marca marca)
+        {
+            // El binding de Razor convierte los campos vacios en null; el API/BD no
+            // aceptan null en estos strings, asi que los normalizamos a cadena vacia.
+            marca.Nombre ??= string.Empty;
+            marca.PaisOrigen ??= string.Empty;
+            marca.Descripcion ??= string.Empty;
+
+            _logger.LogInformation("Actualizando marca Id {Id}", id);
+            var response = await _httpClient.PutAsJsonAsync($"api/marca/{id}", marca);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("ActualizarMarca fallo {Status}: {Body}", (int)response.StatusCode, body);
+                return null;
+            }
+            return await response.Content.ReadFromJsonAsync<Marca>();
+        }
+
         public async Task<bool> DeleteMarcaAsync(int id)
         {
             _logger.LogInformation("Eliminando marca Id {Id}", id);

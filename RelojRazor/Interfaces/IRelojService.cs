@@ -17,6 +17,7 @@ namespace RelojRazor.Interfaces
         Task<IEnumerable<Marca>> GetMarcasAsync();
         Task<Marca?> GetMarcaByIdAsync(int id);
         Task<Marca?> CreateMarcaAsync(Marca marca);
+        Task<Marca?> UpdateMarcaAsync(int id, Marca marca);
         Task<bool> DeleteMarcaAsync(int id);
     }
 }
