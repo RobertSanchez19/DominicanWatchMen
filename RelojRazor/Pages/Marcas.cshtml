@@ -23,14 +23,11 @@ else
         {
             <!-- Cada marca abre su página de detalle con la información de la casa relojera -->
             <a class="marca-card" href="/MarcaDetalle?id=@marca.Id">
-                @if (!string.IsNullOrEmpty(marca.LogoUrl))
-                {
-                    <img src="@marca.LogoUrl" alt="@marca.Nombre" class="marca-logo" />
-                }
-                else
-                {
-                    <div class="marca-inicial">@(string.IsNullOrEmpty(marca.Nombre) ? "?" : marca.Nombre[..1])</div>
-                }
+                <!-- Logo guardado o, si no tiene, el favicon de la marca. Si la imagen
+                     falla, se muestra la inicial como respaldo. -->
+                <img src="@MarcasModel.LogoDe(marca)" alt="@marca.Nombre" class="marca-logo"
+                     onerror="this.style.display='none';var s=this.nextElementSibling;if(s){s.style.display='flex';}" />
+                <div class="marca-inicial" style="display:none">@(string.IsNullOrEmpty(marca.Nombre) ? "?" : marca.Nombre[..1])</div>
                 <div class="marca-info">
                     <h3 class="marca-nombre">@marca.Nombre</h3>
                     <p class="marca-pais">@marca.PaisOrigen</p>
