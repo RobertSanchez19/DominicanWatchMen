@@ -44,6 +44,11 @@ Desktop.ini
 ## VS Code ##
 .vscode/
 
+## Proyecto anterior (React/Blazor) — vive SOLO en la rama backup-proyecto-anterior, no en main ##
+dwm-react/
+RelojBlazor/
+Proyecto relojes/
+
 ## Local / scratch (no versionar) ##
 .claude/
 node_modules/
