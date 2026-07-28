@@ -40,7 +40,7 @@ a { text-decoration: none; color: inherit; }
     z-index: 100;
     background: var(--ink);
     border-bottom: 1px solid rgba(255,255,255,0.08);
-    height: 68px;
+    min-height: 68px;
     display: flex;
     align-items: center;
 }
@@ -60,6 +60,7 @@ a { text-decoration: none; color: inherit; }
     align-items: center;
     gap: 10px;
     text-decoration: none;
+    flex-shrink: 0;
 }
 
 .dwm-logo-icon {
@@ -81,6 +82,7 @@ a { text-decoration: none; color: inherit; }
     font-weight: 700;
     color: var(--white);
     letter-spacing: 0.02em;
+    white-space: nowrap;
 }
 
 .dwm-logo-sub {
@@ -113,6 +115,36 @@ a { text-decoration: none; color: inherit; }
 .dwm-nav-link.active {
     color: var(--white);
     background: rgba(255,255,255,0.08);
+}
+
+/* ===== Header responsive ===== */
+/* Tablet: el menu pasa a una segunda fila y se centra */
+@media (max-width: 900px) {
+    .dwm-header-inner {
+        flex-wrap: wrap;
+        padding: 10px 20px;
+        row-gap: 10px;
+    }
+    .dwm-nav {
+        order: 3;
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+    }
+    .dwm-nav-link { padding: 7px 12px; }
+}
+
+/* Movil: logo mas pequeno, sin subtitulo, textos compactos */
+@media (max-width: 480px) {
+    .dwm-header-inner { padding: 10px 14px; }
+    .dwm-logo { gap: 8px; }
+    .dwm-logo-icon { width: 34px; height: 34px; }
+    .dwm-logo-name { font-size: 15px; }
+    .dwm-logo-sub { display: none; }
+    .dwm-nav-link { font-size: 10px; padding: 6px 9px; letter-spacing: 0.08em; }
+    .dwm-user { gap: 6px; }
+    .dwm-cart { margin-right: 4px; padding: 5px 8px; }
 }
 
 /* ============================================================
