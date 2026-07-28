@@ -51,6 +51,14 @@
                     <a class="dwm-nav-link @Activo("/AdminMarcas")" href="/AdminMarcas">Gestión marcas</a>
                     <a class="dwm-nav-link @Activo("/Usuarios")" href="/Usuarios">Usuarios</a>
                 }
+                @if (esAdmin || User.IsInRole("Fabricante"))
+                {
+                    <a class="dwm-nav-link @Activo("/Taller")" href="/Taller">Taller</a>
+                }
+                @if (esAdmin || User.IsInRole("Soporte"))
+                {
+                    <a class="dwm-nav-link @Activo("/Soporte")" href="/Soporte">Soporte</a>
+                }
             </nav>
 
             <!-- ===== AREA DE SESION ===== -->

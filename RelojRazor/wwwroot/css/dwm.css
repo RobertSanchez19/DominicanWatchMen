@@ -2125,3 +2125,72 @@ a { text-decoration: none; color: inherit; }
 @media (max-width: 640px) {
     .noticias-grid { padding: 16px 20px 40px; }
 }
+
+/* ============================================================
+   SOPORTE (tickets)
+   ============================================================ */
+.soporte-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    padding: 24px 60px 60px;
+    max-width: 1300px;
+}
+.soporte-lista { display: flex; flex-direction: column; gap: 10px; }
+.soporte-item {
+    display: block; padding: 14px 16px;
+    border: 1px solid var(--border); border-radius: 10px; background: var(--white);
+    color: inherit; transition: all 0.2s;
+}
+.soporte-item:hover { border-color: var(--border-dk); }
+.soporte-item-activo { border-color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+.soporte-item-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.soporte-asunto { font-weight: 600; font-size: 14px; color: var(--ink); }
+.soporte-item-sub { font-size: 11px; color: var(--ink-4); margin-top: 4px; }
+
+.soporte-detalle {
+    border: 1px solid var(--border); border-radius: 12px; background: var(--white); padding: 24px;
+}
+.soporte-detalle-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.soporte-detalle-titulo { font-family: var(--serif); font-size: 22px; margin: 0; color: var(--ink); }
+.soporte-detalle-meta { font-size: 12px; color: var(--ink-4); margin-top: 4px; }
+.soporte-descripcion {
+    font-size: 14px; color: var(--ink-2); line-height: 1.6;
+    background: var(--off-white); padding: 14px 16px; border-radius: 8px; margin: 16px 0;
+}
+.soporte-estados { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.soporte-estado-btn {
+    font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 9999px;
+    border: 1px solid var(--border-dk); background: transparent; color: var(--ink-3); cursor: pointer;
+}
+.soporte-estado-btn:hover { border-color: var(--ink); color: var(--ink); }
+.soporte-estado-activo { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+.soporte-hilo { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.soporte-msg { padding: 12px 14px; border-radius: 10px; max-width: 80%; }
+.soporte-msg-cliente { background: var(--warm-grey); align-self: flex-start; }
+.soporte-msg-soporte { background: var(--gold-pale); align-self: flex-end; }
+.soporte-msg-autor { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.soporte-msg-texto { font-size: 14px; color: var(--ink); margin: 4px 0; line-height: 1.5; }
+.soporte-msg-fecha { font-size: 10px; color: var(--ink-4); }
+
+.soporte-responder { display: flex; flex-direction: column; gap: 10px; }
+.soporte-responder textarea {
+    width: 100%; padding: 12px; border: 1px solid var(--border-dk); border-radius: 8px;
+    font-family: inherit; font-size: 14px; resize: vertical;
+}
+.soporte-responder .btn-primary { align-self: flex-start; }
+
+/* Badges de estado */
+.estado-badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 9999px; white-space: nowrap;
+}
+.estado-abierto  { background: #FEE2E2; color: #b91c1c; }
+.estado-progreso { background: #FEF3C7; color: #92400e; }
+.estado-resuelto { background: #DCFCE7; color: #166534; }
+.estado-cerrado  { background: var(--warm-grey); color: var(--ink-3); }
+
+@media (max-width: 820px) {
+    .soporte-layout { grid-template-columns: 1fr; padding: 16px 20px 40px; }
+}

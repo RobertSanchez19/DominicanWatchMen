@@ -78,7 +78,11 @@ Estructura y cumplimiento de requisitos (asignación Razor Pages):
 
 - **Landing page** (`Pages/Index.cshtml`) + páginas adicionales: `Catalogo`, `Marcas`,
   `Detalle`, `Carrito`, `Noticias`, `Login`/`Registro`/`Recuperar`/`Restablecer`,
-  `MiCuenta`, `Admin`, `Usuarios` y `Contacto`.
+  `MiCuenta`, `Contacto` y páginas por rol: `Admin`, `AdminMarcas` y `Usuarios`
+  (Admin), `Taller` (Fabricante) y `Soporte` (Soporte).
+- **Autorización por roles** (cookies): políticas `SoloAdmin`, `SoloFabricante` y
+  `SoloSoporte` en `Program.cs`; cada página de rol se protege por convención y el
+  menú muestra solo lo que corresponde a cada usuario.
 - **Sintaxis Razor** en todos los `.cshtml`; propiedades del `.cshtml.cs` → `.cshtml`
   (p. ej. `Model.Destacados`) y del `.cshtml` → `.cshtml.cs` (formularios con
   `[BindProperty]` en `Admin`, `Contacto` y `Detalle`, búsqueda en `Catalogo`).

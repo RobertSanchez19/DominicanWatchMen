@@ -1,0 +1,126 @@
+@page
+@model TallerModel
+@{
+    ViewData["Title"] = "Taller";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Taller de Fabricación</h1>
+    <p class="page-sub">Inventario de piezas para ensamblar relojes (rol Fabricante). Datos servidos por el Web API.</p>
+</div>
+
+@if (Model.Mensaje is not null)
+{
+    <div class="dwm-alert dwm-alert-ok">@Model.Mensaje</div>
+}
+@if (Model.Error is not null)
+{
+    <div class="dwm-alert dwm-alert-err">@Model.Error</div>
+}
+
+<!-- ===== FORMULARIO: nueva pieza ===== -->
+<form method="post" class="dwm-form">
+    <h2 class="section-title" style="font-size:24px">Nueva pieza</h2>
+
+    <div class="dwm-field">
+        <label asp-for="Input.Categoria">Categoría</label>
+        <select asp-for="Input.Categoria">
+            <option value="">— Selecciona —</option>
+            @foreach (var c in TallerModel.Categorias)
+            {
+                <option value="@c">@c</option>
+            }
+        </select>
+        <span asp-validation-for="Input.Categoria" class="field-error"></span>
+    </div>
+
+    <div class="dwm-field">
+        <label asp-for="Input.Nombre">Nombre</label>
+        <input asp-for="Input.Nombre" placeholder="Ej. Case Diver 40mm" />
+        <span asp-validation-for="Input.Nombre" class="field-error"></span>
+    </div>
+
+    <div class="dwm-field">
+        <label asp-for="Input.Tipo">Tipo</label>
+        <input asp-for="Input.Tipo" placeholder="Ej. Diver, GMT, Sunburst…" />
+    </div>
+
+    <div class="dwm-field">
+        <label asp-for="Input.Color">Color</label>
+        <input asp-for="Input.Color" placeholder="Ej. Negro, Azul, Acero" />
+    </div>
+
+    <div class="dwm-field">
+        <label asp-for="Input.Material">Material</label>
+        <input asp-for="Input.Material" placeholder="Ej. 316L, Zafiro, Cerámica" />
+    </div>
+
+    <div class="dwm-field">
+        <label asp-for="Input.Stock">Stock</label>
+        <input asp-for="Input.Stock" type="number" min="0" />
+        <span asp-validation-for="Input.Stock" class="field-error"></span>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" asp-page-handler="Guardar" class="btn-primary">Agregar pieza</button>
+    </div>
+</form>
+
+<!-- ===== LISTADO por categoría ===== -->
+<div class="page-header" style="background:var(--white);border-top:1px solid var(--border)">
+    <h2 class="page-title" style="font-size:26px">Inventario de piezas</h2>
+</div>
+
+@if (Model.Piezas.Count == 0)
+{
+    <div class="empty-msg">No hay piezas registradas.</div>
+}
+else
+{
+    <table class="dwm-table">
+        <thead>
+            <tr>
+                <th>Categoría</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Color</th>
+                <th>Material</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model.Piezas)
+            {
+                <tr>
+                    <td><span class="carrito-chip">@p.Categoria</span></td>
+                    <td>@p.Nombre</td>
+                    <td>@(string.IsNullOrEmpty(p.Tipo) ? "—" : p.Tipo)</td>
+                    <td>@(string.IsNullOrEmpty(p.Color) ? "—" : p.Color)</td>
+                    <td>@(string.IsNullOrEmpty(p.Material) ? "—" : p.Material)</td>
+                    <td>
+                        @if (p.Stock == 0)
+                        {
+                            <span style="color:#dc2626;font-weight:700">Agotado</span>
+                        }
+                        else
+                        {
+                            @p.Stock
+                        }
+                    </td>
+                    <td class="dwm-table-actions">
+                        <form method="post" asp-page-handler="Eliminar" asp-route-id="@p.Id" style="display:inline">
+                            <button type="submit" class="danger"
+                                    style="background:none;border:none;cursor:pointer;color:#dc2626;font-weight:600;font-size:11px"
+                                    onclick="return confirm('¿Eliminar esta pieza?');">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

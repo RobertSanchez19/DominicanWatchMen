@@ -1,0 +1,106 @@
+@page
+@model SoporteModel
+@{
+    ViewData["Title"] = "Soporte";
+    string EstadoClase(string e) => e switch
+    {
+        "Abierto" => "estado-abierto",
+        "En progreso" => "estado-progreso",
+        "Resuelto" => "estado-resuelto",
+        _ => "estado-cerrado"
+    };
+}
+
+<div class="page-header">
+    <h1 class="page-title">Soporte — Tickets</h1>
+    <p class="page-sub">Atiende los tickets de los clientes (rol Soporte). Datos servidos por el Web API.</p>
+</div>
+
+@if (Model.Mensaje is not null)
+{
+    <div class="dwm-alert dwm-alert-ok">@Model.Mensaje</div>
+}
+@if (Model.Error is not null)
+{
+    <div class="dwm-alert dwm-alert-err">@Model.Error</div>
+}
+
+<div class="soporte-layout">
+    <!-- ===== LISTA DE TICKETS ===== -->
+    <div class="soporte-lista">
+        @if (Model.Tickets.Count == 0)
+        {
+            <div class="empty-msg">No hay tickets.</div>
+        }
+        else
+        {
+            @foreach (var t in Model.Tickets)
+            {
+                <a href="/Soporte?id=@t.Id" class="soporte-item @(Model.Seleccionado?.Id == t.Id ? "soporte-item-activo" : "")">
+                    <div class="soporte-item-top">
+                        <span class="soporte-asunto">@t.Asunto</span>
+                        <span class="estado-badge @EstadoClase(t.Estado)">@t.Estado</span>
+                    </div>
+                    <div class="soporte-item-sub">#@t.Id · @t.NombreCliente · @t.Fecha.ToLocalTime().ToString("dd MMM")</div>
+                </a>
+            }
+        }
+    </div>
+
+    <!-- ===== DETALLE DEL TICKET ===== -->
+    <div class="soporte-detalle">
+        @if (Model.Seleccionado is null)
+        {
+            <div class="empty-msg">Selecciona un ticket para ver la conversación.</div>
+        }
+        else
+        {
+            var t = Model.Seleccionado;
+            <div class="soporte-detalle-head">
+                <div>
+                    <h2 class="soporte-detalle-titulo">@t.Asunto</h2>
+                    <div class="soporte-detalle-meta">#@t.Id · @t.NombreCliente (@t.Email) · Prioridad @t.Prioridad</div>
+                </div>
+                <span class="estado-badge @EstadoClase(t.Estado)">@t.Estado</span>
+            </div>
+
+            <p class="soporte-descripcion">@t.Descripcion</p>
+
+            <!-- Cambio de estado -->
+            <div class="soporte-estados">
+                @foreach (var e in SoporteModel.Estados)
+                {
+                    <form method="post" asp-page-handler="Estado" asp-route-id="@t.Id" style="display:inline">
+                        <input type="hidden" name="estado" value="@e" />
+                        <button type="submit" class="soporte-estado-btn @(t.Estado == e ? "soporte-estado-activo" : "")">@e</button>
+                    </form>
+                }
+            </div>
+
+            <!-- Hilo de mensajes -->
+            <div class="soporte-hilo">
+                @if (t.Mensajes.Count == 0)
+                {
+                    <p style="font-size:13px;color:var(--ink-4)">Aún no hay respuestas en este ticket.</p>
+                }
+                else
+                {
+                    @foreach (var m in t.Mensajes.OrderBy(x => x.Fecha))
+                    {
+                        <div class="soporte-msg @(m.EsSoporte ? "soporte-msg-soporte" : "soporte-msg-cliente")">
+                            <div class="soporte-msg-autor">@m.Autor @(m.EsSoporte ? "· Soporte" : "")</div>
+                            <div class="soporte-msg-texto">@m.Texto</div>
+                            <div class="soporte-msg-fecha">@m.Fecha.ToLocalTime().ToString("dd MMM yyyy · HH:mm")</div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- Responder -->
+            <form method="post" asp-page-handler="Responder" asp-route-id="@t.Id" class="soporte-responder">
+                <textarea asp-for="Respuesta" rows="3" placeholder="Escribe tu respuesta al cliente…"></textarea>
+                <button type="submit" class="btn-primary">Enviar respuesta</button>
+            </form>
+        }
+    </div>
+</div>

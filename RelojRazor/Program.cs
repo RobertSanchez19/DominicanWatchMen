@@ -13,6 +13,9 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizePage("/Admin", "SoloAdmin");
     options.Conventions.AuthorizePage("/AdminMarcas", "SoloAdmin");
     options.Conventions.AuthorizePage("/Usuarios", "SoloAdmin");
+    // Taller de fabricacion: Admin o Fabricante. Soporte: Admin o Soporte.
+    options.Conventions.AuthorizePage("/Taller", "SoloFabricante");
+    options.Conventions.AuthorizePage("/Soporte", "SoloSoporte");
     // "Mi cuenta" requiere sesion (cualquier rol).
     options.Conventions.AuthorizePage("/MiCuenta");
 });
@@ -74,6 +77,14 @@ builder.Services.AddHttpClient("marca-web", client =>
     client.DefaultRequestHeaders.Add("User-Agent", "DominicanWatchMen/1.0 (proyecto educativo UNPHU)");
 });
 builder.Services.AddScoped<IMarcaWebService, MarcaWebService>();
+
+// Cliente general hacia el RelojAPI para taller (piezas) y soporte (tickets).
+builder.Services.AddHttpClient("reloj-api", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+});
+builder.Services.AddScoped<ITallerService, TallerService>();
+builder.Services.AddScoped<ISoporteService, SoporteService>();
 
 // Necesario para leer la sesion del usuario en las vistas (_Layout).
 builder.Services.AddHttpContextAccessor();
