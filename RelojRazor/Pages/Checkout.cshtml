@@ -1,0 +1,104 @@
+@page
+@model CheckoutModel
+@{
+    ViewData["Title"] = "Finalizar compra";
+    var envioNota = "RD$ 200.00 en Distrito Nacional / Santo Domingo · fuera se cotiza aparte";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Finalizar compra</h1>
+    <p class="page-sub">Completa tus datos y elige el método de pago. (Compra de demostración: el pago con tarjeta es simulado.)</p>
+</div>
+
+@if (Model.Error is not null)
+{
+    <div class="dwm-alert dwm-alert-err" style="margin:0 40px 16px">@Model.Error</div>
+}
+
+<form method="post" class="checkout-layout">
+    <!-- ===== DATOS + PAGO ===== -->
+    <div class="checkout-form">
+        <h2 class="section-title" style="font-size:22px">Datos de envío</h2>
+        <div class="checkout-grid2">
+            <div class="dwm-field"><label>Nombre</label><input asp-for="Nombre" placeholder="Tu nombre" /></div>
+            <div class="dwm-field"><label>Apellido</label><input asp-for="Apellido" placeholder="Tu apellido" /></div>
+            <div class="dwm-field"><label>Correo</label><input asp-for="Email" type="email" placeholder="tucorreo@ejemplo.com" /></div>
+            <div class="dwm-field"><label>Teléfono</label><input asp-for="Telefono" placeholder="809-000-0000" /></div>
+        </div>
+        <div class="dwm-field"><label>Dirección</label><input asp-for="Direccion" placeholder="Calle, número, sector" /></div>
+        <div class="checkout-grid2">
+            <div class="dwm-field"><label>Ciudad</label><input asp-for="Ciudad" placeholder="Ciudad" /></div>
+            <div class="dwm-field">
+                <label>Provincia</label>
+                <select asp-for="Provincia">
+                    <option value="">— Selecciona —</option>
+                    @foreach (var p in CheckoutModel.Provincias)
+                    {
+                        <option value="@p">@p</option>
+                    }
+                </select>
+            </div>
+            <div class="dwm-field"><label>Código postal (opcional)</label><input asp-for="CodigoPostal" placeholder="10000" /></div>
+            <div class="dwm-field"><label>Referencia (opcional)</label><input asp-for="Referencia" placeholder="Cerca de…" /></div>
+        </div>
+
+        <h2 class="section-title" style="font-size:22px;margin-top:20px">Método de pago</h2>
+        <div class="checkout-pagos">
+            <label class="checkout-pago">
+                <input type="radio" asp-for="MetodoPago" value="Tarjeta de crédito" onchange="dwmTogglePago()" />
+                <span>💳 Tarjeta de crédito</span>
+            </label>
+            <label class="checkout-pago">
+                <input type="radio" asp-for="MetodoPago" value="Contra entrega" onchange="dwmTogglePago()" />
+                <span>🚚 Pago contra entrega</span>
+            </label>
+        </div>
+
+        <!-- Datos de tarjeta (SIMULADOS: no se guardan) -->
+        <div id="camposTarjeta" class="checkout-tarjeta">
+            <div class="dwm-field"><label>Titular de la tarjeta</label><input asp-for="TitularTarjeta" placeholder="Como aparece en la tarjeta" /></div>
+            <div class="dwm-field"><label>Número de tarjeta</label><input asp-for="NumeroTarjeta" inputmode="numeric" placeholder="0000 0000 0000 0000" maxlength="23" /></div>
+            <div class="checkout-grid2">
+                <div class="dwm-field"><label>Vencimiento (MM/AA)</label><input asp-for="Vencimiento" placeholder="12/28" maxlength="5" /></div>
+                <div class="dwm-field"><label>CVV</label><input asp-for="Cvv" inputmode="numeric" placeholder="123" maxlength="4" /></div>
+            </div>
+            <p style="font-size:11px;color:var(--ink-4);margin:0">🔒 Demostración: no se realiza ningún cargo real ni se guardan los datos de la tarjeta.</p>
+        </div>
+
+        <div class="dwm-field" style="margin-top:14px">
+            <label>Cupón de descuento (opcional)</label>
+            <input asp-for="CuponCodigo" placeholder="Ej. BIENVENIDO10" style="text-transform:uppercase" />
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" asp-page-handler="Confirmar" class="btn-primary">Colocar orden</button>
+            <a href="/Carrito" class="btn-secondary">Volver al carrito</a>
+        </div>
+    </div>
+
+    <!-- ===== RESUMEN DEL PEDIDO ===== -->
+    <div class="checkout-resumen">
+        <h2 class="section-title" style="font-size:18px">Tu pedido</h2>
+        @foreach (var item in Model.Items)
+        {
+            <div class="checkout-item">
+                <span class="checkout-item-nombre">@item.RelojNombre <span class="checkout-item-cant">×@item.Cantidad</span></span>
+                <span class="checkout-item-sub">RD$ @item.Subtotal.ToString("N2")</span>
+            </div>
+            <div class="checkout-item-cfg">@item.Maquina · @item.Pulsera</div>
+        }
+        <div class="checkout-total-row"><span>Subtotal</span><span>RD$ @Model.Subtotal.ToString("N2")</span></div>
+        <div class="checkout-total-row"><span>ITBIS (18%)</span><span>RD$ @Model.Itbis.ToString("N2")</span></div>
+        <div class="checkout-total-row"><span>Envío</span><span class="checkout-envio">según provincia</span></div>
+        <p class="checkout-envio-nota">@envioNota</p>
+        <div class="checkout-total-row checkout-total-final">
+            <span>Total estimado</span>
+            <span>RD$ @((Model.Subtotal + Model.Itbis).ToString("N2"))</span>
+        </div>
+        <p class="checkout-envio-nota">El total exacto (con envío y cupón) se confirma al colocar la orden.</p>
+    </div>
+</form>
+
+@section Scripts {
+    <script>dwmTogglePago();</script>
+}

@@ -47,6 +47,14 @@ function dwmConfigurar() {
     if (elBtn) elBtn.disabled = disponible <= 0;
 }
 
+// Checkout: muestra u oculta los campos de la tarjeta según el método de pago.
+function dwmTogglePago() {
+    const campos = document.getElementById("camposTarjeta");
+    if (!campos) return;
+    const sel = document.querySelector('input[name="MetodoPago"]:checked');
+    campos.style.display = (sel && sel.value === "Tarjeta de crédito") ? "block" : "none";
+}
+
 // Valida el formulario de contacto en el navegador antes de enviarlo al servidor.
 function validarContacto() {
     const nombre = document.getElementById("Contacto_Nombre");

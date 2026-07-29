@@ -85,6 +85,7 @@ builder.Services.AddHttpClient("reloj-api", client =>
 });
 builder.Services.AddScoped<ITallerService, TallerService>();
 builder.Services.AddScoped<ISoporteService, SoporteService>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
 
 // Necesario para leer la sesion del usuario en las vistas (_Layout).
 builder.Services.AddHttpContextAccessor();

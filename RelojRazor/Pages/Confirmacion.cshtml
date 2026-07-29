@@ -1,0 +1,70 @@
+@page
+@model ConfirmacionModel
+@{
+    ViewData["Title"] = "Compra confirmada";
+}
+
+@if (Model.Pedido is null)
+{
+    <div class="page-header"><h1 class="page-title">Pedido no encontrado</h1></div>
+    <div class="empty-msg">
+        No se encontró el pedido.
+        <div style="margin-top:14px"><a class="btn-primary" href="/Catalogo">Ir al catálogo</a></div>
+    </div>
+}
+else
+{
+    var p = Model.Pedido;
+
+    <div class="confirmacion-hero">
+        <div class="confirmacion-check">✓</div>
+        <h1 class="confirmacion-titulo">¡Gracias por tu compra!</h1>
+        <p class="confirmacion-sub">Tu orden <strong>#@p.Id</strong> fue registrada correctamente.</p>
+        <span class="estado-badge estado-progreso">@p.Estado</span>
+    </div>
+
+    <div class="confirmacion-wrap">
+        <!-- ===== Datos ===== -->
+        <div class="confirmacion-col">
+            <h2 class="section-title" style="font-size:18px">Envío</h2>
+            <p class="confirmacion-datos">
+                <strong>@p.NombreCliente @p.ApellidoCliente</strong><br />
+                @p.Direccion<br />
+                @p.Ciudad, @p.Provincia @p.CodigoPostal<br />
+                @p.Telefono · @p.Email
+                @if (!string.IsNullOrWhiteSpace(p.Referencia))
+                {
+                    <br />
+                    <span style="color:var(--ink-4)">Ref: @p.Referencia</span>
+                }
+            </p>
+            <h2 class="section-title" style="font-size:18px;margin-top:14px">Pago</h2>
+            <p class="confirmacion-datos">@p.MetodoPago</p>
+        </div>
+
+        <!-- ===== Resumen ===== -->
+        <div class="confirmacion-col">
+            <h2 class="section-title" style="font-size:18px">Resumen</h2>
+            @foreach (var item in p.Items)
+            {
+                <div class="checkout-item">
+                    <span class="checkout-item-nombre">@item.RelojNombre <span class="checkout-item-cant">×@item.Cantidad</span></span>
+                    <span class="checkout-item-sub">RD$ @item.Subtotal.ToString("N2")</span>
+                </div>
+                <div class="checkout-item-cfg">@item.MaquinaNombre · @item.PulseraNombre</div>
+            }
+            <div class="checkout-total-row"><span>Subtotal</span><span>RD$ @p.Subtotal.ToString("N2")</span></div>
+            @if (p.Descuento > 0)
+            {
+                <div class="checkout-total-row" style="color:#166534"><span>Descuento @(p.CuponCodigo is not null ? $"({p.CuponCodigo})" : "")</span><span>- RD$ @p.Descuento.ToString("N2")</span></div>
+            }
+            <div class="checkout-total-row"><span>ITBIS (18%)</span><span>RD$ @p.Itbis.ToString("N2")</span></div>
+            <div class="checkout-total-row"><span>Envío</span><span>@(p.Envio > 0 ? $"RD$ {p.Envio.ToString("N2")}" : "Por cotizar")</span></div>
+            <div class="checkout-total-row checkout-total-final"><span>Total</span><span>RD$ @p.Total.ToString("N2")</span></div>
+        </div>
+    </div>
+
+    <div style="text-align:center;padding:0 0 50px">
+        <a href="/Catalogo" class="btn-primary">Seguir comprando</a>
+    </div>
+}
